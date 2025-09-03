@@ -59,63 +59,63 @@ Check that these tables exist:
 
 1. **Deploy to Vercel**
 
-```bash
-cd admin-app
-npx vercel --prod
-```
+   ```bash
+   cd admin-app
+   npx vercel --prod
+   ```
 
 2. **Configure Environment Variables in Vercel Dashboard**
    Go to your Vercel project → Settings → Environment Variables
 
-Copy from `.env.production.template`:
+   Copy from `.env.production.template`:
 
-```bash
-# Core Configuration
-NEXT_PUBLIC_SUPABASE_URL=https://xxaqztdwdjgrkdyfnjvr.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+   ```bash
+   # Core Configuration
+   NEXT_PUBLIC_SUPABASE_URL=https://xxaqztdwdjgrkdyfnjvr.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-# UltraMessage
-ULTRAMSG_INSTANCE_ID=instance140392
-ULTRAMSG_TOKEN=hrub8q5j85dp0bgn
-ULTRAMSG_BASE_URL=https://api.ultramsg.com
+   # UltraMessage
+   ULTRAMSG_INSTANCE_ID=instance140392
+   ULTRAMSG_TOKEN=hrub8q5j85dp0bgn
+   ULTRAMSG_BASE_URL=https://api.ultramsg.com
 
-# WhatsApp
-WHATSAPP_BUSINESS_NUMBER=201015544028
-WHATSAPP_ENABLED=true
-WHATSAPP_DEBUG=false
+   # WhatsApp
+   WHATSAPP_BUSINESS_NUMBER=201015544028
+   WHATSAPP_ENABLED=true
+   WHATSAPP_DEBUG=false
 
-# Production URLs
-NEXT_PUBLIC_SITE_URL=https://your-admin.vercel.app
-ULTRAMSG_WEBHOOK_URL=https://your-admin.vercel.app/api/webhooks/whatsapp/inbound
+   # Production URLs
+   NEXT_PUBLIC_SITE_URL=https://your-admin.vercel.app
+   ULTRAMSG_WEBHOOK_URL=https://your-admin.vercel.app/api/webhooks/whatsapp/inbound
 
-# IMPORTANT: Generate a secure webhook token
-ULTRAMSG_WEBHOOK_TOKEN=your_secure_32_char_production_token_here
-```
+   # IMPORTANT: Generate a secure webhook token
+   ULTRAMSG_WEBHOOK_TOKEN=your_secure_32_char_production_token_here
+   ```
 
 3. **Update Webhook URL**
 
-```bash
-ULTRAMSG_WEBHOOK_URL=https://your-actual-domain.vercel.app/api/webhooks/whatsapp/inbound
-```
+   ```bash
+   ULTRAMSG_WEBHOOK_URL=https://your-actual-domain.vercel.app/api/webhooks/whatsapp/inbound
+   ```
 
 ### Kiosk App Deployment
 
 1. **Deploy Kiosk App**
 
-```bash
-cd kiosk-app
-npx vercel --prod
-```
+   ```bash
+   cd kiosk-app
+   npx vercel --prod
+   ```
 
 2. **Configure Kiosk Environment**
 
-```bash
-VITE_SUPABASE_URL=https://xxaqztdwdjgrkdyfnjvr.supabase.co
-VITE_SUPABASE_ANON_KEY=your_anon_key
-VITE_WHATSAPP_BUSINESS_NUMBER=201015544028
-VITE_PRINTER_ENABLED=true
-```
+   ```bash
+   VITE_SUPABASE_URL=https://xxaqztdwdjgrkdyfnjvr.supabase.co
+   VITE_SUPABASE_ANON_KEY=your_anon_key
+   VITE_WHATSAPP_BUSINESS_NUMBER=201015544028
+   VITE_PRINTER_ENABLED=true
+   ```
 
 ## 📱 UltraMessage Configuration
 

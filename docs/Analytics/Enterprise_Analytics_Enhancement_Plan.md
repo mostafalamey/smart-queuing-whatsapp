@@ -222,16 +222,16 @@ export const ExecutiveDashboard: React.FC = () => {
 
 ## **Phase 3: Predictive Analytics Engine** ⏱️ 3 Weeks
 
-_Machine learning and forecasting capabilities_
+Machine learning and forecasting capabilities
 
-### **Deliverables**
+### **Deliverables (Phase 3)**
 
 1. **Time Series Forecasting** - Queue length and wait time predictions
 2. **Staffing Optimization** - AI-powered staffing recommendations
 3. **Customer Flow Prediction** - Traffic pattern forecasting
 4. **Capacity Planning Tools** - Resource optimization insights
 
-### **Technical Implementation**
+### **Technical Implementation (Phase 3)**
 
 #### 3.1 Predictive Models Library
 
@@ -329,16 +329,16 @@ export const OptimizationRecommendations: React.FC = () => {
 
 ## **Phase 4: Advanced Reporting & Collaboration** ⏱️ 2 Weeks
 
-_Custom reporting and enterprise features_
+Custom reporting and enterprise features
 
-### **Deliverables**
+### **Deliverables (Phase 4)**
 
 1. **Custom Report Builder** - Drag-and-drop report creation
 2. **Scheduled Reports** - Automated report generation and distribution
 3. **Collaboration Tools** - Report sharing and commenting
 4. **White-label Reporting** - Client-facing report customization
 
-### **Technical Implementation**
+### **Technical Implementation (Phase 4)**
 
 #### 4.1 Report Builder Interface
 
@@ -413,7 +413,7 @@ export const WhiteLabelReports: React.FC = () => {
 
 ## 📁 File Structure Plan
 
-```
+```structure
 admin/src/
 ├── lib/analytics/
 │   ├── StatisticalAnalysisEngine.ts
@@ -575,7 +575,7 @@ admin/src/
 
 **Keep your current UI foundation** and enhance it with specialized charting libraries:
 
-#### **Technology Stack Additions**
+#### **Technology Stack Additions (Visualization)**
 
 ```json
 // Add to admin/package.json dependencies
@@ -742,7 +742,7 @@ export const AnalyticsCharts = () => {
 
 #### **Directory Structure Best Practices**
 
-```
+```structure
 src/
 ├── app/analytics/
 │   ├── components/           # Page-specific components

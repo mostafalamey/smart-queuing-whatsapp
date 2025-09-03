@@ -33,9 +33,6 @@ export function MessageTemplateManagement({
   const [activeTemplate, setActiveTemplate] = useState<
     "ticketCreated" | "youAreNext" | "yourTurn"
   >("ticketCreated");
-  const [activeMessageType, setActiveMessageType] = useState<
-    "whatsapp" | "push"
-  >("whatsapp");
   const [showPreview, setShowPreview] = useState(false);
 
   // Local welcome message state with debounced updates
@@ -157,8 +154,8 @@ export function MessageTemplateManagement({
 
   const updateTemplate = (
     templateType: keyof MessageTemplates,
-    messageType: "whatsapp" | "push",
-    value: string | { title: string; body: string }
+    messageType: "whatsapp",
+    value: string
   ) => {
     setTemplates((prev: MessageTemplates) => ({
       ...prev,
@@ -171,24 +168,12 @@ export function MessageTemplateManagement({
 
   const getCurrentTemplate = () => {
     const template = templates[activeTemplate];
-    if (activeMessageType === "whatsapp") {
-      return template.whatsapp;
-    } else {
-      return template.push;
-    }
+    return template.whatsapp;
   };
 
   const generatePreview = () => {
     const template = getCurrentTemplate();
-    if (activeMessageType === "whatsapp") {
-      return processMessageTemplate(template as string, sampleData);
-    } else {
-      const pushTemplate = template as { title: string; body: string };
-      return {
-        title: processMessageTemplate(pushTemplate.title, sampleData),
-        body: processMessageTemplate(pushTemplate.body, sampleData),
-      };
-    }
+    return processMessageTemplate(template as string, sampleData);
   };
 
   const copyToClipboard = (text: string) => {
@@ -314,29 +299,15 @@ export function MessageTemplateManagement({
           </div>
         </div>
 
-        {/* Message Type Selection */}
+        {/* Message Type Selection - WhatsApp Only */}
         <div className="mb-6">
-          <div className="flex space-x-4">
-            <button
-              onClick={() => setActiveMessageType("whatsapp")}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                activeMessageType === "whatsapp"
-                  ? "bg-green-100 text-green-800 border border-green-200"
-                  : "bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200"
-              }`}
-            >
+          <div className="flex space-x-4 items-center">
+            <button className="px-4 py-2 rounded-md text-sm font-medium bg-green-100 text-green-800 border border-green-200">
               WhatsApp Message
             </button>
-            <button
-              onClick={() => setActiveMessageType("push")}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                activeMessageType === "push"
-                  ? "bg-blue-100 text-blue-800 border border-blue-200"
-                  : "bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200"
-              }`}
-            >
-              Push Notification
-            </button>
+            <span className="text-sm text-gray-500 italic">
+              (WhatsApp-first experience - no push notifications needed)
+            </span>
           </div>
         </div>
 
@@ -347,71 +318,21 @@ export function MessageTemplateManagement({
               Edit Template
             </h3>
 
-            {activeMessageType === "whatsapp" ? (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  WhatsApp Message
-                </label>
-                <textarea
-                  value={getCurrentTemplate() as string}
-                  onChange={(e) =>
-                    updateTemplate(activeTemplate, "whatsapp", e.target.value)
-                  }
-                  rows={12}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
-                  placeholder="Enter your WhatsApp message template..."
-                />
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Push Notification Title
-                  </label>
-                  <input
-                    type="text"
-                    value={
-                      (getCurrentTemplate() as { title: string; body: string })
-                        .title
-                    }
-                    onChange={(e) =>
-                      updateTemplate(activeTemplate, "push", {
-                        ...(getCurrentTemplate() as {
-                          title: string;
-                          body: string;
-                        }),
-                        title: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter push notification title..."
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Push Notification Body
-                  </label>
-                  <textarea
-                    value={
-                      (getCurrentTemplate() as { title: string; body: string })
-                        .body
-                    }
-                    onChange={(e) =>
-                      updateTemplate(activeTemplate, "push", {
-                        ...(getCurrentTemplate() as {
-                          title: string;
-                          body: string;
-                        }),
-                        body: e.target.value,
-                      })
-                    }
-                    rows={6}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter push notification body..."
-                  />
-                </div>
-              </div>
-            )}
+            {/* WhatsApp Template Editor */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                WhatsApp Message
+              </label>
+              <textarea
+                value={getCurrentTemplate() as string}
+                onChange={(e) =>
+                  updateTemplate(activeTemplate, "whatsapp", e.target.value)
+                }
+                rows={12}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-sm"
+                placeholder="Enter your WhatsApp message template..."
+              />
+            </div>
 
             <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
               <h4 className="text-sm font-medium text-yellow-800 mb-2">
@@ -444,47 +365,26 @@ export function MessageTemplateManagement({
 
             {showPreview && (
               <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
-                {activeMessageType === "whatsapp" ? (
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-600">
-                        WhatsApp Preview:
-                      </span>
-                      <button
-                        onClick={() =>
-                          copyToClipboard(generatePreview() as string)
-                        }
-                        className="text-blue-600 hover:text-blue-800"
-                        title="Copy WhatsApp preview to clipboard"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <div className="bg-white border rounded-lg p-3 whitespace-pre-wrap text-sm font-mono">
-                      {generatePreview() as string}
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <span className="text-sm font-medium text-gray-600 mb-2 block">
-                      Push Notification Preview:
+                {/* WhatsApp Preview */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-600">
+                      WhatsApp Preview:
                     </span>
-                    <div className="bg-white border rounded-lg p-3 space-y-2">
-                      <div className="font-semibold text-sm">
-                        {
-                          (generatePreview() as { title: string; body: string })
-                            .title
-                        }
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {
-                          (generatePreview() as { title: string; body: string })
-                            .body
-                        }
-                      </div>
-                    </div>
+                    <button
+                      onClick={() =>
+                        copyToClipboard(generatePreview() as string)
+                      }
+                      className="text-blue-600 hover:text-blue-800"
+                      title="Copy WhatsApp preview to clipboard"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
                   </div>
-                )}
+                  <div className="bg-white border rounded-lg p-3 whitespace-pre-wrap text-sm font-mono">
+                    {generatePreview() as string}
+                  </div>
+                </div>
               </div>
             )}
 
