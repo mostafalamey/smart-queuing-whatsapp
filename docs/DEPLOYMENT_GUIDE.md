@@ -30,7 +30,7 @@ This guide covers the complete deployment of your WhatsApp-first queue managemen
 
 ```bash
 cd supabase
-supabase db push --db-url "postgresql://postgres.xxaqztdwdjgrkdyfnjvr:daPjsRPjOtEFQMBz@aws-0-ap-southeast-1.pooler.supabase.co:5432/postgres"
+supabase db push --db-url "postgresql://postgres.your-project-id:your-db-password@aws-0-ap-southeast-1.pooler.supabase.co:5432/postgres"
 ```
 
 ### Step 2: Configure Organization
@@ -71,7 +71,7 @@ Check that these tables exist:
 
    ```bash
    # Core Configuration
-   NEXT_PUBLIC_SUPABASE_URL=https://xxaqztdwdjgrkdyfnjvr.supabase.co
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
    SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
@@ -111,7 +111,7 @@ Check that these tables exist:
 2. **Configure Kiosk Environment**
 
    ```bash
-   VITE_SUPABASE_URL=https://xxaqztdwdjgrkdyfnjvr.supabase.co
+   VITE_SUPABASE_URL=https://your-project-id.supabase.co
    VITE_SUPABASE_ANON_KEY=your_anon_key
    VITE_WHATSAPP_BUSINESS_NUMBER=201015544028
    VITE_PRINTER_ENABLED=true

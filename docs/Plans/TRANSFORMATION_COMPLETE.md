@@ -61,7 +61,7 @@ ULTRAMSG_WEBHOOK_TOKEN=secure_webhook_secret_token_2025
 #### Kiosk App (.env)
 
 ```env
-VITE_SUPABASE_URL=https://xxaqztdwdjgrkdyfnjvr.supabase.co
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
 VITE_SUPABASE_ANON_KEY=your_anon_key_here
 ```
 

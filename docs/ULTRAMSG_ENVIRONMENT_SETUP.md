@@ -98,7 +98,7 @@ Add these environment variables in Vercel dashboard:
 
 ```bash
 # Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://xxaqztdwdjgrkdyfnjvr.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 

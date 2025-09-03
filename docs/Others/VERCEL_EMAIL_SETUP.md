@@ -69,7 +69,7 @@ RESEND_API_KEY=re_ffPHyQg7_71zHgqxkeKwFykhVg44LyUhV
 FROM_EMAIL=onboarding@resend.dev
 
 # Your Supabase keys
-NEXT_PUBLIC_SUPABASE_URL=https://xxaqztdwdjgrkdyfnjvr.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_key
 

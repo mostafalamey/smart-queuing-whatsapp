@@ -25,15 +25,15 @@ In Vercel Dashboard → Settings → Environment Variables, use:
 
 ```bash
 # CRITICAL: Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=https://xxaqztdwdjgrkdyfnjvr.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4YXF6dGR3ZGpncmtkeWZuanZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4NjkyNTYsImV4cCI6MjA3MDQ0NTI1Nn0.mr35VgacJYZTc35lAbn5KQ5BsV8ElucEp-Ekf_E63wg
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4YXF6dGR3ZGpncmtkeWZuanZyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDg2OTI1NiwiZXhwIjoyMDcwNDQ1MjU2fQ.q3zsVFuZvT57-R5kOHFmYtdMWeSbfMzrSzy7-KlQ2eA
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key-here
 
 # FIXED: Use Production Domain (doesn't change)
 NEXT_PUBLIC_SITE_URL=https://smart-queuing-whatsapp.vercel.app
 
 # WhatsApp Integration
-ULTRAMSG_INSTANCE_ID=instance140392
+ULTRAMSG_INSTANCE_ID=your-ultramsg-instance-id
 ULTRAMSG_TOKEN=your_actual_ultramsg_token_here
 ULTRAMSG_BASE_URL=https://api.ultramsg.com
 ```

@@ -39,12 +39,12 @@ git push origin main
    - **Build Command**: `npm run build`
    - **Output Directory**: `.next`
 
-#### 2B. Deploy Customer App  
+#### 2B. Deploy Customer App
 
 1. Create **another new project** in Vercel
 2. Import the **same GitHub repository**
 3. **Configure project settings:**
-   - **Project Name**: `smart-queue-customer`  
+   - **Project Name**: `smart-queue-customer`
    - **Root Directory**: `customer`
    - **Framework Preset**: Next.js
    - **Build Command**: `npm run build`
@@ -55,9 +55,9 @@ git push origin main
 #### For Admin Project
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://xxaqztdwdjgrkdyfnjvr.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4YXF6dGR3ZGpncmtkeWZuanZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4NjkyNTYsImV4cCI6MjA3MDQ0NTI1Nn0.mr35VgacJYZTc35lAbn5KQ5BsV8ElucEp-Ekf_E63wg
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4YXF6dGR3ZGpncmtkeWZuanZyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDg2OTI1NiwiZXhwIjoyMDcwNDQ1MjU2fQ.q3zsVFuZvT57-R5kOHFmYtdMWeSbfMzrSzy7-KlQ2eA
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key-here
 NEXT_PUBLIC_SITE_URL=https://smart-queue-admin.vercel.app
 NEXT_PUBLIC_CUSTOMER_URL=https://smart-queue-customer.vercel.app
 ```
@@ -65,8 +65,8 @@ NEXT_PUBLIC_CUSTOMER_URL=https://smart-queue-customer.vercel.app
 #### For Customer Project
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://xxaqztdwdjgrkdyfnjvr.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4YXF6dGR3ZGpncmtkeWZuanZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4NjkyNTYsImV4cCI6MjA3MDQ0NTI1Nn0.mr35VgacJYZTc35lAbn5KQ5BsV8ElucEp-Ekf_E63wg
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key-here
 ```
 
 ### Step 4: Update Production URLs (After Deployment)
@@ -100,7 +100,7 @@ After successful deployment:
 - **Features**: Login, dashboard, organization management, QR generation
 - **QR Codes**: Will point to your customer app URL
 
-### Customer App  
+### Customer App
 
 - **URL**: `https://smart-queue-customer-xxx.vercel.app`
 - **Features**: Queue joining, real-time updates, mobile-optimized
@@ -117,7 +117,7 @@ After successful deployment:
 ### Debug Steps
 
 1. Check Vercel build logs
-2. Verify environment variables in Vercel dashboard  
+2. Verify environment variables in Vercel dashboard
 3. Test database connectivity
 4. Check browser console for client-side errors
 
@@ -144,4 +144,4 @@ After successful deployment:
 
 ---
 
-**Your Smart Queue System is ready for production! 🎉***
+**Your Smart Queue System is ready for production! 🎉\***

@@ -59,7 +59,7 @@ Added detailed logging to help debug issues:
 ### 1. Deploy the function
 
 ```powershell
-supabase functions deploy cleanup-database --project-ref xxaqztdwdjgrkdyfnjvr
+supabase functions deploy cleanup-database --project-ref your-project-id
 ```
 
 ### 2. Test with dry run (recommended first)
