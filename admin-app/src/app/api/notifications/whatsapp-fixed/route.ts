@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { UltraMessageInstanceManager } from "@/lib/ultramsg-instance-manager";
 
 // Initialize Supabase client with service role key for server-side operations
 const supabase = createClient(
@@ -76,16 +77,19 @@ export async function POST(request: NextRequest) {
     // Check WhatsApp configuration
     const whatsappEnabled = process.env.WHATSAPP_ENABLED === "true";
     const isDebugMode = process.env.WHATSAPP_DEBUG === "true";
-    const instanceId = process.env.ULTRAMSG_INSTANCE_ID;
-    const token = process.env.ULTRAMSG_TOKEN;
-    const baseUrl = process.env.ULTRAMSG_BASE_URL || "https://api.ultramsg.com";
+
+    // Get UltraMessage configuration from database
+    const ultraMessageManager = UltraMessageInstanceManager.getInstance();
+    const ultraMessageConfig = await ultraMessageManager.getOrganizationConfig(
+      organizationId
+    );
 
     console.log("🔧 Configuration check:", {
       whatsappEnabled,
       isDebugMode,
-      hasInstanceId: !!instanceId,
-      hasToken: !!token,
-      baseUrl,
+      hasInstanceId: !!ultraMessageConfig?.instanceId,
+      hasToken: !!ultraMessageConfig?.token,
+      baseUrl: ultraMessageConfig?.baseUrl,
     });
 
     if (!whatsappEnabled) {
@@ -100,10 +104,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!instanceId || !token) {
-      console.error("❌ UltraMessage configuration missing");
+    if (!ultraMessageConfig?.instanceId || !ultraMessageConfig?.token) {
+      console.error(
+        "❌ UltraMessage configuration missing for organization:",
+        organizationId
+      );
       return NextResponse.json(
-        { error: "WhatsApp API configuration incomplete" },
+        {
+          error: "WhatsApp API configuration incomplete for this organization",
+        },
         { status: 500, headers: corsHeaders }
       );
     }
@@ -183,8 +192,8 @@ export async function POST(request: NextRequest) {
           debug: {
             phone: cleanPhone,
             messageLength: message.length,
-            instanceId,
-            endpoint: `${baseUrl}/${instanceId}/messages/chat`,
+            instanceId: ultraMessageConfig.instanceId,
+            endpoint: `${ultraMessageConfig.baseUrl}/${ultraMessageConfig.instanceId}/messages/chat`,
             sessionCheck: bypassSessionCheck ? "BYPASSED" : "PERFORMED",
           },
         },
@@ -193,7 +202,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send message via UltraMessage API
-    const ultraMessageUrl = `${baseUrl}/${instanceId}/messages/chat`;
+    const ultraMessageUrl = `${ultraMessageConfig.baseUrl}/${ultraMessageConfig.instanceId}/messages/chat`;
 
     console.log("📱 Sending to UltraMessage:", {
       url: ultraMessageUrl,
@@ -207,7 +216,7 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
-        token: token,
+        token: ultraMessageConfig.token,
         to: cleanPhone,
         body: message,
         priority: "1",
@@ -314,11 +323,24 @@ export async function POST(request: NextRequest) {
 
 /**
  * Get WhatsApp service status (same as original)
+ * GET /api/notifications/whatsapp-fixed?organizationId=<id>
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const instanceId = process.env.ULTRAMSG_INSTANCE_ID;
-    const token = process.env.ULTRAMSG_TOKEN;
+    const { searchParams } = new URL(request.url);
+    const organizationId = searchParams.get("organizationId");
+
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "Organization ID is required" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    const ultraMessageManager = UltraMessageInstanceManager.getInstance();
+    const ultraMessageConfig = await ultraMessageManager.getOrganizationConfig(
+      organizationId
+    );
     const whatsappEnabled = process.env.WHATSAPP_ENABLED === "true";
     const isDebugMode = process.env.WHATSAPP_DEBUG === "true";
 
@@ -326,9 +348,13 @@ export async function GET() {
       {
         enabled: whatsappEnabled,
         debugMode: isDebugMode,
-        configured: !!(instanceId && token),
-        instanceId: instanceId || null,
-        endpoint: instanceId ? `https://api.ultramsg.com/${instanceId}` : null,
+        configured: !!(
+          ultraMessageConfig?.instanceId && ultraMessageConfig?.token
+        ),
+        instanceId: ultraMessageConfig?.instanceId || null,
+        endpoint: ultraMessageConfig?.instanceId
+          ? `${ultraMessageConfig.baseUrl}/${ultraMessageConfig.instanceId}`
+          : null,
         version: "PRODUCTION_FIXED",
       },
       { headers: corsHeaders }

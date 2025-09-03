@@ -18,6 +18,7 @@ import { QRManagement } from "./features/qr-management/QRManagement";
 import { MemberManagement } from "./features/member-management/MemberManagement";
 import { MemberAnalytics } from "./features/member-analytics/MemberAnalytics";
 import { MessageTemplateManagement } from "./features/message-templates/MessageTemplateManagement";
+import { UltraMessageTestResult } from "./features/shared/types";
 
 // Force dynamic rendering for client-side features
 export const dynamic = "force-dynamic";
@@ -43,6 +44,12 @@ export default function OrganizationPage() {
   const [inviteBranchId, setInviteBranchId] = useState<string>("");
   const [inviteDepartmentIds, setInviteDepartmentIds] = useState<string[]>([]);
   const [inviting, setInviting] = useState(false);
+
+  // UltraMessage testing state
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [testResult, setTestResult] = useState<UltraMessageTestResult | null>(
+    null
+  );
 
   // Data hooks - MUST be called unconditionally
   const {
@@ -165,6 +172,44 @@ export default function OrganizationPage() {
       showSuccess,
       showError
     );
+  };
+
+  // UltraMessage connection testing handler
+  const handleTestConnection = async (): Promise<UltraMessageTestResult> => {
+    if (!orgForm.ultramsg_instance_id || !orgForm.ultramsg_token) {
+      return {
+        success: false,
+        message: "Please provide both UltraMessage Instance ID and Token",
+      };
+    }
+
+    setTestingConnection(true);
+    try {
+      const response = await fetch("/api/ultramsg/test-connection", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          instanceId: orgForm.ultramsg_instance_id,
+          token: orgForm.ultramsg_token,
+          baseUrl: orgForm.ultramsg_base_url || "https://api.ultramsg.com",
+        }),
+      });
+
+      const result = await response.json();
+      setTestResult(result);
+      return result;
+    } catch (error) {
+      const errorResult: UltraMessageTestResult = {
+        success: false,
+        message: "Connection test failed",
+      };
+      setTestResult(errorResult);
+      return errorResult;
+    } finally {
+      setTestingConnection(false);
+    }
   };
 
   // Member management handlers
@@ -551,6 +596,9 @@ export default function OrganizationPage() {
               onLogoUpload={handleLogoUploadFile}
               onRemoveLogo={handleRemoveLogo}
               readOnly={!rolePermissions.canEditOrganization}
+              onTestConnection={handleTestConnection}
+              testingConnection={testingConnection}
+              testResult={testResult}
             />
           )}
 

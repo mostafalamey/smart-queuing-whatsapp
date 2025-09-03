@@ -69,7 +69,11 @@ export const useOrganizationData = () => {
     country: "Egypt",
     country_code: "+20",
     whatsapp_business_number: "",
-    qr_code_message_template: "",
+    // UltraMessage Configuration
+    ultramsg_instance_id: "",
+    ultramsg_token: "",
+    ultramsg_base_url: "https://api.ultramsg.com",
+    daily_message_limit: "1000",
     welcome_message: "", // Deprecated field for backward compatibility
   });
 
@@ -96,7 +100,11 @@ export const useOrganizationData = () => {
         country: data.country || "Egypt",
         country_code: data.country_code || "+20",
         whatsapp_business_number: data.whatsapp_business_number || "",
-        qr_code_message_template: data.qr_code_message_template || "",
+        // UltraMessage Configuration
+        ultramsg_instance_id: data.ultramsg_instance_id || "",
+        ultramsg_token: data.ultramsg_token || "",
+        ultramsg_base_url: data.ultramsg_base_url || "https://api.ultramsg.com",
+        daily_message_limit: data.daily_message_limit?.toString() || "1000",
         welcome_message: data.welcome_message || "", // Deprecated field
       });
 

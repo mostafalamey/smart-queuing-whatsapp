@@ -1,14 +1,16 @@
 # 🎯 Smart Queue Management System
 
 > **Revolutionary WhatsApp-First Queue Management Solution**  
-> Complete admin dashboard with WhatsApp-first customer experience, analytics-driven wait times, and production deployment
+> Complete admin dashboard with WhatsApp-first customer experience, analytics-driven wait times, and multi-tenant UltraMessage architecture
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.2.5-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Backend-green?style=for-the-badge&logo=supabase)](https://supabase.com/)
 [![WhatsApp](https://img.shields.io/badge/WhatsApp-First-25D366?style=for-the-badge&logo=whatsapp)](https://whatsapp.com/)
-[![UltraMessage](https://img.shields.io/badge/UltraMessage-API-FF6B35?style=for-the-badge)](https://ultramsg.com/)
-[![Production](https://img.shields.io/badge/Status-WhatsApp%20Ready-brightgreen?style=for-the-badge)](https://github.com/mostafalamey/smart-queuing-system)
+[![UltraMessage](https://img.shields.io/badge/UltraMessage-Multi%20Tenant-FF6B35?style=for-the-badge)](https://ultramsg.com/)
+[![Production](https://img.shields.io/badge/Status-Enterprise%20Ready-brightgreen?style=for-the-badge)](https://github.com/mostafalamey/smart-queuing-system)
+
+> **🎉 September 2025 Update:** Upgraded to **Multi-Tenant Architecture** - Each organization now manages their own UltraMessage instance through the admin dashboard!
 
 ## 🚀 **Revolutionary WhatsApp-First Experience**
 
@@ -16,8 +18,9 @@
 - **QR Code → WhatsApp Direct** - Scan QR, opens WhatsApp conversation immediately
 - **Analytics-Driven Wait Times** - Real historical data shows "13h 42m" instead of generic "5m" estimates
 - **Complete Conversation Flow** - Service selection, phone collection, ticket creation all in WhatsApp
+- **Multi-Tenant WhatsApp** - Each organization has dedicated UltraMessage instance with isolated configurations
 
-> ✨ **World's first queue management system with complete WhatsApp-first architecture and analytics-based intelligence**
+> ✨ **World's first queue management system with complete WhatsApp-first architecture, analytics-based intelligence, and enterprise multi-tenancy**
 
 ---
 
@@ -25,9 +28,12 @@
 
 ### 🔐 **Admin Dashboard**
 
-- **WhatsApp Business Integration** - Complete UltraMessage WhatsApp Business API setup ✨
+- **Multi-Tenant WhatsApp Business Integration** - Enterprise-grade UltraMessage architecture ✨
+  - **Organization-Specific Instances** - Each organization manages their own UltraMessage instance
+  - **Database-Driven Configuration** - Real-time WhatsApp API configuration through admin dashboard
+  - **Connection Testing** - Built-in UltraMessage API connectivity validation
+  - **Isolated Credentials** - Secure organization-specific API tokens and instance management
   - **WhatsApp Conversation Monitoring** - View and manage customer WhatsApp interactions in real-time
-  - **UltraMessage Dashboard** - Monitor API usage, message delivery, and webhook processing
   - **Business Number Configuration** - Setup WhatsApp business numbers for each organization
   - **Conversation State Management** - Track multi-step WhatsApp conversations with persistent states
 - **Analytics-Driven Intelligence** - Revolutionary wait time estimation system ✨

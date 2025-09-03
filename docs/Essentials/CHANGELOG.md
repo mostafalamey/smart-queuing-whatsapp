@@ -1,5 +1,63 @@
 # Smart Queue System - Changelog
 
+## Version 3.2.0 - Multi-Tenant UltraMessage Architecture Implementation (September 3, 2025)
+
+### 🏗 **Enterprise Multi-Tenant Architecture**
+
+#### Complete UltraMessage Multi-Tenancy Implementation
+
+- **Database Schema Enhancement** - Added 11 UltraMessage columns to organizations table for instance-specific configurations
+- **Organization-Specific Instances** - Each organization now manages their own dedicated UltraMessage instance
+- **Database-Driven Configuration** - Migrated from environment variables to database-stored UltraMessage credentials
+- **Admin Dashboard Integration** - Complete UltraMessage management interface with real-time connection testing
+- **API Route Migration** - Updated 4 WhatsApp API endpoints to use organization-specific database configurations
+
+#### UltraMessage Instance Manager Service
+
+- **Service Layer Implementation** - Created UltraMessageInstanceManager class for organization isolation
+- **Connection Testing** - Built-in API connectivity validation with proper error handling
+- **Daily Usage Tracking** - Message limit monitoring and reset functionality per organization
+- **Secure Credential Management** - Organization-isolated API tokens and instance configurations
+
+#### Admin Dashboard UltraMessage Management
+
+- **Configuration Interface** - Complete form for UltraMessage instance setup and management
+- **Password Visibility Toggle** - Secure API token field with show/hide functionality
+- **Real-Time Testing** - Connection validation with detailed success/error feedback
+- **Advanced Settings Panel** - Webhook configuration and daily message limit management
+- **Consistent UI Styling** - Updated to use tailwind.config input-field classes
+
+#### API Architecture Migration
+
+- **Route Updates** - Migrated `/api/notifications/whatsapp*` and `/api/webhooks/whatsapp/inbound`
+- **Organization Context** - All WhatsApp APIs now require organizationId parameter
+- **Database Integration** - Replaced environment variable configuration with database queries
+- **Error Handling Enhancement** - Organization-specific error messages and validation
+- **Backward Compatibility** - Maintained all existing functionality while adding multi-tenant support
+
+#### Quality Assurance & Testing
+
+- **Build Verification** - All TypeScript compilation errors resolved
+- **Type Safety** - Enhanced interfaces and null safety throughout codebase
+- **QR Code Compatibility** - Verified QR generators already use database configuration (no changes needed)
+- **Webhook Processing** - Updated inbound webhook processing for organization-aware responses
+
+### 🔒 **Security & Isolation Improvements**
+
+- **Row Level Security** - Database policies ensure complete organization isolation
+- **Credential Isolation** - Each organization's UltraMessage credentials completely separated
+- **API Security** - Organization ID validation in all WhatsApp endpoints
+- **Service Role Access** - Proper database permissions for server-side operations
+
+### 📈 **Scalability & Operational Benefits**
+
+- **Unlimited Organizations** - Support for unlimited organization onboarding
+- **Self-Service Configuration** - Organizations manage their own UltraMessage setup
+- **No Environment Dependencies** - Removed shared UltraMessage environment variables
+- **Real-Time Updates** - Configuration changes without server restarts
+
+---
+
 ## Version 3.1.0 - Customer Experience Tab WhatsApp-First Implementation Complete (September 3, 2025)
 
 ### 🎯 **Admin Dashboard WhatsApp-First Transformation**

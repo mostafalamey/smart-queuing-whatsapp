@@ -2,6 +2,8 @@
 
 A comprehensive queue management system that provides seamless customer interaction through WhatsApp, eliminating the need for separate customer applications. Features a powerful admin dashboard, kiosk interface, and complete WhatsApp-first customer experience.
 
+> **🎉 Latest Update (September 2025):** Successfully upgraded to **Multi-Tenant Architecture** with database-driven UltraMessage configuration. Each organization now manages their own WhatsApp Business API instance through the admin dashboard. [View Migration Details](./docs/Updates/MULTI_TENANT_ULTRAMESSAGE_MIGRATION_SEPTEMBER_2025.md)
+
 ## 🚀 System Overview
 
 The Smart Queuing WhatsApp System enables customers to join and manage their queue positions entirely through WhatsApp conversations. The system consists of three main applications:
@@ -9,6 +11,7 @@ The Smart Queuing WhatsApp System enables customers to join and manage their que
 ### **Admin Dashboard** (`/admin-app`)
 
 - Organization, branch, and department management
+- **Multi-Tenant UltraMessage Configuration** - Each organization manages their own WhatsApp Business API
 - Real-time queue monitoring and analytics
 - WhatsApp message template customization
 - Member management with role-based access control

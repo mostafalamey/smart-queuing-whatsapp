@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { WhatsAppConversationEngine } from "../../../../../lib/whatsapp-conversation-engine";
+import { UltraMessageInstanceManager } from "@/lib/ultramsg-instance-manager";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -151,16 +152,17 @@ async function processWhatsAppMessage(
   if (!organizationData) {
     console.error(`❌ No organization found for WhatsApp number: ${toPhone}`);
 
-    // Send error message to customer
-    await sendWhatsAppResponse(
-      fromPhone,
-      "Sorry, this WhatsApp number is not associated with any organization. Please check the number and try again."
+    // Since we can't send a response without organization config, just log and return
+    console.log(
+      "⏭️ Skipping error response - no organization configuration available"
     );
 
     return {
       messageId: messageData.id,
       success: false,
       error: "Organization not found",
+      skipped: true,
+      reason: "Cannot send response without organization configuration",
     };
   }
 
@@ -177,7 +179,11 @@ async function processWhatsAppMessage(
   );
 
   // Send response to customer
-  const sendResult = await sendWhatsAppResponse(fromPhone, responseMessage);
+  const sendResult = await sendWhatsAppResponse(
+    fromPhone,
+    responseMessage,
+    organizationData.id
+  );
 
   // Log the interaction
   await logWhatsAppInteraction({
@@ -237,22 +243,32 @@ function extractQRContext(
 /**
  * Send WhatsApp response using UltraMessage API
  */
-async function sendWhatsAppResponse(phoneNumber: string, message: string) {
+async function sendWhatsAppResponse(
+  phoneNumber: string,
+  message: string,
+  organizationId: string
+) {
   try {
-    const instanceId = process.env.ULTRAMSG_INSTANCE_ID;
-    const token = process.env.ULTRAMSG_TOKEN;
-    const baseUrl = process.env.ULTRAMSG_BASE_URL || "https://api.ultramsg.com";
+    // Get organization-specific UltraMessage configuration
+    const ultraMessageManager = UltraMessageInstanceManager.getInstance();
+    const ultraMessageConfig = await ultraMessageManager.getOrganizationConfig(
+      organizationId
+    );
 
-    if (!instanceId || !token) {
-      throw new Error("UltraMessage configuration missing");
+    if (!ultraMessageConfig?.instanceId || !ultraMessageConfig?.token) {
+      throw new Error(
+        `UltraMessage configuration missing for organization: ${organizationId}`
+      );
     }
 
     // Clean phone number (remove + if present)
     const cleanPhone = phoneNumber.replace(/^\+/, "");
 
-    const url = `${baseUrl}/${instanceId}/messages/chat`;
+    const url = `${ultraMessageConfig.baseUrl}/${ultraMessageConfig.instanceId}/messages/chat`;
 
-    console.log(`📤 Sending WhatsApp response to ${cleanPhone}`);
+    console.log(
+      `📤 Sending WhatsApp response to ${cleanPhone} for organization ${organizationId}`
+    );
 
     const response = await fetch(url, {
       method: "POST",
@@ -260,7 +276,7 @@ async function sendWhatsAppResponse(phoneNumber: string, message: string) {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
-        token,
+        token: ultraMessageConfig.token,
         to: cleanPhone,
         body: message,
         priority: "1",

@@ -12,6 +12,24 @@ export interface Organization {
   country_code: string | null;
   whatsapp_business_number: string | null;
   qr_code_message_template: string | null;
+  // UltraMessage Multi-Instance Support
+  ultramsg_instance_id: string | null;
+  ultramsg_token: string | null;
+  ultramsg_base_url: string | null;
+  whatsapp_instance_status:
+    | "active"
+    | "inactive"
+    | "suspended"
+    | "error"
+    | "testing"
+    | null;
+  ultramsg_webhook_token: string | null;
+  ultramsg_created_at: string | null;
+  ultramsg_last_tested: string | null;
+  ultramsg_last_error: string | null;
+  daily_message_limit: number | null;
+  daily_message_count: number | null;
+  message_count_reset_date: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -68,10 +86,33 @@ export interface OrganizationForm {
   country: string;
   country_code: string;
   whatsapp_business_number: string;
-  qr_code_message_template: string;
+  // UltraMessage Configuration
+  ultramsg_instance_id: string;
+  ultramsg_token: string;
+  ultramsg_base_url: string;
+  daily_message_limit: string;
   welcome_message?: string; // Deprecated field for backward compatibility
 }
 
 export interface QRCodeData {
   [key: string]: string;
+}
+
+export interface UltraMessageConfig {
+  instanceId: string;
+  token: string;
+  baseUrl: string;
+  webhookToken: string;
+  status: "active" | "inactive" | "suspended" | "error" | "testing";
+  lastTested?: string;
+  lastError?: string;
+  dailyLimit: number;
+  dailyCount: number;
+}
+
+export interface UltraMessageTestResult {
+  success: boolean;
+  message: string;
+  details?: any;
+  responseTime?: number;
 }

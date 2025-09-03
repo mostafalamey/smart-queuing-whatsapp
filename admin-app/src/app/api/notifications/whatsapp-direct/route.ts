@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { UltraMessageInstanceManager } from "@/lib/ultramsg-instance-manager";
 
 interface WhatsAppNotificationRequest {
   phone: string;
   ticketNumber: string;
   departmentName: string;
   organizationName: string;
+  organizationId: string;
   type: "ticket_created" | "almost_your_turn" | "your_turn";
   currentServing?: string;
   waitingCount?: number;
@@ -88,8 +90,14 @@ Thank you for choosing ${organizationName}! 🙏`;
 export async function POST(request: NextRequest) {
   try {
     const body: WhatsAppNotificationRequest = await request.json();
-    const { phone, ticketNumber, departmentName, organizationName, type } =
-      body;
+    const {
+      phone,
+      ticketNumber,
+      departmentName,
+      organizationName,
+      organizationId,
+      type,
+    } = body;
 
     // Validate required fields
     if (
@@ -97,13 +105,14 @@ export async function POST(request: NextRequest) {
       !ticketNumber ||
       !departmentName ||
       !organizationName ||
+      !organizationId ||
       !type
     ) {
       return NextResponse.json(
         {
           success: false,
           error:
-            "Missing required fields: phone, ticketNumber, departmentName, organizationName, type",
+            "Missing required fields: phone, ticketNumber, departmentName, organizationName, organizationId, type",
         },
         { status: 400, headers: corsHeaders }
       );
@@ -118,6 +127,7 @@ export async function POST(request: NextRequest) {
       ticketNumber,
       departmentName,
       organizationName,
+      organizationId,
       type,
       whatsappEnabled,
       isDebugMode,
@@ -135,25 +145,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get UltraMessage configuration
-    const instanceId = process.env.ULTRAMSG_INSTANCE_ID;
-    const token = process.env.ULTRAMSG_TOKEN;
-    const baseUrl = process.env.ULTRAMSG_BASE_URL || "https://api.ultramsg.com";
+    // Get UltraMessage configuration from database
+    const ultraMessageManager = UltraMessageInstanceManager.getInstance();
+    const ultraMessageConfig = await ultraMessageManager.getOrganizationConfig(
+      organizationId
+    );
 
     console.log("🔧 WhatsApp Configuration:", {
-      instanceId: instanceId || "MISSING",
-      hasToken: !!token,
-      baseUrl,
+      instanceId: ultraMessageConfig?.instanceId || "MISSING",
+      hasToken: !!ultraMessageConfig?.token,
+      baseUrl: ultraMessageConfig?.baseUrl,
       whatsappEnabled,
       isDebugMode,
     });
 
-    if (!instanceId || !token) {
-      console.error("UltraMessage configuration missing");
+    if (!ultraMessageConfig?.instanceId || !ultraMessageConfig?.token) {
+      console.error(
+        "UltraMessage configuration missing for organization:",
+        organizationId
+      );
       return NextResponse.json(
         {
           success: false,
-          error: "WhatsApp API configuration incomplete",
+          error: "WhatsApp API configuration incomplete for this organization",
         },
         { status: 500, headers: corsHeaders }
       );
@@ -178,8 +192,8 @@ export async function POST(request: NextRequest) {
           debug: {
             phone: formattedPhone,
             messageLength: message.length,
-            instanceId,
-            endpoint: `${baseUrl}/${instanceId}/messages/chat`,
+            instanceId: ultraMessageConfig.instanceId,
+            endpoint: `${ultraMessageConfig.baseUrl}/${ultraMessageConfig.instanceId}/messages/chat`,
             type,
             ticketNumber,
           },
@@ -189,7 +203,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send message via UltraMessage API
-    const ultraMessageUrl = `${baseUrl}/${instanceId}/messages/chat`;
+    const ultraMessageUrl = `${ultraMessageConfig.baseUrl}/${ultraMessageConfig.instanceId}/messages/chat`;
 
     console.log("📱 Sending WhatsApp message via UltraMessage:", {
       phone: formattedPhone,
@@ -205,7 +219,7 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
-        token: token,
+        token: ultraMessageConfig.token,
         to: formattedPhone,
         body: message,
         priority: "1", // High priority
@@ -302,12 +316,24 @@ export async function POST(request: NextRequest) {
 
 /**
  * Get WhatsApp service status
- * GET /api/notifications/whatsapp-direct
+ * GET /api/notifications/whatsapp-direct?organizationId=<id>
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const instanceId = process.env.ULTRAMSG_INSTANCE_ID;
-    const token = process.env.ULTRAMSG_TOKEN;
+    const { searchParams } = new URL(request.url);
+    const organizationId = searchParams.get("organizationId");
+
+    if (!organizationId) {
+      return NextResponse.json(
+        { error: "Organization ID is required" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    const ultraMessageManager = UltraMessageInstanceManager.getInstance();
+    const ultraMessageConfig = await ultraMessageManager.getOrganizationConfig(
+      organizationId
+    );
     const whatsappEnabled = process.env.WHATSAPP_ENABLED === "true";
     const isDebugMode = process.env.WHATSAPP_DEBUG === "true";
 
@@ -315,9 +341,13 @@ export async function GET() {
       {
         enabled: whatsappEnabled,
         debugMode: isDebugMode,
-        configured: !!(instanceId && token),
-        instanceId: instanceId || null,
-        endpoint: instanceId ? `https://api.ultramsg.com/${instanceId}` : null,
+        configured: !!(
+          ultraMessageConfig?.instanceId && ultraMessageConfig?.token
+        ),
+        instanceId: ultraMessageConfig?.instanceId || null,
+        endpoint: ultraMessageConfig?.instanceId
+          ? `${ultraMessageConfig.baseUrl}/${ultraMessageConfig.instanceId}`
+          : null,
       },
       { headers: corsHeaders }
     );
