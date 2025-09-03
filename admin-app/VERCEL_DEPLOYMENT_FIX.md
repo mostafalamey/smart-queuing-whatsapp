@@ -6,20 +6,33 @@
 - ❌ 500 INTERNAL_SERVER_ERROR with MIDDLEWARE_INVOCATION_FAILED
 - ❌ Environment variables may not be properly configured in Vercel
 
-## Issue Analysis
+## 🚨 ROOT CAUSE IDENTIFIED: Vercel URL Changes on Each Deployment
 
-✅ **Build Status**: SUCCESSFUL (confirmed from Vercel logs)
-❌ **Runtime Status**: FAILING due to missing environment variables
+**PROBLEM**: Vercel generates a new preview URL on each deployment:
 
-The 500 error with `MIDDLEWARE_INVOCATION_FAILED` is happening at runtime when the middleware tries to access Supabase but can't find the required environment variables in the Vercel deployment.
+- Previous: `https://smart-queuing-whatsapp-nuqym18-mostafa-lameys-projects.vercel.app`
+- Current: `https://smart-queuing-whatsapp-oud7gvd2b-mostafa-lameys-projects.vercel.app`
+- Latest: `https://smart-queuing-whatsapp-dtojurlpq-mostafa-lameys-projects.vercel.app`
 
-## IMMEDIATE ACTION REQUIRED: Set Environment Variables
+**SOLUTION**: Use Vercel's **Production Domain** instead of preview URLs
 
-The build completed successfully, but the app fails at runtime because Supabase environment variables are missing.
+## PERMANENT FIX: Set Production Domain
 
-### 🚨 URGENT: Add These Environment Variables to Vercel Dashboard
+### Option 1: Use Production Domain (Recommended)
 
-**Go to**: [Vercel Dashboard](https://vercel.com/dashboard) → Your Project → Settings → Environment Variables
+In your Vercel environment variables, set:
+
+```bash
+# Use the production domain that stays constant
+NEXT_PUBLIC_SITE_URL=https://smart-queuing-whatsapp.vercel.app
+
+# OR if you have a custom domain, use that instead
+NEXT_PUBLIC_SITE_URL=https://your-custom-domain.com
+```
+
+### Option 2: Make URL Dynamic (Alternative)
+
+Update your code to not depend on a fixed site URL. Instead, use Next.js built-in URL detection:
 
 ### 🚨 URGENT: Add These Environment Variables to Vercel Dashboard
 
@@ -33,8 +46,8 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxaqztdwdjgrkdyfnjvr.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4YXF6dGR3ZGpncmtkeWZuanZyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ4NjkyNTYsImV4cCI6MjA3MDQ0NTI1Nn0.mr35VgacJYZTc35lAbn5KQ5BsV8ElucEp-Ekf_E63wg
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4YXF6dGR3ZGpncmtkeWZuanZyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDg2OTI1NiwiZXhwIjoyMDcwNDQ1MjU2fQ.q3zsVFuZvT57-R5kOHFmYtdMWeSbfMzrSzy7-KlQ2eA
 
-# CRITICAL: Site URL Configuration
-NEXT_PUBLIC_SITE_URL=https://smart-queuing-whatsapp-nuqym18-mostafa-lameys-projects.vercel.app
+# CRITICAL: Site URL Configuration (FIXED - Use Production Domain)
+NEXT_PUBLIC_SITE_URL=https://smart-queuing-whatsapp.vercel.app
 
 # WhatsApp Integration (if using WhatsApp features)
 ULTRAMSG_INSTANCE_ID=instance140392
