@@ -100,20 +100,20 @@ export const useOrganizationData = () => {
       if (data.name && !qrGenerating) {
         try {
           setQrGenerating(true);
-          const response = await fetch("/api/generate-qr", {
+          const response = await fetch("/api/whatsapp/qr-codes", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
+              type: "organization",
               organizationId: userProfile.organization_id,
-              organizationName: data.name,
             }),
           });
 
           const qrData = await response.json();
-          if (qrData.success) {
-            setQrCodeUrl(qrData.qrCodeDataURL);
+          if (qrData.success && qrData.qrCode) {
+            setQrCodeUrl(qrData.qrCode);
           }
         } catch (error) {
           logger.error("Error generating organization QR code:", error);
@@ -159,26 +159,26 @@ export const useOrganizationData = () => {
 
     setBranches(data || []);
 
-    // Generate QR codes for each branch (like original version)
+    // Generate QR codes for each branch using WhatsApp endpoint
     if (data && data.length > 0 && organization?.name) {
       const qrCodes: QRCodeData = {};
       for (const branch of data) {
         try {
-          const response = await fetch("/api/generate-qr", {
+          const response = await fetch("/api/whatsapp/qr-codes", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
+              type: "branch",
               organizationId: userProfile.organization_id,
               branchId: branch.id,
-              organizationName: organization.name,
             }),
           });
 
           const qrData = await response.json();
-          if (qrData.success) {
-            qrCodes[branch.id] = qrData.qrCodeDataURL;
+          if (qrData.success && qrData.qrCode) {
+            qrCodes[branch.id] = qrData.qrCode;
           }
         } catch (error) {
           logger.error("Error generating branch QR code:", error);
@@ -196,20 +196,23 @@ export const useOrganizationData = () => {
     setQrGenerating(true);
 
     try {
-      const response = await fetch("/api/generate-qr", {
+      // Use the new WhatsApp QR code endpoint
+      const response = await fetch("/api/whatsapp/qr-codes", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          type: "organization",
           organizationId: userProfile.organization_id,
-          organizationName: organization.name,
         }),
       });
 
       const data = await response.json();
-      if (data.success) {
-        setQrCodeUrl(data.qrCodeDataURL);
+      if (data.success && data.qrCode) {
+        setQrCodeUrl(data.qrCode);
+      } else {
+        logger.error("Failed to generate WhatsApp QR code:", data.error);
       }
     } catch (error) {
       logger.error("Error generating organization QR code:", error);
@@ -700,23 +703,21 @@ export const useOrganizationData = () => {
       const qrCodes: QRCodeData = {};
       for (const department of orgDepartments) {
         try {
-          const response = await fetch("/api/generate-qr", {
+          const response = await fetch("/api/whatsapp/qr-codes", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
+              type: "department",
               organizationId: userProfile.organization_id,
-              branchId: department.branch_id,
               departmentId: department.id,
-              organizationName: organization.name,
-              departmentName: department.name,
             }),
           });
 
           const qrData = await response.json();
-          if (qrData.success) {
-            qrCodes[department.id] = qrData.qrCodeDataURL;
+          if (qrData.success && qrData.qrCode) {
+            qrCodes[department.id] = qrData.qrCode;
           }
         } catch (error) {
           logger.error("Error generating department QR code:", error);

@@ -3,6 +3,7 @@
 
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
+import { whatsappNotificationService } from "./whatsapp-notification-service";
 
 interface TicketUpdateResult {
   success: boolean;
@@ -261,7 +262,7 @@ export class RobustQueueOperations {
   }
 
   /**
-   * Send notifications for called ticket (separated for better error handling)
+   * Send WhatsApp notifications for called ticket
    */
   static async sendTicketNotifications(
     ticket: any,
@@ -276,93 +277,88 @@ export class RobustQueueOperations {
         return;
       }
 
-      // 1. Send "Your Turn" notification to the customer being called
-      try {
-        // Debug: Log what we're sending to the push API
-        const pushPayload = {
-          organizationId: userProfile.organization_id,
-          ticketId: ticket.id,
-          customerPhone: ticket.customer_phone, // Include phone for WhatsApp fallback
-          payload: {
-            title: `🎯 Your Turn! - ${queueData.department.branches.name}`,
-            body: `Ticket ${ticket.ticket_number} - Please proceed to ${queueData.department.name}`,
-            icon: organization?.logo_url || "/Logo.svg",
-            requireInteraction: true,
-            vibrate: [300, 100, 300, 100, 300],
-            tag: "your-turn",
-          },
-          notificationType: "your_turn" as const,
-          ticketNumber: ticket.ticket_number,
-        };
-
-        logger.log("Sending push notification with payload:", {
-          ticketId: pushPayload.ticketId,
-          customerPhone: pushPayload.customerPhone,
-          notificationType: pushPayload.notificationType,
-          ticketNumber: pushPayload.ticketNumber,
-        });
-
-        const response = await fetch("/api/notifications/push", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(pushPayload),
-        });
-
-        const responseData = await response.json();
-
-        logger.log("Push notification API response:", {
-          status: response.status,
-          ok: response.ok,
-          success: responseData.success,
-          message: responseData.message,
-          whatsappFallback: responseData.whatsappFallback,
-        });
-
-        if (!response.ok) {
-          logger.error("Push notification API returned error:", responseData);
-        }
-
-        logger.log("Push notification request sent successfully");
-      } catch (pushError) {
-        logger.error("Failed to send push notification:", pushError);
+      if (!ticket.customer_phone) {
+        logger.warn("No phone number found for ticket, skipping notifications");
+        return;
       }
 
-      // 2. Send notifications to other waiting customers (Optional)
+      logger.info("Sending WhatsApp notifications for called ticket:", {
+        ticketId: ticket.id,
+        ticketNumber: ticket.ticket_number,
+        phone: ticket.customer_phone?.substring(0, 5) + "****", // Hide phone for privacy
+        departmentName: queueData.department?.name,
+        organizationName: organization?.name,
+      });
+
+      // 1. Send "Your Turn" notification to the customer being called
       try {
-        // Get next few customers to notify about updates
+        const success = await whatsappNotificationService.notifyYourTurn(
+          ticket.customer_phone,
+          ticket.ticket_number,
+          queueData.department?.name || "Department",
+          organization?.name || "Organization"
+        );
+
+        if (success) {
+          logger.info("Successfully sent 'Your Turn' WhatsApp notification");
+        } else {
+          logger.warn("Failed to send 'Your Turn' WhatsApp notification");
+        }
+      } catch (yourTurnError) {
+        logger.error(
+          "Error sending 'Your Turn' WhatsApp notification:",
+          yourTurnError
+        );
+      }
+
+      // 2. Send "Almost Your Turn" notification to next customer
+      try {
+        // Get next customer in line
         const { data: upcomingTickets } = await supabase
           .from("tickets")
           .select("*")
           .eq("department_id", selectedDepartment)
           .eq("status", "waiting")
           .order("created_at", { ascending: true })
-          .range(0, 2);
+          .limit(1);
 
         if (upcomingTickets && upcomingTickets.length > 0) {
-          // Notify next customer they're almost up
           const nextCustomer = upcomingTickets[0];
-          if (nextCustomer) {
-            await fetch("/api/notifications/push", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                organizationId: userProfile.organization_id,
-                ticketId: nextCustomer.id,
-                customerPhone: nextCustomer.customer_phone,
-                payload: {
-                  title: `⏰ Almost Your Turn - ${queueData.department.branches.name}`,
-                  body: `Ticket ${nextCustomer.ticket_number} - You're next in line!`,
-                  icon: organization?.logo_url || "/Logo.svg",
-                  tag: "almost-your-turn",
-                },
-                notificationType: "almost_your_turn" as const,
-                ticketNumber: nextCustomer.ticket_number,
-              }),
-            });
+
+          if (nextCustomer.customer_phone) {
+            const success =
+              await whatsappNotificationService.notifyAlmostYourTurn(
+                nextCustomer.customer_phone,
+                nextCustomer.ticket_number,
+                queueData.department?.name || "Department",
+                organization?.name || "Organization",
+                ticket.ticket_number // Currently serving ticket
+              );
+
+            if (success) {
+              logger.info(
+                "Successfully sent 'Almost Your Turn' WhatsApp notification to next customer"
+              );
+            } else {
+              logger.warn(
+                "Failed to send 'Almost Your Turn' WhatsApp notification"
+              );
+            }
+          } else {
+            logger.warn(
+              "Next customer has no phone number, skipping 'Almost Your Turn' notification"
+            );
           }
+        } else {
+          logger.info(
+            "No more customers in queue, skipping 'Almost Your Turn' notification"
+          );
         }
-      } catch (upcomingError) {
-        logger.warn("Could not send upcoming notifications:", upcomingError);
+      } catch (almostYourTurnError) {
+        logger.warn(
+          "Error sending 'Almost Your Turn' notification (non-critical):",
+          almostYourTurnError
+        );
         // Don't fail the main operation for this
       }
     } catch (notificationError) {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   QrCode,
   Download,
@@ -8,6 +8,8 @@ import {
   Building2,
 } from "lucide-react";
 import { Organization, Branch, Department, QRCodeData } from "../shared/types";
+import { WhatsAppURLUtils } from "../../../../lib/whatsapp-url-utils";
+import { useAppToast } from "../../../../hooks/useAppToast";
 
 interface QRManagementProps {
   organization: Organization | null;
@@ -70,6 +72,107 @@ export const QRManagement = ({
   onRefreshDepartmentQR,
 }: QRManagementProps) => {
   const [activeQrTab, setActiveQrTab] = useState("general");
+  const { showSuccess, showError } = useAppToast();
+  const [whatsappUrls, setWhatsappUrls] = useState<{
+    organization?: string;
+    branches: { [key: string]: string };
+    departments: { [key: string]: string };
+  }>({
+    branches: {},
+    departments: {},
+  });
+
+  // Generate WhatsApp URLs when data is available
+  useEffect(() => {
+    const generateWhatsAppURLs = async () => {
+      if (!userProfile?.organization_id) return;
+
+      try {
+        // Generate organization URL
+        if (organization?.id) {
+          const orgUrl = await WhatsAppURLUtils.generateOrganizationWhatsAppURL(
+            organization.id
+          );
+          setWhatsappUrls((prev) => ({
+            ...prev,
+            organization: orgUrl,
+          }));
+        }
+
+        // Generate branch URLs
+        const branchUrlPromises = branches.map(async (branch) => {
+          const branchUrl = await WhatsAppURLUtils.generateBranchWhatsAppURL(
+            branch.id
+          );
+          return { id: branch.id, url: branchUrl };
+        });
+
+        const branchUrls = await Promise.all(branchUrlPromises);
+        const branchUrlMap: { [key: string]: string } = {};
+        branchUrls.forEach(({ id, url }) => {
+          branchUrlMap[id] = url;
+        });
+
+        // Generate department URLs
+        const departmentUrlPromises = departments.map(async (department) => {
+          const deptUrl = await WhatsAppURLUtils.generateDepartmentWhatsAppURL(
+            department.id
+          );
+          return { id: department.id, url: deptUrl };
+        });
+
+        const departmentUrls = await Promise.all(departmentUrlPromises);
+        const departmentUrlMap: { [key: string]: string } = {};
+        departmentUrls.forEach(({ id, url }) => {
+          departmentUrlMap[id] = url;
+        });
+
+        setWhatsappUrls((prev) => ({
+          ...prev,
+          branches: branchUrlMap,
+          departments: departmentUrlMap,
+        }));
+      } catch (error) {
+        console.error("Error generating WhatsApp URLs:", error);
+      }
+    };
+
+    generateWhatsAppURLs();
+  }, [organization?.id, branches, departments, userProfile?.organization_id]);
+
+  // Handle Copy WhatsApp URL actions
+  const handleCopyWhatsAppURL = async (url: string, contextName: string) => {
+    await WhatsAppURLUtils.copyWhatsAppURL(
+      url,
+      contextName,
+      showSuccess,
+      showError
+    );
+  };
+
+  // Handle Copy URL for each section
+  const handleCopyOrganizationURL = async () => {
+    if (!whatsappUrls.organization) return;
+    await handleCopyWhatsAppURL(
+      whatsappUrls.organization,
+      organization?.name || "Organization"
+    );
+  };
+
+  const handleCopyBranchURL = async (branchId: string, branchName: string) => {
+    const url = whatsappUrls.branches[branchId];
+    if (!url) return;
+    await handleCopyWhatsAppURL(url, branchName);
+  };
+
+  const handleCopyDepartmentURL = async (
+    departmentId: string,
+    departmentName: string
+  ) => {
+    const url = whatsappUrls.departments[departmentId];
+    if (!url) return;
+    await handleCopyWhatsAppURL(url, departmentName);
+  };
 
   return (
     <div className="card p-6">
@@ -183,12 +286,12 @@ export const QRManagement = ({
                 <span>Print</span>
               </button>
               <button
-                onClick={onCopyQRUrl}
-                disabled={!qrCodeUrl}
+                onClick={handleCopyOrganizationURL}
+                disabled={!whatsappUrls.organization}
                 className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 <Copy className="w-4 h-4" />
-                <span>Copy URL</span>
+                <span>Copy WhatsApp Link</span>
               </button>
               <button
                 onClick={onGenerateQR}
@@ -204,11 +307,8 @@ export const QRManagement = ({
 
             <div className="mt-4 p-3 analytics-card">
               <p className="text-xs text-gray-500 break-all">
-                {typeof window !== "undefined" &&
-                  `${
-                    process.env.NEXT_PUBLIC_CUSTOMER_URL ||
-                    "http://localhost:3002"
-                  }?org=${userProfile?.organization_id}`}
+                <strong>WhatsApp Link:</strong>{" "}
+                {whatsappUrls.organization || "Generating..."}
               </p>
             </div>
           </div>
@@ -299,13 +399,13 @@ export const QRManagement = ({
                         </button>
                         <button
                           onClick={() =>
-                            onCopyBranchQRUrl(branch.id, branch.name)
+                            handleCopyBranchURL(branch.id, branch.name)
                           }
-                          disabled={!branchQrCodes[branch.id]}
+                          disabled={!whatsappUrls.branches[branch.id]}
                           className="flex items-center space-x-1 px-3 py-2 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                         >
                           <Copy className="w-3 h-3" />
-                          <span>Copy URL</span>
+                          <span>Copy WhatsApp Link</span>
                         </button>
                         <button
                           onClick={() =>
@@ -319,13 +419,8 @@ export const QRManagement = ({
                       </div>
 
                       <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-500 break-all">
-                        {typeof window !== "undefined" &&
-                          `${
-                            process.env.NEXT_PUBLIC_CUSTOMER_URL ||
-                            "http://localhost:3002"
-                          }?org=${userProfile?.organization_id}&branch=${
-                            branch.id
-                          }`}
+                        <strong>WhatsApp Link:</strong>{" "}
+                        {whatsappUrls.branches[branch.id] || "Generating..."}
                       </div>
                     </div>
                   </div>
@@ -434,17 +529,16 @@ export const QRManagement = ({
                         </button>
                         <button
                           onClick={() =>
-                            onCopyDepartmentQRUrl(
+                            handleCopyDepartmentURL(
                               department.id,
-                              department.name,
-                              department.branch_id
+                              department.name
                             )
                           }
-                          disabled={!departmentQrCodes[department.id]}
+                          disabled={!whatsappUrls.departments[department.id]}
                           className="flex items-center space-x-1 px-3 py-2 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                         >
                           <Copy className="w-3 h-3" />
-                          <span>Copy URL</span>
+                          <span>Copy WhatsApp Link</span>
                         </button>
                         <button
                           onClick={() =>
@@ -462,13 +556,9 @@ export const QRManagement = ({
                       </div>
 
                       <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-500 break-all">
-                        {typeof window !== "undefined" &&
-                          `${
-                            process.env.NEXT_PUBLIC_CUSTOMER_URL ||
-                            "http://localhost:3002"
-                          }?org=${userProfile?.organization_id}&branch=${
-                            department.branch_id
-                          }&department=${department.id}`}
+                        <strong>WhatsApp Link:</strong>{" "}
+                        {whatsappUrls.departments[department.id] ||
+                          "Generating..."}
                       </div>
                     </div>
                   </div>

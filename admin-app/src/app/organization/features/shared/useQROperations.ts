@@ -1,111 +1,138 @@
-import { useCallback } from 'react'
-import { logger } from '@/lib/logger'
-import { Organization, QRCodeData } from '../shared/types'
+import { useCallback } from "react";
+import { logger } from "@/lib/logger";
+import { Organization, QRCodeData } from "../shared/types";
 
 export const useQROperations = () => {
-  const downloadQR = useCallback((qrCodeUrl: string, organization: Organization | null) => {
-    const link = document.createElement('a')
-    link.download = `${organization?.name || 'organization'}-qr-code.png`
-    link.href = qrCodeUrl
-    link.click()
-  }, [])
+  const downloadQR = useCallback(
+    (qrCodeUrl: string, organization: Organization | null) => {
+      const link = document.createElement("a");
+      link.download = `${organization?.name || "organization"}-qr-code.png`;
+      link.href = qrCodeUrl;
+      link.click();
+    },
+    []
+  );
 
-  const copyQRUrl = useCallback(async (
-    userProfile: any,
-    showSuccess: (title: string, message: string, action?: any) => void
-  ) => {
-    if (!userProfile?.organization_id) return;
-    
-    const customerUrl = process.env.NEXT_PUBLIC_CUSTOMER_URL || 'http://localhost:3002'
-    const url = `${customerUrl}?org=${userProfile.organization_id}`
-    await navigator.clipboard.writeText(url)
-    
-    showSuccess(
-      'URL Copied!',
-      'Customer queue URL has been copied to your clipboard.',
-      {
-        label: 'Test URL',
-        onClick: () => window.open(url, '_blank')
-      }
-    )
-  }, [])
+  const copyQRUrl = useCallback(
+    async (
+      userProfile: any,
+      showSuccess: (title: string, message: string, action?: any) => void
+    ) => {
+      if (!userProfile?.organization_id) return;
 
-  const downloadBranchQR = useCallback((
-    branchId: string,
-    branchName: string,
-    branchQrCodes: QRCodeData,
-    showError: (title: string, message: string) => void,
-    showSuccess: (title: string, message: string) => void
-  ) => {
-    const qrCode = branchQrCodes[branchId]
-    if (!qrCode) {
-      showError('Download Failed', 'QR code not available. Please generate it first.')
-      return
-    }
-    
-    const link = document.createElement('a')
-    link.download = `${branchName}-qr-code.png`
-    link.href = qrCode
-    link.click()
-    
-    showSuccess(
-      'QR Code Downloaded!',
-      `${branchName} QR code has been saved to your device.`
-    )
-  }, [])
+      const customerUrl =
+        process.env.NEXT_PUBLIC_CUSTOMER_URL || "http://localhost:3002";
+      const url = `${customerUrl}?org=${userProfile.organization_id}`;
+      await navigator.clipboard.writeText(url);
 
-  const copyBranchQRUrl = useCallback(async (
-    branchId: string,
-    branchName: string | undefined,
-    userProfile: any,
-    showSuccess: (title: string, message: string, action?: any) => void,
-    showError: (title: string, message: string) => void
-  ) => {
-    if (!userProfile?.organization_id) return;
-    
-    try {
-      const customerUrl = process.env.NEXT_PUBLIC_CUSTOMER_URL || 'http://localhost:3002'
-      const url = `${customerUrl}?org=${userProfile.organization_id}&branch=${branchId}`
-      await navigator.clipboard.writeText(url)
-      
       showSuccess(
-        'Branch URL Copied!',
-        `${branchName || 'Branch'} queue URL has been copied to your clipboard.`,
+        "URL Copied!",
+        "Customer queue URL has been copied to your clipboard.",
         {
-          label: 'Test URL',
-          onClick: () => window.open(url, '_blank')
+          label: "Test URL",
+          onClick: () => window.open(url, "_blank"),
         }
-      )
-    } catch (error) {
-      showError('Copy Failed', 'Unable to copy URL to clipboard.')
-    }
-  }, [])
+      );
+    },
+    []
+  );
 
-  const printBranchQR = useCallback((
-    branchId: string,
-    branchName: string,
-    branchQrCodes: QRCodeData,
-    organization: Organization | null,
-    userProfile: any,
-    showError: (title: string, message: string) => void,
-    showSuccess: (title: string, message: string) => void
-  ) => {
-    const qrCode = branchQrCodes[branchId]
-    if (!qrCode) {
-      showError('Print Failed', 'QR code not available. Please generate it first.')
-      return
-    }
+  const downloadBranchQR = useCallback(
+    (
+      branchId: string,
+      branchName: string,
+      branchQrCodes: QRCodeData,
+      showError: (title: string, message: string) => void,
+      showSuccess: (title: string, message: string) => void
+    ) => {
+      const qrCode = branchQrCodes[branchId];
+      if (!qrCode) {
+        showError(
+          "Download Failed",
+          "QR code not available. Please generate it first."
+        );
+        return;
+      }
 
-    const printWindow = window.open('', '_blank')
-    if (!printWindow) {
-      showError('Print Failed', 'Unable to open print window. Please check your browser settings.')
-      return
-    }
+      const link = document.createElement("a");
+      link.download = `${branchName}-qr-code.png`;
+      link.href = qrCode;
+      link.click();
 
-    const customerUrl = process.env.NEXT_PUBLIC_CUSTOMER_URL || 'http://localhost:3002'
-    const url = `${customerUrl}?org=${userProfile?.organization_id}&branch=${branchId}`
+      showSuccess(
+        "QR Code Downloaded!",
+        `${branchName} QR code has been saved to your device.`
+      );
+    },
+    []
+  );
 
-    printWindow.document.write(`
+  const copyBranchQRUrl = useCallback(
+    async (
+      branchId: string,
+      branchName: string | undefined,
+      userProfile: any,
+      showSuccess: (title: string, message: string, action?: any) => void,
+      showError: (title: string, message: string) => void
+    ) => {
+      if (!userProfile?.organization_id) return;
+
+      try {
+        const customerUrl =
+          process.env.NEXT_PUBLIC_CUSTOMER_URL || "http://localhost:3002";
+        const url = `${customerUrl}?org=${userProfile.organization_id}&branch=${branchId}`;
+        await navigator.clipboard.writeText(url);
+
+        showSuccess(
+          "Branch URL Copied!",
+          `${
+            branchName || "Branch"
+          } queue URL has been copied to your clipboard.`,
+          {
+            label: "Test URL",
+            onClick: () => window.open(url, "_blank"),
+          }
+        );
+      } catch (error) {
+        showError("Copy Failed", "Unable to copy URL to clipboard.");
+      }
+    },
+    []
+  );
+
+  const printBranchQR = useCallback(
+    (
+      branchId: string,
+      branchName: string,
+      branchQrCodes: QRCodeData,
+      organization: Organization | null,
+      userProfile: any,
+      showError: (title: string, message: string) => void,
+      showSuccess: (title: string, message: string) => void
+    ) => {
+      const qrCode = branchQrCodes[branchId];
+      if (!qrCode) {
+        showError(
+          "Print Failed",
+          "QR code not available. Please generate it first."
+        );
+        return;
+      }
+
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) {
+        showError(
+          "Print Failed",
+          "Unable to open print window. Please check your browser settings."
+        );
+        return;
+      }
+
+      const customerUrl =
+        process.env.NEXT_PUBLIC_CUSTOMER_URL || "http://localhost:3002";
+      const url = `${customerUrl}?org=${userProfile?.organization_id}&branch=${branchId}`;
+
+      printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -163,7 +190,7 @@ export const useQROperations = () => {
         </head>
         <body>
           <div class="qr-container">
-            <div class="org-name">${organization?.name || 'Organization'}</div>
+            <div class="org-name">${organization?.name || "Organization"}</div>
             <div class="branch-name">${branchName} Branch</div>
             <img src="${qrCode}" alt="QR Code for ${branchName}" class="qr-code" />
             <div class="instructions">
@@ -173,147 +200,181 @@ export const useQROperations = () => {
           </div>
         </body>
       </html>
-    `)
-    
-    printWindow.document.close()
-    printWindow.focus()
-    
-    // Wait for image to load before printing
-    setTimeout(() => {
-      printWindow.print()
-      printWindow.close()
-    }, 1000)
+    `);
 
-    showSuccess(
-      'Print Dialog Opened!',
-      `${branchName} QR code is ready for printing.`
-    )
-  }, [])
+      printWindow.document.close();
+      printWindow.focus();
 
-  const refreshBranchQR = useCallback(async (
-    branchId: string,
-    branchName: string,
-    userProfile: any,
-    organization: Organization | null,
-    setBranchQrCodes: React.Dispatch<React.SetStateAction<QRCodeData>>,
-    showSuccess: (title: string, message: string) => void,
-    showError: (title: string, message: string) => void
-  ) => {
-    if (!userProfile?.organization_id || !organization?.name) {
-      showError('Refresh Failed', 'Missing organization data. Please try again.')
-      return
-    }
+      // Wait for image to load before printing
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 1000);
 
-    try {
-      const response = await fetch('/api/generate-qr', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          organizationId: userProfile.organization_id,
-          branchId: branchId,
-          organizationName: organization.name
-        })
-      })
-
-      const data = await response.json()
-      if (data.success) {
-        setBranchQrCodes(prev => ({
-          ...prev,
-          [branchId]: data.qrCodeDataURL
-        }))
-        showSuccess(
-          'QR Code Refreshed!',
-          `${branchName} QR code has been regenerated successfully.`
-        )
-      } else {
-        showError('Refresh Failed', 'Unable to generate QR code. Please try again.')
-      }
-    } catch (error) {
-      logger.error('Error refreshing branch QR code:', error)
-      showError('Refresh Failed', 'An error occurred while refreshing the QR code.')
-    }
-  }, [])
-
-  const downloadDepartmentQR = useCallback((
-    departmentId: string,
-    departmentName: string,
-    departmentQrCodes: QRCodeData,
-    showError: (title: string, message: string) => void,
-    showSuccess: (title: string, message: string) => void
-  ) => {
-    const qrCode = departmentQrCodes[departmentId]
-    if (!qrCode) {
-      showError('Download Failed', 'QR code not available. Please generate it first.')
-      return
-    }
-    
-    const link = document.createElement('a')
-    link.download = `${departmentName}-department-qr-code.png`
-    link.href = qrCode
-    link.click()
-    
-    showSuccess(
-      'QR Code Downloaded!',
-      `${departmentName} department QR code has been saved to your device.`
-    )
-  }, [])
-
-  const copyDepartmentQRUrl = useCallback(async (
-    departmentId: string,
-    departmentName: string | undefined,
-    branchId: string | undefined,
-    userProfile: any,
-    showSuccess: (title: string, message: string, action?: any) => void,
-    showError: (title: string, message: string) => void
-  ) => {
-    if (!userProfile?.organization_id) return;
-    
-    try {
-      const customerUrl = process.env.NEXT_PUBLIC_CUSTOMER_URL || 'http://localhost:3002'
-      const url = `${customerUrl}?org=${userProfile.organization_id}&branch=${branchId}&department=${departmentId}`
-      await navigator.clipboard.writeText(url)
-      
       showSuccess(
-        'Department URL Copied!',
-        `${departmentName || 'Department'} queue URL has been copied to your clipboard.`,
-        {
-          label: 'Test URL',
-          onClick: () => window.open(url, '_blank')
+        "Print Dialog Opened!",
+        `${branchName} QR code is ready for printing.`
+      );
+    },
+    []
+  );
+
+  const refreshBranchQR = useCallback(
+    async (
+      branchId: string,
+      branchName: string,
+      userProfile: any,
+      organization: Organization | null,
+      setBranchQrCodes: React.Dispatch<React.SetStateAction<QRCodeData>>,
+      showSuccess: (title: string, message: string) => void,
+      showError: (title: string, message: string) => void
+    ) => {
+      if (!userProfile?.organization_id || !organization?.name) {
+        showError(
+          "Refresh Failed",
+          "Missing organization data. Please try again."
+        );
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/whatsapp/qr-codes", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type: "branch",
+            organizationId: userProfile.organization_id,
+            branchId: branchId,
+          }),
+        });
+
+        const data = await response.json();
+        if (data.success && data.qrCode) {
+          setBranchQrCodes((prev) => ({
+            ...prev,
+            [branchId]: data.qrCode,
+          }));
+          showSuccess(
+            "QR Code Refreshed!",
+            `${branchName} QR code has been regenerated successfully.`
+          );
+        } else {
+          showError(
+            "Refresh Failed",
+            "Unable to generate QR code. Please try again."
+          );
         }
-      )
-    } catch (error) {
-      showError('Copy Failed', 'Unable to copy URL to clipboard.')
-    }
-  }, [])
+      } catch (error) {
+        logger.error("Error refreshing branch QR code:", error);
+        showError(
+          "Refresh Failed",
+          "An error occurred while refreshing the QR code."
+        );
+      }
+    },
+    []
+  );
 
-  const printDepartmentQR = useCallback((
-    departmentId: string,
-    departmentName: string,
-    branchId: string,
-    departmentQrCodes: QRCodeData,
-    organization: Organization | null,
-    userProfile: any,
-    showError: (title: string, message: string) => void,
-    showInfo: (title: string, message: string) => void
-  ) => {
-    const qrCode = departmentQrCodes[departmentId]
-    if (!qrCode) {
-      showError('Print Failed', 'QR code not available. Please generate it first.')
-      return
-    }
+  const downloadDepartmentQR = useCallback(
+    (
+      departmentId: string,
+      departmentName: string,
+      departmentQrCodes: QRCodeData,
+      showError: (title: string, message: string) => void,
+      showSuccess: (title: string, message: string) => void
+    ) => {
+      const qrCode = departmentQrCodes[departmentId];
+      if (!qrCode) {
+        showError(
+          "Download Failed",
+          "QR code not available. Please generate it first."
+        );
+        return;
+      }
 
-    const printWindow = window.open('', '_blank')
-    if (!printWindow) {
-      showError('Print Failed', 'Unable to open print window. Please check your browser settings.')
-      return
-    }
+      const link = document.createElement("a");
+      link.download = `${departmentName}-department-qr-code.png`;
+      link.href = qrCode;
+      link.click();
 
-    const customerUrl = process.env.NEXT_PUBLIC_CUSTOMER_URL || 'http://localhost:3002'
-    const url = `${customerUrl}?org=${userProfile?.organization_id}&branch=${branchId}&department=${departmentId}`
+      showSuccess(
+        "QR Code Downloaded!",
+        `${departmentName} department QR code has been saved to your device.`
+      );
+    },
+    []
+  );
 
-    printWindow.document.write(`
+  const copyDepartmentQRUrl = useCallback(
+    async (
+      departmentId: string,
+      departmentName: string | undefined,
+      branchId: string | undefined,
+      userProfile: any,
+      showSuccess: (title: string, message: string, action?: any) => void,
+      showError: (title: string, message: string) => void
+    ) => {
+      if (!userProfile?.organization_id) return;
+
+      try {
+        const customerUrl =
+          process.env.NEXT_PUBLIC_CUSTOMER_URL || "http://localhost:3002";
+        const url = `${customerUrl}?org=${userProfile.organization_id}&branch=${branchId}&department=${departmentId}`;
+        await navigator.clipboard.writeText(url);
+
+        showSuccess(
+          "Department URL Copied!",
+          `${
+            departmentName || "Department"
+          } queue URL has been copied to your clipboard.`,
+          {
+            label: "Test URL",
+            onClick: () => window.open(url, "_blank"),
+          }
+        );
+      } catch (error) {
+        showError("Copy Failed", "Unable to copy URL to clipboard.");
+      }
+    },
+    []
+  );
+
+  const printDepartmentQR = useCallback(
+    (
+      departmentId: string,
+      departmentName: string,
+      branchId: string,
+      departmentQrCodes: QRCodeData,
+      organization: Organization | null,
+      userProfile: any,
+      showError: (title: string, message: string) => void,
+      showInfo: (title: string, message: string) => void
+    ) => {
+      const qrCode = departmentQrCodes[departmentId];
+      if (!qrCode) {
+        showError(
+          "Print Failed",
+          "QR code not available. Please generate it first."
+        );
+        return;
+      }
+
+      const printWindow = window.open("", "_blank");
+      if (!printWindow) {
+        showError(
+          "Print Failed",
+          "Unable to open print window. Please check your browser settings."
+        );
+        return;
+      }
+
+      const customerUrl =
+        process.env.NEXT_PUBLIC_CUSTOMER_URL || "http://localhost:3002";
+      const url = `${customerUrl}?org=${userProfile?.organization_id}&branch=${branchId}&department=${departmentId}`;
+
+      printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -357,8 +418,12 @@ export const useQROperations = () => {
         </head>
         <body>
           <div class="qr-container">
-            ${organization?.logo_url ? `<img src="${organization.logo_url}" alt="Logo" class="logo" />` : ''}
-            <h1>${organization?.name || 'Organization'}</h1>
+            ${
+              organization?.logo_url
+                ? `<img src="${organization.logo_url}" alt="Logo" class="logo" />`
+                : ""
+            }
+            <h1>${organization?.name || "Organization"}</h1>
             <h2>${departmentName} Department</h2>
             <div class="qr-code">
               <img src="${qrCode}" alt="Department QR Code" style="max-width: 250px;" />
@@ -374,68 +439,80 @@ export const useQROperations = () => {
           </div>
         </body>
       </html>
-    `)
+    `);
 
-    printWindow.document.close()
-    printWindow.focus()
-    setTimeout(() => {
-      printWindow.print()
-    }, 250)
-    
-    showInfo(
-      'Print Dialog Opened',
-      `${departmentName} department QR code is ready to print.`
-    )
-  }, [])
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 250);
 
-  const refreshDepartmentQR = useCallback(async (
-    departmentId: string,
-    departmentName: string,
-    branchId: string,
-    userProfile: any,
-    organization: Organization | null,
-    setDepartmentQrCodes: React.Dispatch<React.SetStateAction<QRCodeData>>,
-    showSuccess: (title: string, message: string) => void,
-    showError: (title: string, message: string) => void
-  ) => {
-    if (!userProfile?.organization_id || !organization?.name) {
-      showError('Refresh Failed', 'Missing organization data. Please try again.')
-      return
-    }
+      showInfo(
+        "Print Dialog Opened",
+        `${departmentName} department QR code is ready to print.`
+      );
+    },
+    []
+  );
 
-    try {
-      const response = await fetch('/api/generate-qr', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          organizationId: userProfile.organization_id,
-          branchId: branchId,
-          departmentId: departmentId,
-          organizationName: organization.name,
-          departmentName: departmentName
-        })
-      })
-
-      const data = await response.json()
-      if (data.success) {
-        setDepartmentQrCodes(prev => ({
-          ...prev,
-          [departmentId]: data.qrCodeDataURL
-        }))
-        showSuccess(
-          'QR Code Refreshed!',
-          `${departmentName} department QR code has been regenerated successfully.`
-        )
-      } else {
-        showError('Refresh Failed', 'Unable to generate QR code. Please try again.')
+  const refreshDepartmentQR = useCallback(
+    async (
+      departmentId: string,
+      departmentName: string,
+      branchId: string,
+      userProfile: any,
+      organization: Organization | null,
+      setDepartmentQrCodes: React.Dispatch<React.SetStateAction<QRCodeData>>,
+      showSuccess: (title: string, message: string) => void,
+      showError: (title: string, message: string) => void
+    ) => {
+      if (!userProfile?.organization_id || !organization?.name) {
+        showError(
+          "Refresh Failed",
+          "Missing organization data. Please try again."
+        );
+        return;
       }
-    } catch (error) {
-      logger.error('Error refreshing department QR code:', error)
-      showError('Refresh Failed', 'An error occurred while refreshing the QR code.')
-    }
-  }, [])
+
+      try {
+        const response = await fetch("/api/whatsapp/qr-codes", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type: "department",
+            organizationId: userProfile.organization_id,
+            departmentId: departmentId,
+          }),
+        });
+
+        const data = await response.json();
+        if (data.success && data.qrCode) {
+          setDepartmentQrCodes((prev) => ({
+            ...prev,
+            [departmentId]: data.qrCode,
+          }));
+          showSuccess(
+            "QR Code Refreshed!",
+            `${departmentName} department QR code has been regenerated successfully.`
+          );
+        } else {
+          showError(
+            "Refresh Failed",
+            "Unable to generate QR code. Please try again."
+          );
+        }
+      } catch (error) {
+        logger.error("Error refreshing department QR code:", error);
+        showError(
+          "Refresh Failed",
+          "An error occurred while refreshing the QR code."
+        );
+      }
+    },
+    []
+  );
 
   return {
     downloadQR,
@@ -447,6 +524,6 @@ export const useQROperations = () => {
     downloadDepartmentQR,
     copyDepartmentQRUrl,
     printDepartmentQR,
-    refreshDepartmentQR
-  }
-}
+    refreshDepartmentQR,
+  };
+};
