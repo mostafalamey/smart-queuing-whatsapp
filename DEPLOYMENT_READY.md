@@ -12,7 +12,7 @@
 
 - **Zero App Downloads** - Complete customer journey within WhatsApp
 - **Analytics-Driven Intelligence** - Real historical data (821.56min → 13h 42m)
-- **Production WhatsApp API** - UltraMessage integration (instance140392)
+- **Production WhatsApp API** - UltraMessage integration (your-instance-id)
 - **Complete Conversation System** - Multi-step bot with state management
 
 ---

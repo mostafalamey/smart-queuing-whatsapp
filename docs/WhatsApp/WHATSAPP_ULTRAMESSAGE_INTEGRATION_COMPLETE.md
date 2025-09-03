@@ -32,8 +32,8 @@ This guide documents the complete WhatsApp integration using UltraMessage API fo
 
 ```bash
 # UltraMessage WhatsApp API Configuration
-ULTRAMSG_INSTANCE_ID=instance140392
-ULTRAMSG_TOKEN=hrub8q5j85dp0bgn
+ULTRAMSG_INSTANCE_ID=your-instance-id
+ULTRAMSG_TOKEN=your-ultramsg-token
 ULTRAMSG_BASE_URL=https://api.ultramsg.com
 
 # WhatsApp Settings
@@ -45,8 +45,8 @@ WHATSAPP_DEBUG=false
 
 | Variable               | Value                      | Description                           |
 | ---------------------- | -------------------------- | ------------------------------------- |
-| `ULTRAMSG_INSTANCE_ID` | `instance140392`           | Your UltraMessage instance ID         |
-| `ULTRAMSG_TOKEN`       | `hrub8q5j85dp0bgn`         | Your UltraMessage API token           |
+| `ULTRAMSG_INSTANCE_ID` | `your-instance-id`         | Your UltraMessage instance ID         |
+| `ULTRAMSG_TOKEN`       | `your-ultramsg-token`      | Your UltraMessage API token           |
 | `ULTRAMSG_BASE_URL`    | `https://api.ultramsg.com` | UltraMessage API base URL             |
 | `WHATSAPP_ENABLED`     | `true`                     | Enable/disable WhatsApp notifications |
 | `WHATSAPP_DEBUG`       | `false`                    | Debug mode (logs without sending)     |
