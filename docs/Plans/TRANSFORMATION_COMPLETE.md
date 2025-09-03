@@ -151,14 +151,14 @@ npm run dev
 
 ### WhatsApp Integration
 
-- [ ] Generate QR code via API
-- [ ] Scan QR opens WhatsApp correctly
-- [ ] Send message creates conversation
-- [ ] Services menu appears
-- [ ] Service selection works
-- [ ] Phone collection works
-- [ ] Ticket creation succeeds
-- [ ] Status updates send correctly
+- [x] Generate QR code via API
+- [x] Scan QR opens WhatsApp correctly
+- [x] Send message creates conversation
+- [x] Services menu appears
+- [x] Service selection works
+- [x] Phone collection works
+- [x] Ticket creation succeeds
+- [x] Status updates send correctly
 
 ### Kiosk Functionality
 

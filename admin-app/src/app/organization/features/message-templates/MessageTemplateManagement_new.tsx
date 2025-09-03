@@ -11,28 +11,11 @@ import {
   MessageSquare,
   Save,
   RotateCcw,
+  Eye,
   Copy,
   QrCode,
   Phone,
 } from "lucide-react";
-
-interface Branch {
-  id: string;
-  name: string;
-  address: string;
-}
-
-interface Department {
-  id: string;
-  name: string;
-}
-
-interface Service {
-  id: string;
-  name: string;
-  estimated_time?: number; // Fallback from services table
-  calculated_duration?: number; // Calculated from analytics
-}
 
 interface MessageTemplateManagementProps {
   organizationId: string;
@@ -61,6 +44,7 @@ export function MessageTemplateManagement({
     | "branchSelection"
     | "departmentSelection"
     | "serviceSelection"
+    | "phoneNumberRequest"
     | "ticketConfirmation"
     | "statusUpdate"
     | "invalidInput"
@@ -69,12 +53,7 @@ export function MessageTemplateManagement({
     | "youAreNext"
     | "yourTurn"
   >("qrCodeMessage");
-
-  // Organization data for realistic previews
-  const [branches, setBranches] = useState<Branch[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
-  const [loadingOrgData, setLoadingOrgData] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Local QR code template state with debounced updates
   const [localQrCodeTemplate, setLocalQrCodeTemplate] =
@@ -92,6 +71,7 @@ export function MessageTemplateManagement({
         branchSelection: "Branch Selection",
         departmentSelection: "Department Selection",
         serviceSelection: "Service Selection",
+        phoneNumberRequest: "Phone Number Request",
         ticketConfirmation: "Ticket Confirmation",
         statusUpdate: "Status Update",
         invalidInput: "Invalid Input",
@@ -108,64 +88,27 @@ export function MessageTemplateManagement({
     },
   };
 
-  // Sample data for preview with real organization data
-  const getSampleData = (): MessageTemplateData => {
-    // Build realistic branch list from actual data
-    const branchList =
-      branches.length > 0
-        ? branches
-            .map(
-              (branch, index) =>
-                `${index + 1}️⃣ ${branch.name}${
-                  branch.address ? `\n   📍 ${branch.address}` : ""
-                }`
-            )
-            .join("\n")
-        : "1️⃣ Downtown Branch\n   📍 123 Main St\n2️⃣ Mall Location\n   📍 456 Shopping Center";
-
-    // Build realistic department list from actual data
-    const departmentList =
-      departments.length > 0
-        ? departments
-            .map((dept, index) => `${index + 1}️⃣ ${dept.name}`)
-            .join("\n")
-        : "1️⃣ Bakery\n2️⃣ Deli Counter\n3️⃣ Fresh Produce";
-
-    // Build realistic service list from actual data
-    const serviceList =
-      services.length > 0
-        ? services
-            .map(
-              (service, index) =>
-                `${index + 1}️⃣ ${service.name}${
-                  service.calculated_duration
-                    ? ` (${service.calculated_duration} min)`
-                    : ""
-                }`
-            )
-            .join("\n")
-        : "1️⃣ Fresh Bread Counter (5 min)\n2️⃣ Custom Cake Orders (15 min)\n3️⃣ Pastry Selection (3 min)";
-
-    return {
-      organizationName,
-      ticketNumber: "QUE-001",
-      serviceName: services[0]?.name || "General Service",
-      departmentName: departments[0]?.name || "Customer Service",
-      branchName: branches[0]?.name || "Main Branch",
-      customerName: "John Doe",
-      estimatedWaitTime: "15 min",
-      queuePosition: 3,
-      totalInQueue: 8,
-      currentlyServing: "QUE-256",
-      branchList,
-      departmentList,
-      serviceList,
-    };
+  // Sample data for preview
+  const sampleData: MessageTemplateData = {
+    organizationName,
+    ticketNumber: "BAK-001",
+    serviceName: "Fresh Bread Counter",
+    departmentName: "Bakery",
+    branchName: "Downtown Branch",
+    customerName: "John Doe",
+    estimatedWaitTime: "15 min",
+    queuePosition: 3,
+    totalInQueue: 8,
+    currentlyServing: "BAK-256",
+    branchList:
+      "1️⃣ Downtown Branch\n   📍 123 Main St\n2️⃣ Mall Location\n   📍 456 Shopping Center",
+    departmentList: "1️⃣ Bakery\n2️⃣ Deli Counter\n3️⃣ Fresh Produce",
+    serviceList:
+      "1️⃣ Fresh Bread Counter (5 min)\n2️⃣ Custom Cake Orders (15 min)\n3️⃣ Pastry Selection (3 min)",
   };
 
   useEffect(() => {
     loadTemplates();
-    loadOrganizationData();
   }, [organizationId]);
 
   // Sync local QR code template with prop
@@ -181,96 +124,6 @@ export function MessageTemplateManagement({
       }
     };
   }, [qrCodeTemplateTimeout]);
-
-  const loadOrganizationData = async () => {
-    try {
-      setLoadingOrgData(true);
-
-      // Load branches
-      const { data: branchData, error: branchError } = await supabase
-        .from("branches")
-        .select("id, name, address")
-        .eq("organization_id", organizationId)
-        .order("name");
-
-      if (branchError) {
-        console.error("Error loading branches:", branchError);
-      } else {
-        setBranches(branchData || []);
-      }
-
-      // Load departments (from first branch if available)
-      if (branchData && branchData.length > 0) {
-        const { data: deptData, error: deptError } = await supabase
-          .from("departments")
-          .select("id, name")
-          .eq("branch_id", branchData[0].id)
-          .order("name");
-
-        if (deptError) {
-          console.error("Error loading departments:", deptError);
-        } else {
-          setDepartments(deptData || []);
-        }
-
-        // Load services (from first department if available)
-        if (deptData && deptData.length > 0) {
-          const { data: serviceData, error: serviceError } = await supabase
-            .from("services")
-            .select("id, name, estimated_time")
-            .eq("department_id", deptData[0].id)
-            .order("name");
-
-          if (serviceError) {
-            console.error("Error loading services:", serviceError);
-            setServices([]);
-          } else {
-            // Calculate estimated duration from analytics for each service
-            const servicesWithDuration = await Promise.all(
-              (serviceData || []).map(async (service) => {
-                try {
-                  // Try to get average duration from analytics
-                  const { data: analyticsData } = await supabase
-                    .from("queue_analytics")
-                    .select("avg_service_time")
-                    .eq("service_id", service.id)
-                    .eq("status", "completed")
-                    .gte(
-                      "created_at",
-                      new Date(
-                        Date.now() - 30 * 24 * 60 * 60 * 1000
-                      ).toISOString()
-                    ) // Last 30 days
-                    .single();
-
-                  const calculated_duration = analyticsData?.avg_service_time
-                    ? Math.round(analyticsData.avg_service_time / 60) // Convert seconds to minutes
-                    : service.estimated_time || 15; // Fallback to service estimated_time or default 15 min
-
-                  return {
-                    ...service,
-                    calculated_duration,
-                  };
-                } catch (error) {
-                  // If analytics query fails, use fallback
-                  return {
-                    ...service,
-                    calculated_duration: service.estimated_time || 15,
-                  };
-                }
-              })
-            );
-
-            setServices(servicesWithDuration);
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error loading organization data:", error);
-    } finally {
-      setLoadingOrgData(false);
-    }
-  };
 
   const loadTemplates = async () => {
     try {
@@ -413,32 +266,7 @@ export function MessageTemplateManagement({
 
   const generatePreview = () => {
     const template = getCurrentTemplate();
-    const sampleData = getSampleData();
     return processMessageTemplate(template, sampleData);
-  };
-
-  const renderWhatsAppPreview = (message: string) => {
-    // Convert WhatsApp formatting to HTML for better preview
-    return message.split("\n").map((line, index) => {
-      // Convert *text* to bold
-      let formattedLine = line.replace(/\*([^*]+)\*/g, "<strong>$1</strong>");
-
-      // Convert emoji numbering to styled bullets
-      formattedLine = formattedLine.replace(
-        /^([0-9]️⃣)/g,
-        '<span class="text-blue-600 font-bold">$1</span>'
-      );
-
-      return (
-        <div key={index} className="leading-relaxed">
-          {formattedLine.includes("<") ? (
-            <span dangerouslySetInnerHTML={{ __html: formattedLine }} />
-          ) : (
-            formattedLine
-          )}
-        </div>
-      );
-    });
   };
 
   const copyToClipboard = async (text: string) => {
@@ -488,14 +316,15 @@ export function MessageTemplateManagement({
               menu
             </p>
             <p>
-              <strong>3. Select Service</strong> → Gets ticket confirmation
-              immediately
+              <strong>3. Select Service</strong> → Gets phone number
+              confirmation
             </p>
             <p>
-              <strong>4. Stay Updated</strong> → All status updates via WhatsApp
+              <strong>4. Confirm Phone</strong> → Receives ticket with queue
+              position
             </p>
-            <p className="text-green-600 font-medium">
-              📱 Phone number automatically detected from WhatsApp!
+            <p>
+              <strong>5. Stay Updated</strong> → All status updates via WhatsApp
             </p>
           </div>
         </div>
@@ -634,57 +463,103 @@ export function MessageTemplateManagement({
                         placeholder="Enter your WhatsApp message template..."
                       />
                     </div>
-                  </div>
 
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      Live Preview
-                    </h3>
-
-                    <div className="bg-gray-50 border border-gray-200 rounded-md p-4 h-fit">
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-600">
-                            WhatsApp Message Preview:
-                          </span>
-                          <button
-                            onClick={() =>
-                              copyToClipboard(generatePreview() as string)
-                            }
-                            className="text-green-600 hover:text-green-800"
-                            title="Copy preview to clipboard"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </button>
-                        </div>
-                        <div className="bg-white border rounded-lg p-3 text-sm max-h-64 overflow-y-auto space-y-1">
-                          {renderWhatsAppPreview(generatePreview() as string)}
-                        </div>
+                    <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                      <h4 className="text-sm font-medium text-yellow-800 mb-2">
+                        Available Variables:
+                      </h4>
+                      <div className="text-xs text-yellow-700 grid grid-cols-2 gap-1">
+                        <code>{"{{organizationName}}"}</code>
+                        <code>{"{{ticketNumber}}"}</code>
+                        <code>{"{{serviceName}}"}</code>
+                        <code>{"{{departmentName}}"}</code>
+                        <code>{"{{branchName}}"}</code>
+                        <code>{"{{estimatedWaitTime}}"}</code>
+                        <code>{"{{queuePosition}}"}</code>
+                        <code>{"{{totalInQueue}}"}</code>
+                        <code>{"{{currentlyServing}}"}</code>
+                        <code>{"{{branchList}}"}</code>
+                        <code>{"{{departmentList}}"}</code>
+                        <code>{"{{serviceList}}"}</code>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
 
-              {/* Variables Section - Full Width Below Templates */}
-              {activeTemplate !== "qrCodeMessage" && (
-                <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-                  <h4 className="text-sm font-medium text-yellow-800 mb-3">
-                    Available Variables:
-                  </h4>
-                  <div className="text-xs text-yellow-700 grid grid-cols-3 lg:grid-cols-4 gap-2">
-                    <code>{"{{organizationName}}"}</code>
-                    <code>{"{{ticketNumber}}"}</code>
-                    <code>{"{{serviceName}}"}</code>
-                    <code>{"{{departmentName}}"}</code>
-                    <code>{"{{branchName}}"}</code>
-                    <code>{"{{estimatedWaitTime}}"}</code>
-                    <code>{"{{queuePosition}}"}</code>
-                    <code>{"{{totalInQueue}}"}</code>
-                    <code>{"{{currentlyServing}}"}</code>
-                    <code>{"{{branchList}}"}</code>
-                    <code>{"{{departmentList}}"}</code>
-                    <code>{"{{serviceList}}"}</code>
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Live Preview
+                      </h3>
+                      <button
+                        onClick={() => setShowPreview(!showPreview)}
+                        className="text-green-600 hover:text-green-800 flex items-center space-x-1"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span>{showPreview ? "Hide" : "Show"} Preview</span>
+                      </button>
+                    </div>
+
+                    {showPreview && (
+                      <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-600">
+                              WhatsApp Message Preview:
+                            </span>
+                            <button
+                              onClick={() =>
+                                copyToClipboard(generatePreview() as string)
+                              }
+                              className="text-green-600 hover:text-green-800"
+                              title="Copy preview to clipboard"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </button>
+                          </div>
+                          <div className="bg-white border rounded-lg p-3 whitespace-pre-wrap text-sm max-h-64 overflow-y-auto">
+                            {generatePreview() as string}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-4 text-sm text-gray-600">
+                      <p>
+                        <strong>Sample data used in preview:</strong>
+                      </p>
+                      <ul className="mt-2 space-y-1 text-xs bg-gray-50 p-3 rounded-md">
+                        <li>
+                          <strong>Organization:</strong>{" "}
+                          {sampleData.organizationName}
+                        </li>
+                        <li>
+                          <strong>Ticket:</strong> {sampleData.ticketNumber}
+                        </li>
+                        <li>
+                          <strong>Service:</strong> {sampleData.serviceName}
+                        </li>
+                        <li>
+                          <strong>Department:</strong>{" "}
+                          {sampleData.departmentName}
+                        </li>
+                        <li>
+                          <strong>Branch:</strong> {sampleData.branchName}
+                        </li>
+                        <li>
+                          <strong>Queue Position:</strong>{" "}
+                          {sampleData.queuePosition} of{" "}
+                          {sampleData.totalInQueue}
+                        </li>
+                        <li>
+                          <strong>Estimated Wait:</strong>{" "}
+                          {sampleData.estimatedWaitTime}
+                        </li>
+                        <li>
+                          <strong>Currently Serving:</strong>{" "}
+                          {sampleData.currentlyServing}
+                        </li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               )}
@@ -720,8 +595,10 @@ export function MessageTemplateManagement({
                 <strong>Service Selection:</strong> Pick specific service
               </li>
               <li>
-                <strong>Ticket Confirmation:</strong> Immediate ticket creation
-                (phone auto-detected)
+                <strong>Phone Number Request:</strong> Confirm customer phone
+              </li>
+              <li>
+                <strong>Ticket Confirmation:</strong> Final ticket details
               </li>
             </ul>
           </div>

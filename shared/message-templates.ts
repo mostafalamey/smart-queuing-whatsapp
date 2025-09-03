@@ -6,14 +6,32 @@ export interface MessageTemplateData {
   ticketNumber: string;
   serviceName: string;
   departmentName: string;
+  branchName?: string;
   customerName?: string;
   estimatedWaitTime?: string;
   queuePosition?: number;
   totalInQueue?: number;
   currentlyServing?: string;
+  branchList?: string;
+  departmentList?: string;
+  serviceList?: string;
 }
 
 export interface MessageTemplates {
+  // QR Code Message Template
+  qrCodeMessage: string;
+
+  // WhatsApp Conversation Messages
+  welcomeMessage: string;
+  branchSelection: string;
+  departmentSelection: string;
+  serviceSelection: string;
+  ticketConfirmation: string;
+  statusUpdate: string;
+  invalidInput: string;
+  systemError: string;
+
+  // Queue Notification Messages (existing)
   ticketCreated: {
     whatsapp: string;
     push: {
@@ -39,6 +57,72 @@ export interface MessageTemplates {
 
 // Default message templates
 export const defaultMessageTemplates: MessageTemplates = {
+  // QR Code Message Template
+  qrCodeMessage: "Hello {{organizationName}}! I would like to join the queue.",
+
+  // WhatsApp Conversation Messages
+  welcomeMessage: `🏢 Welcome to {{organizationName}}!
+
+Thank you for choosing our services. Let's get you set up in our queue system.
+
+📍 We'll help you select the right service and get your queue position.`,
+
+  branchSelection: `🏢 Welcome to {{organizationName}}!
+
+📍 *Select Your Branch:*
+
+{{branchList}}
+
+💬 Reply with the number of your desired branch.`,
+
+  departmentSelection: `🏢 {{branchName}}
+
+🏬 *Select Your Department:*
+
+{{departmentList}}
+
+💬 Reply with the number of your desired department.`,
+
+  serviceSelection: `🏢 Welcome to our queue system!
+
+📋 *Available Services:*
+
+{{serviceList}}
+
+💬 Reply with the number of your desired service.`,
+
+  ticketConfirmation: `✅ *Ticket Confirmed!*
+
+🎟️ *Ticket:* {{ticketNumber}}
+🏬 *Location:* {{branchName}} - {{departmentName}}
+🔧 *Service:* {{serviceName}}
+👥 *Position in Queue:* {{queuePosition}}
+⏱️ *Estimated Wait:* {{estimatedWaitTime}}
+
+📱 You'll receive automatic updates as your turn approaches!
+
+💡 Reply 'status' to check your current position anytime.`,
+
+  statusUpdate: `🔔 *Queue Status Update*
+
+🎟️ *Ticket:* {{ticketNumber}}
+👥 *Current Position:* {{queuePosition}} of {{totalInQueue}}
+⏱️ *Estimated Wait:* {{estimatedWaitTime}}
+🔧 *Currently Serving:* {{currentlyServing}}
+
+Almost your turn! Please be ready.`,
+
+  invalidInput: `❌ *Invalid Selection*
+
+Please reply with a valid number from the options provided.
+
+Type 'restart' to begin again or 'help' for assistance.`,
+
+  systemError: `⚠️ *System Error*
+
+We're experiencing technical difficulties. Please try again in a moment.
+
+If the problem persists, please contact our staff directly.`, // Queue Notification Messages (existing)
   ticketCreated: {
     whatsapp: `🎉 *Welcome to {{organizationName}}!*
 
@@ -89,7 +173,7 @@ Thank you for waiting! 🙏`,
   },
 };
 
-// Template replacement function
+// Enhanced template replacement function
 export function processMessageTemplate(
   template: string,
   data: MessageTemplateData
@@ -102,11 +186,15 @@ export function processMessageTemplate(
     .replace(/\{\{ticketNumber\}\}/g, data.ticketNumber || "N/A")
     .replace(/\{\{serviceName\}\}/g, data.serviceName || "Service")
     .replace(/\{\{departmentName\}\}/g, data.departmentName || "Department")
+    .replace(/\{\{branchName\}\}/g, data.branchName || "Main Branch")
     .replace(/\{\{customerName\}\}/g, data.customerName || "Customer")
     .replace(/\{\{estimatedWaitTime\}\}/g, data.estimatedWaitTime || "N/A")
     .replace(/\{\{queuePosition\}\}/g, (data.queuePosition || 0).toString())
     .replace(/\{\{totalInQueue\}\}/g, (data.totalInQueue || 0).toString())
-    .replace(/\{\{currentlyServing\}\}/g, data.currentlyServing || "N/A");
+    .replace(/\{\{currentlyServing\}\}/g, data.currentlyServing || "N/A")
+    .replace(/\{\{branchList\}\}/g, data.branchList || "")
+    .replace(/\{\{departmentList\}\}/g, data.departmentList || "")
+    .replace(/\{\{serviceList\}\}/g, data.serviceList || "");
 }
 
 // Helper function to get queue statistics

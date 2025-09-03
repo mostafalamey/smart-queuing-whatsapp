@@ -10,6 +10,8 @@ export interface Organization {
   logo_url: string | null;
   country: string | null;
   country_code: string | null;
+  whatsapp_business_number: string | null;
+  qr_code_message_template: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -62,10 +64,11 @@ export interface OrganizationForm {
   website: string;
   address: string;
   primary_color: string;
-  welcome_message: string;
   logo_url: string;
   country: string;
   country_code: string;
+  whatsapp_business_number: string;
+  qr_code_message_template: string;
 }
 
 export interface QRCodeData {

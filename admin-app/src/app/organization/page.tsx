@@ -677,22 +677,31 @@ export default function OrganizationPage() {
             <MessageTemplateManagement
               organizationId={organization.id}
               organizationName={organization.name}
-              welcomeMessage={orgForm.welcome_message}
-              onUpdateWelcomeMessage={async (message: string) => {
-                const updatedForm = { ...orgForm, welcome_message: message };
-                setOrgForm(updatedForm);
-                // Save the welcome message immediately
-                await updateOrganization(
-                  { preventDefault: () => {} } as React.FormEvent,
-                  userProfile,
-                  updatedForm,
-                  fetchOrganization,
-                  setLoading,
-                  showSuccess,
-                  showError
-                );
+              qrCodeTemplate={
+                organization.qr_code_message_template ||
+                "Hello {{organizationName}}! I would like to join the queue."
+              }
+              onUpdateQrCodeTemplate={async (message: string) => {
+                try {
+                  // Update organization's QR code template directly in database
+                  const { error } = await supabase
+                    .from("organizations")
+                    .update({ qr_code_message_template: message })
+                    .eq("id", organization.id);
+
+                  if (error) throw error;
+
+                  // Update local state
+                  setOrganization((prev) =>
+                    prev ? { ...prev, qr_code_message_template: message } : null
+                  );
+                  showSuccess("QR Code message template updated successfully!");
+                } catch (error) {
+                  console.error("Error updating QR code template:", error);
+                  showError("Failed to update QR code message template");
+                }
               }}
-              canEditWelcomeMessage={rolePermissions.canEditOrganization}
+              canEditMessages={rolePermissions.canEditOrganization}
             />
           )}
         </div>
