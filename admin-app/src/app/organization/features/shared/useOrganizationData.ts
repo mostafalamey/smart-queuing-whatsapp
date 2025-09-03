@@ -65,10 +65,12 @@ export const useOrganizationData = () => {
     website: "",
     address: "",
     primary_color: "#3b82f6",
-    welcome_message: "",
     logo_url: "",
     country: "Egypt",
     country_code: "+20",
+    whatsapp_business_number: "",
+    qr_code_message_template: "",
+    welcome_message: "", // Deprecated field for backward compatibility
   });
 
   // Fetch functions
@@ -90,10 +92,12 @@ export const useOrganizationData = () => {
         website: data.website || "",
         address: data.address || "",
         primary_color: data.primary_color || "#3b82f6",
-        welcome_message: data.welcome_message || "",
         logo_url: data.logo_url || "",
         country: data.country || "Egypt",
         country_code: data.country_code || "+20",
+        whatsapp_business_number: data.whatsapp_business_number || "",
+        qr_code_message_template: data.qr_code_message_template || "",
+        welcome_message: data.welcome_message || "", // Deprecated field
       });
 
       // Generate organization QR code inline

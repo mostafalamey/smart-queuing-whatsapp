@@ -69,6 +69,7 @@ export interface OrganizationForm {
   country_code: string;
   whatsapp_business_number: string;
   qr_code_message_template: string;
+  welcome_message?: string; // Deprecated field for backward compatibility
 }
 
 export interface QRCodeData {
