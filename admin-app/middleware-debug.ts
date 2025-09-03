@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   console.log("🔍 Middleware executing for:", request.nextUrl.pathname);
-  
+
   // Skip middleware for static files and API routes
   const { pathname } = request.nextUrl;
 
@@ -33,7 +33,7 @@ export async function middleware(request: NextRequest) {
 
   // For debugging: allow all requests through for now
   console.log("🚦 Allowing all requests through for debugging:", pathname);
-  
+
   try {
     // Simple response - no Supabase interaction
     return NextResponse.next();
