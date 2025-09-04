@@ -31,14 +31,7 @@ export interface MessageTemplates {
   invalidInput: string;
   systemError: string;
 
-  // Queue Notification Messages (existing)
-  ticketCreated: {
-    whatsapp: string;
-    push: {
-      title: string;
-      body: string;
-    };
-  };
+  // Queue Notification Messages
   youAreNext: {
     whatsapp: string;
     push: {
@@ -122,25 +115,9 @@ Type 'restart' to begin again or 'help' for assistance.`,
 
 We're experiencing technical difficulties. Please try again in a moment.
 
-If the problem persists, please contact our staff directly.`, // Queue Notification Messages (existing)
-  ticketCreated: {
-    whatsapp: `🎉 *Welcome to {{organizationName}}!*
+If the problem persists, please contact our staff directly.`,
 
-📋 *Ticket: {{ticketNumber}}*
-🏢 Department: {{departmentName}}
-🔧 Service: {{serviceName}}
-
-📊 *Queue Status:*
-• Position: {{queuePosition}} of {{totalInQueue}}
-• Estimated wait: {{estimatedWaitTime}}
-• Currently serving: {{currentlyServing}}
-
-We'll notify you when it's your turn. Thank you for choosing us! ✨`,
-    push: {
-      title: "🎉 Ticket Created - {{organizationName}}",
-      body: "Ticket {{ticketNumber}} for {{serviceName}}. Position {{queuePosition}} of {{totalInQueue}}. Est. wait: {{estimatedWaitTime}}",
-    },
-  },
+  // Queue Notification Messages
   youAreNext: {
     whatsapp: `🔔 *You're Next!*
 

@@ -2,6 +2,10 @@
 // Handles multi-step conversations for queue management
 
 import { whatsappNotificationService } from "./whatsapp-notification-service";
+import {
+  getMessageWithFallback,
+  type TemplateVariables,
+} from "./message-template-loader";
 
 export enum ConversationState {
   INITIAL_CONTACT = "initial_contact",
@@ -157,7 +161,11 @@ export class WhatsAppConversationEngine {
     const branchNumber = parseInt(messageBody.trim());
 
     if (isNaN(branchNumber)) {
-      return "Please reply with the number of your desired branch (e.g., '1', '2', '3').";
+      return await getMessageWithFallback(
+        conversation.organization_id,
+        "branch_selection_error",
+        {}
+      );
     }
 
     const branches = await this.getOrganizationBranches(
@@ -166,7 +174,11 @@ export class WhatsAppConversationEngine {
     const selectedBranch = branches.find((b: any) => b.number === branchNumber);
 
     if (!selectedBranch) {
-      return `Invalid branch number. Please choose a number between 1 and ${branches.length}.`;
+      return await getMessageWithFallback(
+        conversation.organization_id,
+        "invalid_branch_number",
+        { max_number: branches.length.toString() }
+      );
     }
 
     // Update conversation with selected branch
@@ -188,7 +200,11 @@ export class WhatsAppConversationEngine {
     const departmentNumber = parseInt(messageBody.trim());
 
     if (isNaN(departmentNumber)) {
-      return "Please reply with the number of your desired department (e.g., '1', '2', '3').";
+      return await getMessageWithFallback(
+        conversation.organization_id,
+        "department_selection_error",
+        {}
+      );
     }
 
     const branchId = conversation.branch_id;
@@ -198,7 +214,11 @@ export class WhatsAppConversationEngine {
     );
 
     if (!selectedDepartment) {
-      return `Invalid department number. Please choose a number between 1 and ${departments.length}.`;
+      return await getMessageWithFallback(
+        conversation.organization_id,
+        "invalid_department_number",
+        { max_number: departments.length.toString() }
+      );
     }
 
     // Update conversation with selected department
@@ -233,19 +253,33 @@ export class WhatsAppConversationEngine {
       ConversationState.AWAITING_BRANCH_SELECTION
     );
 
-    let message = `🏢 Welcome to our service!\n\n`;
-    message += `📍 **Select Your Branch:**\n\n`;
+    // Get organization info
+    const organization = await this.getOrganizationById(
+      conversation.organization_id
+    );
 
+    // Build branches list for template
+    let branchesList = "";
     branches.forEach((branch: any) => {
-      message += `${branch.number}️⃣ ${branch.name}\n`;
+      branchesList += `${branch.number}️⃣ ${branch.name}\n`;
       if (branch.address) {
-        message += `   📍 ${branch.address}\n`;
+        branchesList += `   📍 ${branch.address}\n`;
       }
     });
 
-    message += `\n💬 Reply with the number of your desired branch.`;
+    // Use message template from database
+    const templateVariables: TemplateVariables = {
+      organization_name: organization?.name || "Our Organization",
+      organizationName: organization?.name || "Our Organization", // camelCase for database template
+      branches_list: branchesList.trim(),
+      branchList: branchesList.trim(), // camelCase for database template
+    };
 
-    return message;
+    return await getMessageWithFallback(
+      conversation.organization_id,
+      "branch_selection",
+      templateVariables
+    );
   }
 
   /**
@@ -270,19 +304,29 @@ export class WhatsAppConversationEngine {
     // Get branch name for context
     const branch = await this.getBranchInfo(branchId);
 
-    let message = `🏢 ${branch?.name || "Branch"}\n\n`;
-    message += `🏬 **Select Your Department:**\n\n`;
-
+    // Build departments list for template
+    let departmentsList = "";
     departments.forEach((department: any) => {
-      message += `${department.number}️⃣ ${department.name}\n`;
+      departmentsList += `${department.number}️⃣ ${department.name}\n`;
       if (department.description) {
-        message += `   ${department.description}\n`;
+        departmentsList += `   ${department.description}\n`;
       }
     });
 
-    message += `\n💬 Reply with the number of your desired department.`;
+    // Use message template from database
+    const templateVariables: TemplateVariables = {
+      branch_name: branch?.name || "Branch",
+      branchName: branch?.name || "Branch", // camelCase for database template
+      departments_list: departmentsList.trim(),
+      departmentsList: departmentsList.trim(), // camelCase for database template
+      departmentList: departmentsList.trim(), // Singular version for database template
+    };
 
-    return message;
+    return await getMessageWithFallback(
+      conversation.organization_id,
+      "department_selection",
+      templateVariables
+    );
   }
 
   /**
@@ -307,22 +351,34 @@ export class WhatsAppConversationEngine {
     // Get department and branch info for context
     const departmentInfo = await this.getDepartmentInfo(departmentId);
 
-    let message = `🏬 ${departmentInfo?.branch_name} - ${departmentInfo?.name}\n\n`;
-    message += `⚡ **Available Services:**\n\n`;
-
+    // Build services list for template
+    let servicesList = "";
     services.forEach((service: any) => {
       const waitTime = service.estimated_wait_time
         ? ` (${service.estimated_wait_time})`
         : "";
-      message += `${service.number}️⃣ ${service.name}${waitTime}\n`;
+      servicesList += `${service.number}️⃣ ${service.name}${waitTime}\n`;
       if (service.description) {
-        message += `   📝 ${service.description}\n`;
+        servicesList += `   📝 ${service.description}\n`;
       }
     });
 
-    message += `\n💬 Reply with the number of your desired service.`;
+    // Use message template from database
+    const templateVariables: TemplateVariables = {
+      department_name: departmentInfo?.name || "Department",
+      departmentName: departmentInfo?.name || "Department", // camelCase for database template
+      branch_name: departmentInfo?.branch_name || "Branch",
+      branchName: departmentInfo?.branch_name || "Branch", // camelCase for database template
+      services_list: servicesList.trim(),
+      servicesList: servicesList.trim(), // camelCase for database template
+      serviceList: servicesList.trim(), // Singular version for database template
+    };
 
-    return message;
+    return await getMessageWithFallback(
+      conversation.organization_id,
+      "service_selection",
+      templateVariables
+    );
   }
 
   /**
@@ -335,12 +391,20 @@ export class WhatsAppConversationEngine {
     const serviceNumber = parseInt(messageBody.trim());
 
     if (isNaN(serviceNumber)) {
-      return "Please reply with the number of your desired service (e.g., '1', '2', '3').";
+      return await getMessageWithFallback(
+        conversation.organization_id,
+        "service_selection_error",
+        {}
+      );
     }
 
     // Ensure we have a department selected
     if (!conversation.department_id) {
-      return "I'm sorry, there was an error with your department selection. Please start over by sending 'hello'.";
+      return await getMessageWithFallback(
+        conversation.organization_id,
+        "department_selection_error_restart",
+        {}
+      );
     }
 
     // Use department-specific services instead of organization-wide services
@@ -350,7 +414,11 @@ export class WhatsAppConversationEngine {
     const selectedService = services.find((s) => s.number === serviceNumber);
 
     if (!selectedService) {
-      return `Invalid service number. Please choose a number between 1 and ${services.length}.`;
+      return await getMessageWithFallback(
+        conversation.organization_id,
+        "invalid_service_number",
+        { max_number: services.length.toString() }
+      );
     }
 
     console.log(
@@ -385,20 +453,13 @@ export class WhatsAppConversationEngine {
           conversation.department_id!
         );
 
-        await whatsappNotificationService.notifyTicketCreated(
-          `+${conversation.phone_number}`, // Add + prefix for WhatsApp notifications
-          ticket.ticket_number,
-          departmentData?.name || "Department",
-          organizationData?.name || "Organization",
-          ticket.queue_position || 1
-        );
-        console.log("✅ WhatsApp notification sent for ticket creation");
+        console.log("✅ Ticket creation completed successfully");
       } catch (notificationError) {
         console.error(
-          "❌ Error sending ticket creation notification:",
+          "❌ Error in ticket creation process:",
           notificationError
         );
-        // Don't fail the ticket creation if notification fails
+        // Don't fail the ticket creation if there are errors
       }
 
       // Update conversation with ticket info and mark as confirmed
@@ -417,7 +478,8 @@ export class WhatsAppConversationEngine {
 
       try {
         const confirmationMessage = await this.generateTicketConfirmation(
-          ticket
+          ticket,
+          conversation.organization_id // Pass organizationId from conversation
         );
         console.log("✅ Confirmation message generated");
         return confirmationMessage;
@@ -466,7 +528,10 @@ export class WhatsAppConversationEngine {
       context_data: { customer_phone: phoneNumber },
     });
 
-    return await this.generateTicketConfirmation(ticket);
+    return await this.generateTicketConfirmation(
+      ticket,
+      conversation.organization_id
+    );
   }
 
   /**
@@ -524,9 +589,12 @@ export class WhatsAppConversationEngine {
   }
 
   /**
-   * Generate ticket confirmation message
+   * Generate ticket confirmation message using database templates
    */
-  private async generateTicketConfirmation(ticket: any): Promise<string> {
+  private async generateTicketConfirmation(
+    ticket: any,
+    organizationId?: string
+  ): Promise<string> {
     console.log(
       "🎫 Generating confirmation for ticket:",
       JSON.stringify(ticket, null, 2)
@@ -540,6 +608,12 @@ export class WhatsAppConversationEngine {
     const branchName =
       ticket.services?.departments?.branches?.name || "Main Branch";
     const departmentName = ticket.services?.departments?.name || "Department";
+
+    // Use passed organizationId or try to extract from ticket
+    const finalOrganizationId =
+      organizationId ||
+      ticket.services?.departments?.branches?.organization_id ||
+      null;
 
     // Calculate proper estimated wait time using analytics data
     let estimatedWait = this.formatWaitTime(15); // Fallback
@@ -567,11 +641,50 @@ export class WhatsAppConversationEngine {
       console.error("Error calculating wait time for confirmation:", error);
     }
 
+    // Prepare template variables
+    const templateVariables: TemplateVariables = {
+      customer_name: "Customer",
+      customerName: "Customer", // camelCase for database template
+      organization_name:
+        ticket.services?.departments?.branches?.name || "Organization",
+      organizationName:
+        ticket.services?.departments?.branches?.name || "Organization", // camelCase for database template
+      branch_name: branchName,
+      branchName: branchName, // camelCase for database template
+      department_name: departmentName,
+      departmentName: departmentName, // camelCase for database template
+      service_name: serviceName,
+      serviceName: serviceName, // camelCase for database template
+      ticket_number: ticketNumber,
+      ticketNumber: ticketNumber, // camelCase for database template
+      queue_position: String(position),
+      queuePosition: String(position), // camelCase for database template
+      estimated_wait: estimatedWait,
+      estimatedWait: estimatedWait, // camelCase for database template
+      estimatedWaitTime: estimatedWait, // Database template expects this name
+    };
+
+    // Use database template if organization ID is available, otherwise use fallback
+    if (finalOrganizationId) {
+      try {
+        const templateMessage = await getMessageWithFallback(
+          finalOrganizationId,
+          "ticket_confirmation",
+          templateVariables
+        );
+        return templateMessage;
+      } catch (error) {
+        console.error("Error loading template from database:", error);
+      }
+    }
+
+    // Fallback to hardcoded template
+    console.log("⚠️ Using fallback template for ticket confirmation");
     return (
       `✅ **Ticket Confirmed!**\n\n` +
       `🎟️ **Ticket:** ${ticketNumber}\n` +
       `🏬 **Location:** ${branchName} - ${departmentName}\n` +
-      `� **Service:** ${serviceName}\n` +
+      `🛍️ **Service:** ${serviceName}\n` +
       `👥 **Position in Queue:** ${position}\n` +
       `⏱️ **Estimated Wait:** ${estimatedWait}\n\n` +
       `📱 You'll receive automatic updates as your turn approaches!\n\n` +

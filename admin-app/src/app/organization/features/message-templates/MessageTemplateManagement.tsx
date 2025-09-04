@@ -65,7 +65,6 @@ export function MessageTemplateManagement({
     | "statusUpdate"
     | "invalidInput"
     | "systemError"
-    | "ticketCreated"
     | "youAreNext"
     | "yourTurn"
   >("qrCodeMessage");
@@ -101,7 +100,6 @@ export function MessageTemplateManagement({
     queueNotifications: {
       label: "Queue Status Notifications",
       templates: {
-        ticketCreated: "Ticket Created",
         youAreNext: "You Are Next",
         yourTurn: "Your Turn",
       },
@@ -355,15 +353,13 @@ export function MessageTemplateManagement({
   const getCurrentTemplate = () => {
     if (activeTemplate === "qrCodeMessage") {
       return localQrCodeTemplate;
-    } else if (
-      ["ticketCreated", "youAreNext", "yourTurn"].includes(activeTemplate)
-    ) {
+    } else if (["youAreNext", "yourTurn"].includes(activeTemplate)) {
       return (
         (
           templates[
             activeTemplate as keyof Pick<
               MessageTemplates,
-              "ticketCreated" | "youAreNext" | "yourTurn"
+              "youAreNext" | "yourTurn"
             >
           ] as any
         )?.whatsapp || ""
@@ -389,7 +385,7 @@ export function MessageTemplateManagement({
 
     const newTemplates = { ...templates };
 
-    if (["ticketCreated", "youAreNext", "yourTurn"].includes(templateKey)) {
+    if (["youAreNext", "yourTurn"].includes(templateKey)) {
       if (!newTemplates[templateKey as keyof MessageTemplates]) {
         (newTemplates[templateKey as keyof MessageTemplates] as any) = {
           whatsapp: "",
@@ -398,10 +394,7 @@ export function MessageTemplateManagement({
       }
       (
         newTemplates[
-          templateKey as keyof Pick<
-            MessageTemplates,
-            "ticketCreated" | "youAreNext" | "yourTurn"
-          >
+          templateKey as keyof Pick<MessageTemplates, "youAreNext" | "yourTurn">
         ] as any
       ).whatsapp = value;
     } else {
@@ -461,41 +454,82 @@ export function MessageTemplateManagement({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 border border-gray-200">
-        <div className="flex items-center space-x-3 mb-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
-            <Phone className="w-6 h-6 text-white" />
+      <div className="mb-8">
+        {/* Main Header */}
+        <div className="flex items-center space-x-4 mb-6">
+          <div className="bg-gradient-primary p-3 rounded-xl shadow-lg">
+            <Phone className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
               WhatsApp Customer Experience
             </h1>
-            <p className="text-gray-600">
+            <p className="text-lg text-gray-600 mt-1">
               Configure your WhatsApp-first queue management messages
             </p>
           </div>
         </div>
-        <div className="bg-white/50 rounded-lg p-4 border border-gray-200">
-          <h3 className="font-semibold text-gray-900 mb-2">
-            🎯 WhatsApp-First Journey:
-          </h3>
-          <div className="text-sm text-gray-700 space-y-1">
-            <p>
-              <strong>1. Scan QR</strong> → Opens WhatsApp with welcome message
-            </p>
-            <p>
-              <strong>2. Send Message</strong> → Gets branch/department/service
-              menu
-            </p>
-            <p>
-              <strong>3. Select Service</strong> → Gets ticket confirmation
-              immediately
-            </p>
-            <p>
-              <strong>4. Stay Updated</strong> → All status updates via WhatsApp
-            </p>
-            <p className="text-green-600 font-medium">
-              📱 Phone number automatically detected from WhatsApp!
+
+        {/* Journey Overview Card */}
+        <div className="bg-gradient-to-br from-celestial-50 to-french-50 rounded-xl p-6 border border-celestial-200 shadow-sm">
+          <div className="flex items-center space-x-2 mb-4">
+            <span className="text-2xl">🎯</span>
+            <h3 className="text-xl font-bold text-celestial-900">
+              WhatsApp-First Customer Journey
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="flex items-start space-x-3">
+              <div className="bg-celestial-100 rounded-full p-2 mt-1">
+                <span className="text-celestial-700 font-bold text-sm">1</span>
+              </div>
+              <div>
+                <p className="font-semibold text-celestial-800">Scan QR</p>
+                <p className="text-sm text-celestial-600">
+                  Opens WhatsApp with welcome message
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start space-x-3">
+              <div className="bg-celestial-100 rounded-full p-2 mt-1">
+                <span className="text-celestial-700 font-bold text-sm">2</span>
+              </div>
+              <div>
+                <p className="font-semibold text-celestial-800">Send Message</p>
+                <p className="text-sm text-celestial-600">
+                  Gets branch/department/service menu
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start space-x-3">
+              <div className="bg-celestial-100 rounded-full p-2 mt-1">
+                <span className="text-celestial-700 font-bold text-sm">3</span>
+              </div>
+              <div>
+                <p className="font-semibold text-celestial-800">
+                  Select Service
+                </p>
+                <p className="text-sm text-celestial-600">
+                  Gets ticket confirmation immediately
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start space-x-3">
+              <div className="bg-celestial-100 rounded-full p-2 mt-1">
+                <span className="text-celestial-700 font-bold text-sm">4</span>
+              </div>
+              <div>
+                <p className="font-semibold text-celestial-800">Stay Updated</p>
+                <p className="text-sm text-celestial-600">
+                  All status updates via WhatsApp
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 p-3 bg-white/70 rounded-lg border border-celestial-200">
+            <p className="text-celestial-700 font-medium flex items-center space-x-2">
+              <span>📱</span>
+              <span>Phone number automatically detected from WhatsApp!</span>
             </p>
           </div>
         </div>
@@ -505,248 +539,345 @@ export function MessageTemplateManagement({
       {Object.entries(templateCategories).map(([categoryKey, category]) => (
         <div
           key={categoryKey}
-          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+          className="bg-white rounded-xl shadow-elegant border border-gray-200 overflow-hidden"
         >
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              {categoryKey === "whatsappConversation" ? (
-                <QrCode className="h-6 w-6 text-green-600" />
-              ) : (
-                <MessageSquare className="h-6 w-6 text-blue-600" />
-              )}
-              <h2 className="text-xl font-semibold text-gray-900">
-                {category.label}
-              </h2>
-            </div>
-            {categoryKey === "whatsappConversation" && (
-              <div className="flex space-x-3">
-                <button
-                  onClick={resetToDefaults}
-                  disabled={!canEditMessages}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 flex items-center space-x-2 disabled:opacity-50"
+          <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div
+                  className={`p-2 rounded-lg ${
+                    categoryKey === "whatsappConversation"
+                      ? "bg-celestial-100"
+                      : "bg-french-100"
+                  }`}
                 >
-                  <RotateCcw className="h-4 w-4" />
-                  <span>Reset to Defaults</span>
-                </button>
-                <button
-                  onClick={saveTemplates}
-                  disabled={saving || !canEditMessages}
-                  className="px-4 py-2 bg-green-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 flex items-center space-x-2"
-                >
-                  <Save className="h-4 w-4" />
-                  <span>{saving ? "Saving..." : "Save WhatsApp Messages"}</span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Template Selection Tabs */}
-          <div className="mb-6">
-            <div className="border-b border-gray-200">
-              <nav className="-mb-px flex space-x-8 flex-wrap">
-                {Object.entries(category.templates).map(
-                  ([templateKey, label]) => (
-                    <button
-                      key={templateKey}
-                      onClick={() => setActiveTemplate(templateKey as any)}
-                      className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                        activeTemplate === templateKey
-                          ? categoryKey === "whatsappConversation"
-                            ? "border-green-500 text-green-600"
-                            : "border-blue-500 text-blue-600"
-                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  )
-                )}
-              </nav>
-            </div>
-          </div>
-
-          {/* Show editor only for active category */}
-          {Object.keys(category.templates).includes(activeTemplate) && (
-            <>
-              {/* Special handling for QR Code Template */}
-              {activeTemplate === "qrCodeMessage" && (
-                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <h3 className="text-lg font-medium text-green-900 mb-2">
-                    QR Code WhatsApp Message
-                  </h3>
-                  <p className="text-sm text-green-700 mb-4">
-                    This message appears when customers scan your QR code. It
-                    opens WhatsApp with this pre-filled message.
-                  </p>
-                  <textarea
-                    value={localQrCodeTemplate}
-                    onChange={(e) => {
-                      if (canEditMessages) {
-                        handleQrCodeTemplateChange(e.target.value);
-                      }
-                    }}
-                    disabled={!canEditMessages}
-                    rows={2}
-                    className={`w-full px-3 py-2 border border-green-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 resize-none ${
-                      !canEditMessages
-                        ? "bg-gray-50 cursor-not-allowed text-gray-700"
-                        : ""
-                    }`}
-                    placeholder="Hello {{organizationName}}! I would like to join the queue."
-                  />
-                  {!canEditMessages && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      You don't have permission to edit messages. Contact your
-                      administrator.
-                    </p>
+                  {categoryKey === "whatsappConversation" ? (
+                    <QrCode className="h-6 w-6 text-celestial-600" />
+                  ) : (
+                    <MessageSquare className="h-6 w-6 text-french-600" />
                   )}
                 </div>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {category.label}
+                </h2>
+              </div>
+              {categoryKey === "whatsappConversation" && (
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                  <button
+                    onClick={resetToDefaults}
+                    disabled={!canEditMessages}
+                    className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-celestial-500 flex items-center justify-center space-x-2 disabled:opacity-50 transition-colors duration-200"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    <span className="hidden sm:inline">Reset to Defaults</span>
+                    <span className="sm:hidden">Reset</span>
+                  </button>
+                  <button
+                    onClick={saveTemplates}
+                    disabled={saving || !canEditMessages}
+                    className="px-3 sm:px-4 py-2 bg-gradient-primary border border-transparent rounded-lg text-sm font-medium text-white hover:shadow-glow-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-celestial-500 disabled:opacity-50 flex items-center justify-center space-x-2 transition-all duration-200 shadow-elegant"
+                  >
+                    <Save className="h-4 w-4" />
+                    <span className="hidden sm:inline">
+                      {saving ? "Saving..." : "Save WhatsApp Messages"}
+                    </span>
+                    <span className="sm:hidden">
+                      {saving ? "Saving..." : "Save"}
+                    </span>
+                  </button>
+                </div>
               )}
+            </div>
+          </div>
 
-              {/* Template Editor */}
-              {activeTemplate !== "qrCodeMessage" && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      Edit WhatsApp Message Template
-                    </h3>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Message Content
-                      </label>
-                      <textarea
-                        value={getCurrentTemplate() as string}
-                        onChange={(e) =>
-                          updateTemplate(
-                            activeTemplate,
-                            "whatsapp",
-                            e.target.value
-                          )
-                        }
-                        disabled={!canEditMessages}
-                        rows={12}
-                        className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-sm ${
-                          !canEditMessages
-                            ? "bg-gray-50 cursor-not-allowed text-gray-700"
-                            : ""
+          <div className="p-6">
+            {/* Template Selection Tabs */}
+            <div className="mb-6">
+              <div className="border-b border-gray-200">
+                <nav className="-mb-px flex space-x-3 sm:space-x-6 flex-wrap gap-y-2">
+                  {Object.entries(category.templates).map(
+                    ([templateKey, label]) => (
+                      <button
+                        key={templateKey}
+                        onClick={() => setActiveTemplate(templateKey as any)}
+                        className={`py-3 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition-colors duration-200 ${
+                          activeTemplate === templateKey
+                            ? categoryKey === "whatsappConversation"
+                              ? "border-celestial-500 text-celestial-600"
+                              : "border-french-500 text-french-600"
+                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                         }`}
-                        placeholder="Enter your WhatsApp message template..."
-                      />
-                    </div>
-                  </div>
+                      >
+                        {label}
+                      </button>
+                    )
+                  )}
+                </nav>
+              </div>
+            </div>
 
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">
-                      Live Preview
+            {/* Show editor only for active category */}
+            {Object.keys(category.templates).includes(activeTemplate) && (
+              <>
+                {/* Special handling for QR Code Template */}
+                {activeTemplate === "qrCodeMessage" && (
+                  <div className="mb-6 p-4 bg-gradient-to-br from-celestial-50 to-celestial-100/50 border border-celestial-200 rounded-lg">
+                    <h3 className="text-lg font-medium text-celestial-900 mb-2">
+                      QR Code WhatsApp Message
                     </h3>
+                    <p className="text-sm text-celestial-700 mb-4">
+                      This message appears when customers scan your QR code. It
+                      opens WhatsApp with this pre-filled message.
+                    </p>
+                    <textarea
+                      value={localQrCodeTemplate}
+                      onChange={(e) => {
+                        if (canEditMessages) {
+                          handleQrCodeTemplateChange(e.target.value);
+                        }
+                      }}
+                      disabled={!canEditMessages}
+                      rows={2}
+                      className={`w-full px-3 py-2 border border-celestial-300 rounded-lg shadow-sm focus:ring-2 focus:ring-celestial-500 focus:border-celestial-500 resize-none transition-all duration-200 ${
+                        !canEditMessages
+                          ? "bg-gray-50 cursor-not-allowed text-gray-700"
+                          : "bg-white"
+                      }`}
+                      placeholder="Hello {{organizationName}}! I would like to join the queue."
+                    />
+                    {!canEditMessages && (
+                      <p className="text-xs text-gray-500 mt-2">
+                        You don't have permission to edit messages. Contact your
+                        administrator.
+                      </p>
+                    )}
+                  </div>
+                )}
 
-                    <div className="bg-gray-50 border border-gray-200 rounded-md p-4 h-fit">
+                {/* Template Editor */}
+                {activeTemplate !== "qrCodeMessage" && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-celestial-500 rounded-full"></span>
+                        <span className="text-sm sm:text-base">
+                          Edit WhatsApp Message Template
+                        </span>
+                      </h3>
+
                       <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-600">
-                            WhatsApp Message Preview:
-                          </span>
-                          <button
-                            onClick={() =>
-                              copyToClipboard(generatePreview() as string)
-                            }
-                            className="text-green-600 hover:text-green-800"
-                            title="Copy preview to clipboard"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </button>
-                        </div>
-                        <div className="bg-white border rounded-lg p-3 text-sm max-h-64 overflow-y-auto space-y-1">
-                          {renderWhatsAppPreview(generatePreview() as string)}
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Message Content
+                        </label>
+                        <textarea
+                          value={getCurrentTemplate() as string}
+                          onChange={(e) =>
+                            updateTemplate(
+                              activeTemplate,
+                              "whatsapp",
+                              e.target.value
+                            )
+                          }
+                          disabled={!canEditMessages}
+                          rows={10}
+                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-celestial-500 focus:border-celestial-500 font-mono text-xs sm:text-sm resize-none transition-all duration-200 shadow-sm ${
+                            !canEditMessages
+                              ? "bg-gray-50 cursor-not-allowed text-gray-700"
+                              : "bg-white"
+                          }`}
+                          placeholder="Enter your WhatsApp message template..."
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-french-500 rounded-full"></span>
+                        <span className="text-sm sm:text-base">
+                          Live Preview
+                        </span>
+                      </h3>
+
+                      <div className="bg-gradient-to-br from-gray-50 to-gray-100/50 border border-gray-200 rounded-lg p-3 sm:p-4 min-h-[200px] shadow-sm">
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs sm:text-sm font-medium text-gray-600 flex items-center space-x-1">
+                              <span>📱</span>
+                              <span className="hidden sm:inline">
+                                WhatsApp Message Preview:
+                              </span>
+                              <span className="sm:hidden">Preview:</span>
+                            </span>
+                            <button
+                              onClick={() =>
+                                copyToClipboard(generatePreview() as string)
+                              }
+                              className="text-celestial-600 hover:text-celestial-800 p-1 rounded hover:bg-celestial-50 transition-colors duration-200"
+                              title="Copy preview to clipboard"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </button>
+                          </div>
+                          <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4 text-xs sm:text-sm max-h-64 overflow-y-auto shadow-inner">
+                            {renderWhatsAppPreview(generatePreview() as string)}
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Variables Section - Full Width Below Templates */}
-              {activeTemplate !== "qrCodeMessage" && (
-                <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-                  <h4 className="text-sm font-medium text-yellow-800 mb-3">
-                    Available Variables:
-                  </h4>
-                  <div className="text-xs text-yellow-700 grid grid-cols-3 lg:grid-cols-4 gap-2">
-                    <code>{"{{organizationName}}"}</code>
-                    <code>{"{{ticketNumber}}"}</code>
-                    <code>{"{{serviceName}}"}</code>
-                    <code>{"{{departmentName}}"}</code>
-                    <code>{"{{branchName}}"}</code>
-                    <code>{"{{estimatedWaitTime}}"}</code>
-                    <code>{"{{queuePosition}}"}</code>
-                    <code>{"{{totalInQueue}}"}</code>
-                    <code>{"{{currentlyServing}}"}</code>
-                    <code>{"{{branchList}}"}</code>
-                    <code>{"{{departmentList}}"}</code>
-                    <code>{"{{serviceList}}"}</code>
+                {/* Variables Section - Full Width Below Templates */}
+                {activeTemplate !== "qrCodeMessage" && (
+                  <div className="mt-6 p-3 sm:p-4 bg-gradient-to-r from-citrine-50 to-caramel-50 border border-citrine-200 rounded-lg shadow-sm">
+                    <h4 className="text-sm font-semibold text-citrine-800 mb-3 flex items-center space-x-2">
+                      <span>🏷️</span>
+                      <span>Available Variables:</span>
+                    </h4>
+                    <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                        {"{{organizationName}}"}
+                      </code>
+                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                        {"{{ticketNumber}}"}
+                      </code>
+                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                        {"{{serviceName}}"}
+                      </code>
+                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                        {"{{departmentName}}"}
+                      </code>
+                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                        {"{{branchName}}"}
+                      </code>
+                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                        {"{{estimatedWaitTime}}"}
+                      </code>
+                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                        {"{{queuePosition}}"}
+                      </code>
+                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                        {"{{totalInQueue}}"}
+                      </code>
+                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                        {"{{currentlyServing}}"}
+                      </code>
+                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                        {"{{branchList}}"}
+                      </code>
+                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                        {"{{departmentList}}"}
+                      </code>
+                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                        {"{{serviceList}}"}
+                      </code>
+                    </div>
                   </div>
-                </div>
-              )}
-            </>
-          )}
+                )}
+              </>
+            )}
+          </div>
         </div>
       ))}
 
       {/* WhatsApp Flow Information */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-4">
-          📱 WhatsApp Customer Journey Flow
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-          <div>
-            <h4 className="font-semibold text-blue-800 mb-2">
-              Conversation Flow Messages:
+      <div className="bg-gradient-to-br from-celestial-50 to-french-50 border border-celestial-200 rounded-xl p-6 shadow-elegant">
+        <div className="flex items-center space-x-2 mb-4">
+          <span className="text-2xl">📱</span>
+          <h3 className="text-xl font-bold text-celestial-900">
+            WhatsApp Customer Journey Flow
+          </h3>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-white/60 rounded-lg p-4 border border-celestial-100 shadow-sm">
+            <h4 className="font-bold text-celestial-800 mb-3 flex items-center space-x-2">
+              <span className="w-2 h-2 bg-celestial-500 rounded-full"></span>
+              <span>Conversation Flow Messages</span>
             </h4>
-            <ul className="space-y-2 text-blue-700">
-              <li>
-                <strong>QR Code Message:</strong> Pre-filled when scanning QR
+            <ul className="space-y-2 text-sm text-celestial-700">
+              <li className="flex items-start space-x-2">
+                <strong className="min-w-0 font-semibold">
+                  QR Code Message:
+                </strong>
+                <span className="text-celestial-600">
+                  Pre-filled when scanning QR
+                </span>
               </li>
-              <li>
-                <strong>Welcome Message:</strong> First response from system
+              <li className="flex items-start space-x-2">
+                <strong className="min-w-0 font-semibold">
+                  Welcome Message:
+                </strong>
+                <span className="text-celestial-600">
+                  First response from system
+                </span>
               </li>
-              <li>
-                <strong>Branch Selection:</strong> If multiple branches exist
+              <li className="flex items-start space-x-2">
+                <strong className="min-w-0 font-semibold">
+                  Branch Selection:
+                </strong>
+                <span className="text-celestial-600">
+                  If multiple branches exist
+                </span>
               </li>
-              <li>
-                <strong>Department Selection:</strong> Choose department
+              <li className="flex items-start space-x-2">
+                <strong className="min-w-0 font-semibold">
+                  Department Selection:
+                </strong>
+                <span className="text-celestial-600">Choose department</span>
               </li>
-              <li>
-                <strong>Service Selection:</strong> Pick specific service
+              <li className="flex items-start space-x-2">
+                <strong className="min-w-0 font-semibold">
+                  Service Selection:
+                </strong>
+                <span className="text-celestial-600">
+                  Pick specific service
+                </span>
               </li>
-              <li>
-                <strong>Ticket Confirmation:</strong> Immediate ticket creation
-                (phone auto-detected)
+              <li className="flex items-start space-x-2">
+                <strong className="min-w-0 font-semibold">
+                  Ticket Confirmation:
+                </strong>
+                <span className="text-celestial-600">
+                  Immediate ticket creation (phone auto-detected)
+                </span>
               </li>
             </ul>
           </div>
-          <div>
-            <h4 className="font-semibold text-blue-800 mb-2">
-              Status Update Messages:
+          <div className="bg-white/60 rounded-lg p-4 border border-french-100 shadow-sm">
+            <h4 className="font-bold text-french-800 mb-3 flex items-center space-x-2">
+              <span className="w-2 h-2 bg-french-500 rounded-full"></span>
+              <span>Status Update Messages</span>
             </h4>
-            <ul className="space-y-2 text-blue-700">
-              <li>
-                <strong>Status Update:</strong> When customer checks position
+            <ul className="space-y-2 text-sm text-french-700">
+              <li className="flex items-start space-x-2">
+                <strong className="min-w-0 font-semibold">
+                  Status Update:
+                </strong>
+                <span className="text-french-600">
+                  When customer checks position
+                </span>
               </li>
-              <li>
-                <strong>Invalid Input:</strong> When customer sends wrong format
+              <li className="flex items-start space-x-2">
+                <strong className="min-w-0 font-semibold">
+                  Invalid Input:
+                </strong>
+                <span className="text-french-600">
+                  When customer sends wrong format
+                </span>
               </li>
-              <li>
-                <strong>System Error:</strong> When technical issues occur
+              <li className="flex items-start space-x-2">
+                <strong className="min-w-0 font-semibold">System Error:</strong>
+                <span className="text-french-600">
+                  When technical issues occur
+                </span>
               </li>
-              <li>
-                <strong>Ticket Created:</strong> Initial queue notification
+              <li className="flex items-start space-x-2">
+                <strong className="min-w-0 font-semibold">You Are Next:</strong>
+                <span className="text-french-600">One before their turn</span>
               </li>
-              <li>
-                <strong>You Are Next:</strong> One before their turn
-              </li>
-              <li>
-                <strong>Your Turn:</strong> Time to be served
+              <li className="flex items-start space-x-2">
+                <strong className="min-w-0 font-semibold">Your Turn:</strong>
+                <span className="text-french-600">Time to be served</span>
               </li>
             </ul>
           </div>

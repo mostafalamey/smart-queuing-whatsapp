@@ -282,12 +282,32 @@ export class RobustQueueOperations {
         return;
       }
 
+      // Fetch service name if ticket has service_id
+      let serviceName = "General Service";
+      if (ticket.service_id) {
+        try {
+          const { data: service } = await supabase
+            .from("services")
+            .select("name")
+            .eq("id", ticket.service_id)
+            .single();
+
+          if (service) {
+            serviceName = service.name;
+          }
+        } catch (serviceError) {
+          logger.warn("Failed to fetch service name:", serviceError);
+        }
+      }
+
       logger.info("Sending WhatsApp notifications for called ticket:", {
         ticketId: ticket.id,
         ticketNumber: ticket.ticket_number,
         phone: ticket.customer_phone?.substring(0, 5) + "****", // Hide phone for privacy
         departmentName: queueData.department?.name,
         organizationName: organization?.name,
+        organizationId: userProfile.organization_id,
+        serviceName: serviceName,
       });
 
       // 1. Send "Your Turn" notification to the customer being called
@@ -296,7 +316,9 @@ export class RobustQueueOperations {
           ticket.customer_phone,
           ticket.ticket_number,
           queueData.department?.name || "Department",
-          organization?.name || "Organization"
+          serviceName,
+          organization?.name || "Organization",
+          userProfile.organization_id
         );
 
         if (success) {
@@ -326,12 +348,35 @@ export class RobustQueueOperations {
           const nextCustomer = upcomingTickets[0];
 
           if (nextCustomer.customer_phone) {
+            // Fetch service name for next customer if they have service_id
+            let nextServiceName = "General Service";
+            if (nextCustomer.service_id) {
+              try {
+                const { data: nextService } = await supabase
+                  .from("services")
+                  .select("name")
+                  .eq("id", nextCustomer.service_id)
+                  .single();
+
+                if (nextService) {
+                  nextServiceName = nextService.name;
+                }
+              } catch (serviceError) {
+                logger.warn(
+                  "Failed to fetch service name for next customer:",
+                  serviceError
+                );
+              }
+            }
+
             const success =
               await whatsappNotificationService.notifyAlmostYourTurn(
                 nextCustomer.customer_phone,
                 nextCustomer.ticket_number,
                 queueData.department?.name || "Department",
+                nextServiceName,
                 organization?.name || "Organization",
+                userProfile.organization_id,
                 ticket.ticket_number // Currently serving ticket
               );
 

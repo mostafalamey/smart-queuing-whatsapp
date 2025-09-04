@@ -12,8 +12,10 @@ interface WhatsAppNotificationData {
   phone: string;
   ticketNumber: string;
   departmentName: string;
+  serviceName?: string; // Add service name
   organizationName: string;
-  type: "ticket_created" | "almost_your_turn" | "your_turn";
+  organizationId: string;
+  type: "almost_your_turn" | "your_turn";
   currentServing?: string;
   waitingCount?: number;
 }
@@ -56,7 +58,9 @@ class WhatsAppNotificationService {
           phone: data.phone,
           ticketNumber: data.ticketNumber,
           departmentName: data.departmentName,
+          serviceName: data.serviceName,
           organizationName: data.organizationName,
+          organizationId: data.organizationId,
           type: data.type,
           currentServing: data.currentServing,
           waitingCount: data.waitingCount,
@@ -94,37 +98,23 @@ class WhatsAppNotificationService {
     }
   }
 
-  // Helper method to send ticket creation notification
-  async notifyTicketCreated(
-    phone: string,
-    ticketNumber: string,
-    departmentName: string,
-    organizationName: string,
-    waitingCount?: number
-  ): Promise<boolean> {
-    return this.sendWhatsAppMessage({
-      phone,
-      ticketNumber,
-      departmentName,
-      organizationName,
-      type: "ticket_created",
-      waitingCount,
-    });
-  }
-
   // Helper method to send "almost your turn" notification
   async notifyAlmostYourTurn(
     phone: string,
     ticketNumber: string,
     departmentName: string,
+    serviceName: string,
     organizationName: string,
+    organizationId: string,
     currentServing: string
   ): Promise<boolean> {
     return this.sendWhatsAppMessage({
       phone,
       ticketNumber,
       departmentName,
+      serviceName,
       organizationName,
+      organizationId,
       type: "almost_your_turn",
       currentServing,
     });
@@ -135,13 +125,17 @@ class WhatsAppNotificationService {
     phone: string,
     ticketNumber: string,
     departmentName: string,
-    organizationName: string
+    serviceName: string,
+    organizationName: string,
+    organizationId: string
   ): Promise<boolean> {
     return this.sendWhatsAppMessage({
       phone,
       ticketNumber,
       departmentName,
+      serviceName,
       organizationName,
+      organizationId,
       type: "your_turn",
     });
   }

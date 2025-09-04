@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { UltraMessageInstanceManager } from "@/lib/ultramsg-instance-manager";
+import {
+  getMessageWithFallback,
+  type TemplateVariables,
+} from "@/lib/message-template-loader";
 
 interface WhatsAppNotificationRequest {
   phone: string;
   ticketNumber: string;
   departmentName: string;
+  serviceName?: string; // Add service name for template variables
   organizationName: string;
   organizationId: string;
-  type: "ticket_created" | "almost_your_turn" | "your_turn";
+  type: "almost_your_turn" | "your_turn" | "ticket_created"; // ticket_created included for rejection handling
   currentServing?: string;
   waitingCount?: number;
 }
@@ -33,33 +38,66 @@ export async function OPTIONS() {
   });
 }
 
-function formatMessage(data: WhatsAppNotificationRequest): string {
+async function formatMessage(
+  data: WhatsAppNotificationRequest
+): Promise<string> {
   const {
     ticketNumber,
     departmentName,
+    serviceName,
     organizationName,
+    organizationId,
     type,
     currentServing,
     waitingCount,
   } = data;
 
+  // Prepare template variables
+  const templateVariables: TemplateVariables = {
+    customer_name: "Customer",
+    customerName: "Customer", // camelCase for database template
+    organization_name: organizationName,
+    organizationName: organizationName, // camelCase for database template
+    department_name: departmentName,
+    departmentName: departmentName, // camelCase for database template
+    service_name: serviceName || "Service",
+    serviceName: serviceName || "Service", // camelCase for database template
+    ticket_number: ticketNumber,
+    ticketNumber: ticketNumber, // camelCase for database template
+    current_serving: currentServing,
+    currentServing: currentServing, // camelCase for database template
+    currentlyServing: currentServing, // Database template expects this name
+    waiting_count: waitingCount ? String(waitingCount) : undefined,
+    waitingCount: waitingCount ? String(waitingCount) : undefined, // camelCase for database template
+    queue_position: "1", // Default position
+    queuePosition: "1", // Default position
+    totalInQueue: waitingCount ? String(waitingCount + 1) : "1", // Database template expects this name
+    estimatedWaitTime: "15 minutes", // Database template expects this name
+  };
+
+  // Try to get template from database first
+  try {
+    console.log(
+      `🗂️ Loading template '${type}' from database for organization: ${organizationId}`
+    );
+    const templateMessage = await getMessageWithFallback(
+      organizationId,
+      type,
+      templateVariables
+    );
+    console.log("✅ Using database template for notification");
+    return templateMessage;
+  } catch (error) {
+    console.error(
+      "Error loading template from database, using fallback:",
+      error
+    );
+    // Fall through to hardcoded fallback
+  }
+
+  // Fallback to hardcoded templates
+  console.log(`⚠️ Using fallback template for notification type: ${type}`);
   switch (type) {
-    case "ticket_created":
-      return `🎫 Welcome to ${organizationName}!
-
-Your ticket number: *${ticketNumber}*
-Department: ${departmentName}
-
-${
-  waitingCount
-    ? `There are ${waitingCount} customers ahead of you.`
-    : "You'll be called soon!"
-}
-
-Please keep this message for reference. We'll notify you when it's almost your turn.
-
-Thank you for choosing ${organizationName}! 🙏`;
-
     case "almost_your_turn":
       return `⏰ Almost your turn at ${organizationName}!
 
@@ -77,6 +115,12 @@ Ticket: *${ticketNumber}*
 Please proceed to: ${departmentName}
 
 Thank you for choosing ${organizationName}! 🙏`;
+
+    case "ticket_created":
+      console.warn(
+        "⚠️ ticket_created template requested - this type has been deprecated"
+      );
+      return ""; // Return empty string to prevent message sending
 
     default:
       return `Update for ticket ${ticketNumber} at ${organizationName}`;
@@ -113,6 +157,22 @@ export async function POST(request: NextRequest) {
           success: false,
           error:
             "Missing required fields: phone, ticketNumber, departmentName, organizationName, organizationId, type",
+        },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    // Block ticket_created notifications as they have been removed from the system
+    if (type === "ticket_created") {
+      console.log(
+        "🚫 Blocking ticket_created notification - this type has been removed from the system"
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          message: "ticket_created notifications are no longer supported",
+          error:
+            "Use ticket confirmation messages through the conversation engine instead",
         },
         { status: 400, headers: corsHeaders }
       );
@@ -175,7 +235,23 @@ export async function POST(request: NextRequest) {
 
     // Format phone number (remove + and ensure it starts with country code)
     const formattedPhone = phone.startsWith("+") ? phone.substring(1) : phone;
-    const message = formatMessage(body);
+    const message = await formatMessage(body);
+
+    // Check if message is empty (indicates deprecated notification type)
+    if (!message || message.trim() === "") {
+      console.log(
+        "🚫 Empty message - likely deprecated notification type, skipping send"
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Notification type is deprecated and has been skipped",
+          type,
+          ticketNumber,
+        },
+        { status: 200, headers: corsHeaders }
+      );
+    }
 
     if (isDebugMode) {
       console.log("🔍 WhatsApp Debug Mode - Would send message:", {

@@ -81,7 +81,6 @@ export function MessageTemplateManagement({
     queueNotifications: {
       label: "Queue Status Notifications",
       templates: {
-        ticketCreated: "Ticket Created",
         youAreNext: "You Are Next",
         yourTurn: "Your Turn",
       },
@@ -208,15 +207,13 @@ export function MessageTemplateManagement({
   const getCurrentTemplate = () => {
     if (activeTemplate === "qrCodeMessage") {
       return localQrCodeTemplate;
-    } else if (
-      ["ticketCreated", "youAreNext", "yourTurn"].includes(activeTemplate)
-    ) {
+    } else if (["youAreNext", "yourTurn"].includes(activeTemplate)) {
       return (
         (
           templates[
             activeTemplate as keyof Pick<
               MessageTemplates,
-              "ticketCreated" | "youAreNext" | "yourTurn"
+              "youAreNext" | "yourTurn"
             >
           ] as any
         )?.whatsapp || ""
@@ -242,7 +239,7 @@ export function MessageTemplateManagement({
 
     const newTemplates = { ...templates };
 
-    if (["ticketCreated", "youAreNext", "yourTurn"].includes(templateKey)) {
+    if (["youAreNext", "yourTurn"].includes(templateKey)) {
       if (!newTemplates[templateKey as keyof MessageTemplates]) {
         (newTemplates[templateKey as keyof MessageTemplates] as any) = {
           whatsapp: "",
@@ -251,10 +248,7 @@ export function MessageTemplateManagement({
       }
       (
         newTemplates[
-          templateKey as keyof Pick<
-            MessageTemplates,
-            "ticketCreated" | "youAreNext" | "yourTurn"
-          >
+          templateKey as keyof Pick<MessageTemplates, "youAreNext" | "yourTurn">
         ] as any
       ).whatsapp = value;
     } else {

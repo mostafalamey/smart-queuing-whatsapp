@@ -6,7 +6,7 @@ interface NotificationData {
   ticketNumber: string;
   departmentName: string;
   organizationName: string;
-  type: "ticket_created" | "almost_your_turn" | "your_turn";
+  type: "almost_your_turn" | "your_turn";
   currentServing?: string;
   waitingCount?: number;
   organizationId?: string;
@@ -157,22 +157,6 @@ class NotificationService {
     } = data;
 
     switch (type) {
-      case "ticket_created":
-        return `🎫 Welcome to ${organizationName}!
-
-Your ticket number: *${ticketNumber}*
-Department: ${departmentName}
-
-${
-  waitingCount
-    ? `There are ${waitingCount} customers ahead of you.`
-    : "You'll be called soon!"
-}
-
-Please keep this message for reference. We'll notify you when it's almost your turn.
-
-Thank you for choosing ${organizationName}! 🙏`;
-
       case "almost_your_turn":
         return `⏰ Almost your turn at ${organizationName}!
 
@@ -194,28 +178,6 @@ Thank you for choosing ${organizationName}! 🙏`;
       default:
         return `Update for ticket ${ticketNumber} at ${organizationName}`;
     }
-  }
-
-  // Helper method to send ticket creation notification
-  async notifyTicketCreated(
-    phone: string,
-    ticketNumber: string,
-    departmentName: string,
-    organizationName: string,
-    waitingCount: number,
-    organizationId?: string,
-    ticketId?: string
-  ): Promise<boolean> {
-    return this.sendWhatsAppMessage({
-      phone,
-      ticketNumber,
-      departmentName,
-      organizationName,
-      type: "ticket_created",
-      waitingCount,
-      organizationId,
-      ticketId,
-    });
   }
 
   // Helper method to send "almost your turn" notification
