@@ -50,7 +50,7 @@ export class WhatsAppConversationEngine {
     messageBody: string,
     organizationId: string,
     branchId?: string,
-    departmentId?: string
+    departmentId?: string,
   ): Promise<string> {
     try {
       // Check for restart commands first (regardless of current state)
@@ -68,7 +68,7 @@ export class WhatsAppConversationEngine {
           phoneNumber,
           organizationId,
           branchId,
-          departmentId
+          departmentId,
         );
 
         return await this.handleInitialContact(conversation, messageBody);
@@ -77,7 +77,7 @@ export class WhatsAppConversationEngine {
       // Get or create conversation with context
       let conversation = await this.getConversation(
         phoneNumber,
-        organizationId
+        organizationId,
       );
 
       if (!conversation) {
@@ -85,7 +85,7 @@ export class WhatsAppConversationEngine {
           phoneNumber,
           organizationId,
           branchId,
-          departmentId
+          departmentId,
         );
       }
 
@@ -100,7 +100,7 @@ export class WhatsAppConversationEngine {
         case ConversationState.AWAITING_DEPARTMENT_SELECTION:
           return await this.handleDepartmentSelection(
             conversation,
-            messageBody
+            messageBody,
           );
 
         case ConversationState.AWAITING_SERVICE_SELECTION:
@@ -127,7 +127,7 @@ export class WhatsAppConversationEngine {
    */
   private async handleInitialContact(
     conversation: WhatsAppConversation,
-    messageBody: string
+    messageBody: string,
   ): Promise<string> {
     // Determine what's already selected based on QR code context
     const hasBranch = !!conversation.branch_id;
@@ -137,13 +137,13 @@ export class WhatsAppConversationEngine {
       // Department-specific QR: Go directly to service selection
       return await this.showServicesForDepartment(
         conversation,
-        conversation.department_id!
+        conversation.department_id!,
       );
     } else if (hasBranch) {
       // Branch-specific QR: Show departments in this branch
       return await this.showDepartmentsForBranch(
         conversation,
-        conversation.branch_id!
+        conversation.branch_id!,
       );
     } else {
       // General QR: Show all branches for organization
@@ -156,7 +156,7 @@ export class WhatsAppConversationEngine {
    */
   private async handleBranchSelection(
     conversation: WhatsAppConversation,
-    messageBody: string
+    messageBody: string,
   ): Promise<string> {
     const branchNumber = parseInt(messageBody.trim());
 
@@ -164,12 +164,12 @@ export class WhatsAppConversationEngine {
       return await getMessageWithFallback(
         conversation.organization_id,
         "branch_selection_error",
-        {}
+        {},
       );
     }
 
     const branches = await this.getOrganizationBranches(
-      conversation.organization_id
+      conversation.organization_id,
     );
     const selectedBranch = branches.find((b: any) => b.number === branchNumber);
 
@@ -177,7 +177,7 @@ export class WhatsAppConversationEngine {
       return await getMessageWithFallback(
         conversation.organization_id,
         "invalid_branch_number",
-        { max_number: branches.length.toString() }
+        { max_number: branches.length.toString() },
       );
     }
 
@@ -195,7 +195,7 @@ export class WhatsAppConversationEngine {
    */
   private async handleDepartmentSelection(
     conversation: WhatsAppConversation,
-    messageBody: string
+    messageBody: string,
   ): Promise<string> {
     const departmentNumber = parseInt(messageBody.trim());
 
@@ -203,21 +203,21 @@ export class WhatsAppConversationEngine {
       return await getMessageWithFallback(
         conversation.organization_id,
         "department_selection_error",
-        {}
+        {},
       );
     }
 
     const branchId = conversation.branch_id;
     const departments = await this.getBranchDepartments(branchId!);
     const selectedDepartment = departments.find(
-      (d: any) => d.number === departmentNumber
+      (d: any) => d.number === departmentNumber,
     );
 
     if (!selectedDepartment) {
       return await getMessageWithFallback(
         conversation.organization_id,
         "invalid_department_number",
-        { max_number: departments.length.toString() }
+        { max_number: departments.length.toString() },
       );
     }
 
@@ -229,7 +229,7 @@ export class WhatsAppConversationEngine {
     // Show services for selected department
     return await this.showServicesForDepartment(
       conversation,
-      selectedDepartment.id
+      selectedDepartment.id,
     );
   }
 
@@ -237,10 +237,10 @@ export class WhatsAppConversationEngine {
    * Show branches for organization (General QR flow)
    */
   private async showBranchesForOrganization(
-    conversation: WhatsAppConversation
+    conversation: WhatsAppConversation,
   ): Promise<string> {
     const branches = await this.getOrganizationBranches(
-      conversation.organization_id
+      conversation.organization_id,
     );
 
     if (branches.length === 0) {
@@ -250,12 +250,12 @@ export class WhatsAppConversationEngine {
     // Update conversation state
     await this.updateConversationState(
       conversation.id,
-      ConversationState.AWAITING_BRANCH_SELECTION
+      ConversationState.AWAITING_BRANCH_SELECTION,
     );
 
     // Get organization info
     const organization = await this.getOrganizationById(
-      conversation.organization_id
+      conversation.organization_id,
     );
 
     // Build branches list for template
@@ -278,7 +278,7 @@ export class WhatsAppConversationEngine {
     return await getMessageWithFallback(
       conversation.organization_id,
       "branch_selection",
-      templateVariables
+      templateVariables,
     );
   }
 
@@ -287,7 +287,7 @@ export class WhatsAppConversationEngine {
    */
   private async showDepartmentsForBranch(
     conversation: WhatsAppConversation,
-    branchId: string
+    branchId: string,
   ): Promise<string> {
     const departments = await this.getBranchDepartments(branchId);
 
@@ -298,7 +298,7 @@ export class WhatsAppConversationEngine {
     // Update conversation state
     await this.updateConversationState(
       conversation.id,
-      ConversationState.AWAITING_DEPARTMENT_SELECTION
+      ConversationState.AWAITING_DEPARTMENT_SELECTION,
     );
 
     // Get branch name for context
@@ -325,7 +325,7 @@ export class WhatsAppConversationEngine {
     return await getMessageWithFallback(
       conversation.organization_id,
       "department_selection",
-      templateVariables
+      templateVariables,
     );
   }
 
@@ -334,7 +334,7 @@ export class WhatsAppConversationEngine {
    */
   private async showServicesForDepartment(
     conversation: WhatsAppConversation,
-    departmentId: string
+    departmentId: string,
   ): Promise<string> {
     const services = await this.getDepartmentServices(departmentId);
 
@@ -345,7 +345,7 @@ export class WhatsAppConversationEngine {
     // Update conversation state
     await this.updateConversationState(
       conversation.id,
-      ConversationState.AWAITING_SERVICE_SELECTION
+      ConversationState.AWAITING_SERVICE_SELECTION,
     );
 
     // Get department and branch info for context
@@ -377,7 +377,7 @@ export class WhatsAppConversationEngine {
     return await getMessageWithFallback(
       conversation.organization_id,
       "service_selection",
-      templateVariables
+      templateVariables,
     );
   }
 
@@ -386,7 +386,7 @@ export class WhatsAppConversationEngine {
    */
   private async handleServiceSelection(
     conversation: WhatsAppConversation,
-    messageBody: string
+    messageBody: string,
   ): Promise<string> {
     const serviceNumber = parseInt(messageBody.trim());
 
@@ -394,7 +394,7 @@ export class WhatsAppConversationEngine {
       return await getMessageWithFallback(
         conversation.organization_id,
         "service_selection_error",
-        {}
+        {},
       );
     }
 
@@ -403,13 +403,13 @@ export class WhatsAppConversationEngine {
       return await getMessageWithFallback(
         conversation.organization_id,
         "department_selection_error_restart",
-        {}
+        {},
       );
     }
 
     // Use department-specific services instead of organization-wide services
     const services = await this.getDepartmentServices(
-      conversation.department_id
+      conversation.department_id,
     );
     const selectedService = services.find((s) => s.number === serviceNumber);
 
@@ -417,15 +417,15 @@ export class WhatsAppConversationEngine {
       return await getMessageWithFallback(
         conversation.organization_id,
         "invalid_service_number",
-        { max_number: services.length.toString() }
+        { max_number: services.length.toString() },
       );
     }
 
     console.log(
-      `🎯 Creating ticket for service: ${selectedService.name} (ID: ${selectedService.id})`
+      `🎯 Creating ticket for service: ${selectedService.name} (ID: ${selectedService.id})`,
     );
     console.log(
-      `🎯 Customer phone from conversation: ${conversation.phone_number}`
+      `🎯 Customer phone from conversation: ${conversation.phone_number}`,
     );
 
     // Create ticket directly using the phone number from the conversation
@@ -434,7 +434,7 @@ export class WhatsAppConversationEngine {
       const ticket = await this.createTicketForService(
         conversation,
         selectedService.id,
-        conversation.phone_number
+        conversation.phone_number,
       );
 
       if (!ticket) {
@@ -447,17 +447,17 @@ export class WhatsAppConversationEngine {
       // Send WhatsApp notification for ticket creation
       try {
         const organizationData = await this.getOrganizationById(
-          conversation.organization_id
+          conversation.organization_id,
         );
         const departmentData = await this.getDepartmentInfo(
-          conversation.department_id!
+          conversation.department_id!,
         );
 
         console.log("✅ Ticket creation completed successfully");
       } catch (notificationError) {
         console.error(
           "❌ Error in ticket creation process:",
-          notificationError
+          notificationError,
         );
         // Don't fail the ticket creation if there are errors
       }
@@ -479,14 +479,14 @@ export class WhatsAppConversationEngine {
       try {
         const confirmationMessage = await this.generateTicketConfirmation(
           ticket,
-          conversation.organization_id // Pass organizationId from conversation
+          conversation.organization_id, // Pass organizationId from conversation
         );
         console.log("✅ Confirmation message generated");
         return confirmationMessage;
       } catch (confirmError) {
         console.error(
           "❌ Error generating confirmation message:",
-          confirmError
+          confirmError,
         );
         // Fallback confirmation since ticket is already created
         return `✅ **Ticket Created!**\n\n🎟️ Ticket: ${
@@ -506,7 +506,7 @@ export class WhatsAppConversationEngine {
    */
   private async handlePhoneCollection(
     conversation: WhatsAppConversation,
-    messageBody: string
+    messageBody: string,
   ): Promise<string> {
     const phoneNumber = this.validatePhoneNumber(messageBody.trim());
 
@@ -530,7 +530,7 @@ export class WhatsAppConversationEngine {
 
     return await this.generateTicketConfirmation(
       ticket,
-      conversation.organization_id
+      conversation.organization_id,
     );
   }
 
@@ -539,7 +539,7 @@ export class WhatsAppConversationEngine {
    */
   private async handleTicketConfirmed(
     conversation: WhatsAppConversation,
-    messageBody: string
+    messageBody: string,
   ): Promise<string> {
     const lowerMessage = messageBody.toLowerCase().trim();
 
@@ -571,7 +571,7 @@ export class WhatsAppConversationEngine {
    */
   private generateServicesMenu(
     services: ServiceMenuItem[],
-    conversation: WhatsAppConversation
+    conversation: WhatsAppConversation,
   ): string {
     let message = `🏢 Welcome to our queue system!\n\n`;
     message += `📋 **Available Services:**\n\n`;
@@ -593,11 +593,11 @@ export class WhatsAppConversationEngine {
    */
   private async generateTicketConfirmation(
     ticket: any,
-    organizationId?: string
+    organizationId?: string,
   ): Promise<string> {
     console.log(
       "🎫 Generating confirmation for ticket:",
-      JSON.stringify(ticket, null, 2)
+      JSON.stringify(ticket, null, 2),
     );
 
     // Handle different possible ticket data structures
@@ -629,12 +629,12 @@ export class WhatsAppConversationEngine {
         estimatedWait = await this.calculateEnhancedWaitTime(
           ticket.service_id,
           ticket.services.departments.id,
-          ticket.services.estimated_time || 15
+          ticket.services.estimated_time || 15,
         );
         console.log("✅ Analytics wait time calculated:", estimatedWait);
       } else {
         console.log(
-          "⚠️ Missing data for analytics calculation, using fallback"
+          "⚠️ Missing data for analytics calculation, using fallback",
         );
       }
     } catch (error) {
@@ -670,7 +670,7 @@ export class WhatsAppConversationEngine {
         const templateMessage = await getMessageWithFallback(
           finalOrganizationId,
           "ticket_confirmation",
-          templateVariables
+          templateVariables,
         );
         return templateMessage;
       } catch (error) {
@@ -697,7 +697,7 @@ export class WhatsAppConversationEngine {
    */
   private async getConversation(
     phoneNumber: string,
-    organizationId: string
+    organizationId: string,
   ): Promise<WhatsAppConversation | null> {
     const { data, error } = await this.supabase
       .from("whatsapp_conversations")
@@ -722,7 +722,7 @@ export class WhatsAppConversationEngine {
     phoneNumber: string,
     organizationId: string,
     branchId?: string,
-    departmentId?: string
+    departmentId?: string,
   ): Promise<WhatsAppConversation> {
     const { data, error } = await this.supabase
       .from("whatsapp_conversations")
@@ -748,7 +748,7 @@ export class WhatsAppConversationEngine {
    */
   private async updateConversationState(
     conversationId: string,
-    state: ConversationState
+    state: ConversationState,
   ): Promise<void> {
     const { error } = await this.supabase
       .from("whatsapp_conversations")
@@ -768,7 +768,7 @@ export class WhatsAppConversationEngine {
    */
   private async updateConversation(
     conversationId: string,
-    updates: Partial<WhatsAppConversation>
+    updates: Partial<WhatsAppConversation>,
   ): Promise<void> {
     const { error } = await this.supabase
       .from("whatsapp_conversations")
@@ -788,7 +788,7 @@ export class WhatsAppConversationEngine {
    */
   private async deleteConversation(
     phoneNumber: string,
-    organizationId: string
+    organizationId: string,
   ): Promise<void> {
     const { error } = await this.supabase
       .from("whatsapp_conversations")
@@ -806,7 +806,7 @@ export class WhatsAppConversationEngine {
    * Get available services for organization (legacy method - now used for department)
    */
   private async getAvailableServices(
-    organizationId: string
+    organizationId: string,
   ): Promise<ServiceMenuItem[]> {
     const { data, error } = await this.supabase
       .from("services")
@@ -824,7 +824,7 @@ export class WhatsAppConversationEngine {
             organization_id
           )
         )
-      `
+      `,
       )
       .eq("departments.branches.organization_id", organizationId)
       .eq("is_active", true);
@@ -848,7 +848,7 @@ export class WhatsAppConversationEngine {
    * Get branches for organization (General QR code flow)
    */
   private async getOrganizationBranches(
-    organizationId: string
+    organizationId: string,
   ): Promise<any[]> {
     const { data, error } = await this.supabase
       .from("branches")
@@ -857,7 +857,7 @@ export class WhatsAppConversationEngine {
         id,
         name,
         address
-      `
+      `,
       )
       .eq("organization_id", organizationId)
       .order("name");
@@ -879,7 +879,7 @@ export class WhatsAppConversationEngine {
    * Get organization info by ID
    */
   private async getOrganizationById(
-    organizationId: string
+    organizationId: string,
   ): Promise<{ id: string; name: string } | null> {
     const { data, error } = await this.supabase
       .from("organizations")
@@ -906,7 +906,7 @@ export class WhatsAppConversationEngine {
         id,
         name,
         description
-      `
+      `,
       )
       .eq("branch_id", branchId)
       .order("name");
@@ -936,7 +936,7 @@ export class WhatsAppConversationEngine {
         name,
         description,
         estimated_time
-      `
+      `,
       )
       .eq("department_id", departmentId)
       .eq("is_active", true)
@@ -953,7 +953,7 @@ export class WhatsAppConversationEngine {
         const waitTime = await this.calculateEnhancedWaitTime(
           service.id,
           departmentId,
-          service.estimated_time || 15
+          service.estimated_time || 15,
         );
 
         return {
@@ -961,7 +961,7 @@ export class WhatsAppConversationEngine {
           number: index + 1,
           estimated_wait_time: waitTime,
         };
-      })
+      }),
     );
 
     return servicesWithWaitTimes;
@@ -978,7 +978,7 @@ export class WhatsAppConversationEngine {
         id,
         name,
         address
-      `
+      `,
       )
       .eq("id", branchId)
       .single();
@@ -1006,7 +1006,7 @@ export class WhatsAppConversationEngine {
           id,
           name
         )
-      `
+      `,
       )
       .eq("id", departmentId)
       .single();
@@ -1027,40 +1027,23 @@ export class WhatsAppConversationEngine {
    */
   private async createTicket(
     conversation: WhatsAppConversation,
-    customerPhone: string
+    customerPhone: string,
   ): Promise<any> {
-    // Get next ticket number for the service
-    const ticketNumber = await this.getNextTicketNumber(
-      conversation.selected_service_id!
+    const serviceInfo = await this.getServiceInfo(
+      conversation.selected_service_id!,
     );
 
-    const { data, error } = await this.supabase
-      .from("tickets")
-      .insert({
-        service_id: conversation.selected_service_id,
-        customer_phone: customerPhone,
-        ticket_number: ticketNumber,
-        status: "waiting",
-        created_via: "whatsapp",
-        whatsapp_conversation_id: conversation.id,
+    if (!serviceInfo) {
+      console.error("Error creating ticket: service info not found");
+      return null;
+    }
+
+    const { data: ticket, error } = await this.supabase
+      .rpc("create_ticket_for_service", {
+        p_service_id: conversation.selected_service_id,
+        p_customer_phone: customerPhone,
+        p_created_via: "whatsapp",
       })
-      .select(
-        `
-        *,
-        services (
-          id,
-          name,
-          departments (
-            id,
-            name,
-            branches (
-              id,
-              name
-            )
-          )
-        )
-      `
-      )
       .single();
 
     if (error) {
@@ -1068,7 +1051,15 @@ export class WhatsAppConversationEngine {
       return null;
     }
 
-    return data;
+    return {
+      ...ticket,
+      services: {
+        id: serviceInfo.id,
+        name: serviceInfo.name,
+        department_id: serviceInfo.department_id,
+        departments: serviceInfo.departments,
+      },
+    };
   }
 
   /**
@@ -1077,11 +1068,11 @@ export class WhatsAppConversationEngine {
   private async createTicketForService(
     conversation: WhatsAppConversation,
     serviceId: string,
-    customerPhone: string
+    customerPhone: string,
   ): Promise<any> {
     try {
       console.log(
-        `🎫 Creating ticket for service: ${serviceId}, phone: ${customerPhone}`
+        `🎫 Creating ticket for service: ${serviceId}, phone: ${customerPhone}`,
       );
 
       // Get service details with department info (matching customer app logic exactly)
@@ -1089,12 +1080,20 @@ export class WhatsAppConversationEngine {
         .from("services")
         .select(
           `
-          *,
-          department:department_id (
+          id,
+          name,
+          department_id,
+          service_code,
+          departments (
             id,
-            name
+            name,
+            branches (
+              id,
+              name,
+              organization_id
+            )
           )
-        `
+        `,
         )
         .eq("id", serviceId)
         .single();
@@ -1106,54 +1105,24 @@ export class WhatsAppConversationEngine {
         return null;
       }
 
-      // Get last ticket number for this service (matching customer app logic exactly)
-      const { data: lastTicket } = await this.supabase
-        .from("tickets")
-        .select("ticket_number")
-        .eq("service_id", serviceId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      // Generate ticket number (matching customer app logic exactly)
-      const servicePrefix = service.name.substring(0, 3).toUpperCase();
-      let lastNumber = 0;
-
-      if (lastTicket?.ticket_number) {
-        const match = lastTicket.ticket_number.match(/\d+$/);
-        if (match) {
-          lastNumber = parseInt(match[0]);
-        }
-      }
-
-      const newTicketNumber = lastNumber + 1;
-      const ticketNumberString = `${servicePrefix}-${newTicketNumber
-        .toString()
-        .padStart(3, "0")}`;
-
       console.log("About to create ticket with data:", {
         service_id: serviceId,
         department_id: service.department_id,
-        ticket_number: ticketNumberString,
         customer_phone: customerPhone.startsWith("+")
           ? customerPhone
           : `+${customerPhone}`,
         status: "waiting",
       });
 
-      // Create the ticket (matching customer app schema exactly - no extra fields)
+      // Create the ticket using atomic RPC to avoid race conditions
       const { data: newTicket, error: ticketError } = await this.supabase
-        .from("tickets")
-        .insert({
-          service_id: serviceId,
-          department_id: service.department_id,
-          ticket_number: ticketNumberString,
-          customer_phone: customerPhone.startsWith("+")
+        .rpc("create_ticket_for_service", {
+          p_service_id: serviceId,
+          p_customer_phone: customerPhone.startsWith("+")
             ? customerPhone
             : `+${customerPhone}`,
-          status: "waiting",
+          p_created_via: "whatsapp",
         })
-        .select()
         .single();
 
       console.log("Ticket creation result:", { newTicket, ticketError });
@@ -1172,10 +1141,8 @@ export class WhatsAppConversationEngine {
         services: {
           id: service.id,
           name: service.name,
-          departments: {
-            id: service.department.id,
-            name: service.department.name,
-          },
+          department_id: service.department_id,
+          departments: service.departments,
         },
       };
     } catch (error) {
@@ -1233,9 +1200,14 @@ export class WhatsAppConversationEngine {
         department_id,
         departments (
           id,
-          name
+          name,
+          branches (
+            id,
+            name,
+            organization_id
+          )
         )
-      `
+      `,
       )
       .eq("id", serviceId)
       .single();
@@ -1252,7 +1224,7 @@ export class WhatsAppConversationEngine {
    * Generate next ticket number using service name format (BRE-025)
    */
   private async getNextTicketNumberForService(
-    serviceInfo: any
+    serviceInfo: any,
   ): Promise<string> {
     // Extract first 3 letters from service name and convert to uppercase
     const serviceName = serviceInfo.name.toUpperCase();
@@ -1287,7 +1259,7 @@ export class WhatsAppConversationEngine {
    */
   private async getQueuePosition(
     ticketId: string,
-    serviceId: string
+    serviceId: string,
   ): Promise<number> {
     const { count, error } = await this.supabase
       .from("tickets")
@@ -1310,11 +1282,11 @@ export class WhatsAppConversationEngine {
   private async calculateEnhancedWaitTime(
     serviceId: string,
     departmentId: string,
-    estimatedServiceTime: number = 15
+    estimatedServiceTime: number = 15,
   ): Promise<string> {
     try {
       console.log(
-        `🧮 Calculating wait time for service ${serviceId}, database estimated_time: ${estimatedServiceTime}min`
+        `🧮 Calculating wait time for service ${serviceId}, database estimated_time: ${estimatedServiceTime}min`,
       );
 
       // First, check if we have analytics data for this service
@@ -1326,7 +1298,7 @@ export class WhatsAppConversationEngine {
 
       console.log(
         `🔍 Analytics query result for service ${serviceId}:`,
-        analyticsData
+        analyticsData,
       );
       if (analyticsError) {
         console.log(`❌ Analytics query error:`, analyticsError);
@@ -1346,13 +1318,13 @@ export class WhatsAppConversationEngine {
         // Use analytics data if available
         finalWaitTime = analyticsTime;
         console.log(
-          `📊 Using analytics average: ${finalWaitTime}min for service ${serviceId}`
+          `📊 Using analytics average: ${finalWaitTime}min for service ${serviceId}`,
         );
       } else {
         // Fall back to database estimated_time
         finalWaitTime = estimatedServiceTime;
         console.log(
-          `📋 Using database estimated_time: ${finalWaitTime}min for service ${serviceId} (no analytics)`
+          `📋 Using database estimated_time: ${finalWaitTime}min for service ${serviceId} (no analytics)`,
         );
       }
 
@@ -1360,7 +1332,7 @@ export class WhatsAppConversationEngine {
     } catch (error) {
       console.error(
         `❌ Error calculating wait time for service ${serviceId}:`,
-        error
+        error,
       );
       return this.formatWaitTime(estimatedServiceTime);
     }
@@ -1372,7 +1344,7 @@ export class WhatsAppConversationEngine {
   private async getAnalyticsBasedWaitTime(
     serviceId: string,
     departmentId: string,
-    currentQueueLength: number
+    currentQueueLength: number,
   ): Promise<number> {
     try {
       // Get recent analytics data (last 30 days)
@@ -1419,7 +1391,7 @@ export class WhatsAppConversationEngine {
       const currentHour = new Date().getHours();
       const hourlyAdjustment = this.getHourlyAdjustment(
         analyticsData,
-        currentHour
+        currentHour,
       );
 
       return estimatedWaitTime * hourlyAdjustment;
@@ -1434,7 +1406,7 @@ export class WhatsAppConversationEngine {
    */
   private getHourlyAdjustment(
     analyticsData: any[],
-    currentHour: number
+    currentHour: number,
   ): number {
     try {
       // Look for hourly patterns in the data
@@ -1446,7 +1418,7 @@ export class WhatsAppConversationEngine {
           Array.isArray(record.hourly_wait_times)
         ) {
           const hourData = record.hourly_wait_times.find(
-            (h: any) => h.hour === currentHour
+            (h: any) => h.hour === currentHour,
           );
           if (hourData && hourData.avg_wait_time) {
             hourlyWaitTimes.push(hourData.avg_wait_time);
@@ -1464,7 +1436,7 @@ export class WhatsAppConversationEngine {
       const overallAvg =
         analyticsData.reduce(
           (sum, record) => sum + (record.avg_wait_time || 0),
-          0
+          0,
         ) / analyticsData.length;
 
       if (overallAvg === 0) return 1.0;
@@ -1508,7 +1480,7 @@ export class WhatsAppConversationEngine {
         `
         *,
         services (name)
-      `
+      `,
       )
       .eq("id", ticketId)
       .single();

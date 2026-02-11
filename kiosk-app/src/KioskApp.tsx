@@ -18,7 +18,7 @@ import QRCode from "qrcode";
 // Supabase client
 const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY
+  import.meta.env.VITE_SUPABASE_ANON_KEY,
 );
 
 interface Organization {
@@ -29,10 +29,23 @@ interface Organization {
   whatsapp_business_number: string;
 }
 
+interface Branch {
+  id: string;
+  name: string;
+  address?: string;
+}
+
+interface Department {
+  id: string;
+  name: string;
+  branch_id: string;
+}
+
 interface Service {
   id: string;
   name: string;
   description?: string;
+  department_id: string;
   current_queue_length: number;
   estimated_wait_time: string;
 }
@@ -48,33 +61,76 @@ interface Ticket {
 
 const KioskApp: React.FC = () => {
   const [organization, setOrganization] = useState<Organization | null>(null);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [isConnected, setIsConnected] = useState(true);
   const [isPrinterReady, setIsPrinterReady] = useState(false);
   const [currentView, setCurrentView] = useState<
-    "main" | "services" | "settings" | "qr"
-  >("main");
+    "branches" | "departments" | "services" | "settings" | "qr"
+  >("branches");
   const [loading, setLoading] = useState(true);
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+  const [selectedDepartment, setSelectedDepartment] =
+    useState<Department | null>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const [lastTicket, setLastTicket] = useState<Ticket | null>(null);
 
-  // Get organization ID from URL params
+  // Get organization ID from URL params or environment variable
   const urlParams = new URLSearchParams(window.location.search);
-  const orgId = urlParams.get("org");
+  const orgId = urlParams.get("org") || import.meta.env.VITE_ORGANIZATION_ID;
+  const branchIdParam = urlParams.get("branch");
+  const departmentIdParam = urlParams.get("department");
 
   useEffect(() => {
-    if (orgId) {
-      loadOrganizationData();
-      loadServices();
+    if (!orgId) {
+      setIsConnected(false);
+      setLoading(false);
+      return;
+    }
+
+    const initialize = async () => {
+      await loadOrganizationData();
       checkPrinterStatus();
 
-      // Refresh data every 30 seconds
-      const interval = setInterval(() => {
-        loadServices();
-      }, 30000);
+      if (departmentIdParam) {
+        const department = await loadDepartmentById(departmentIdParam);
+        if (department) {
+          setSelectedDepartment(department);
+          await loadServices(department.id);
+          setCurrentView("services");
+          return;
+        }
+      }
 
-      return () => clearInterval(interval);
-    }
-  }, [orgId]);
+      if (branchIdParam) {
+        const branch = await loadBranchById(branchIdParam);
+        if (branch) {
+          setSelectedBranch(branch);
+          await loadDepartments(branch.id);
+          setCurrentView("departments");
+          return;
+        }
+      }
+
+      await loadBranches();
+      setCurrentView("branches");
+    };
+
+    void initialize();
+  }, [orgId, branchIdParam, departmentIdParam]);
+
+  useEffect(() => {
+    if (!selectedDepartment) return;
+
+    const interval = setInterval(() => {
+      loadServices(selectedDepartment.id);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [selectedDepartment]);
 
   const loadOrganizationData = async () => {
     try {
@@ -95,21 +151,74 @@ const KioskApp: React.FC = () => {
     }
   };
 
-  const loadServices = async () => {
+  const loadBranches = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("branches")
+        .select("*")
+        .eq("organization_id", orgId);
+
+      if (error) throw error;
+      setBranches(data || []);
+    } catch (error) {
+      console.error("Error loading branches:", error);
+    }
+  };
+
+  const loadBranchById = async (branchId: string): Promise<Branch | null> => {
+    try {
+      const { data, error } = await supabase
+        .from("branches")
+        .select("*")
+        .eq("id", branchId)
+        .single();
+
+      if (error) throw error;
+      return data || null;
+    } catch (error) {
+      console.error("Error loading branch:", error);
+      return null;
+    }
+  };
+
+  const loadDepartments = async (branchId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("departments")
+        .select("*")
+        .eq("branch_id", branchId);
+
+      if (error) throw error;
+      setDepartments(data || []);
+    } catch (error) {
+      console.error("Error loading departments:", error);
+    }
+  };
+
+  const loadDepartmentById = async (
+    departmentId: string,
+  ): Promise<Department | null> => {
+    try {
+      const { data, error } = await supabase
+        .from("departments")
+        .select("*")
+        .eq("id", departmentId)
+        .single();
+
+      if (error) throw error;
+      return data || null;
+    } catch (error) {
+      console.error("Error loading department:", error);
+      return null;
+    }
+  };
+
+  const loadServices = async (departmentId: string) => {
     try {
       const { data, error } = await supabase
         .from("services")
-        .select(
-          `
-          *,
-          departments!inner (
-            branches!inner (
-              organization_id
-            )
-          )
-        `
-        )
-        .eq("departments.branches.organization_id", orgId)
+        .select("*")
+        .eq("department_id", departmentId)
         .eq("is_active", true);
 
       if (error) throw error;
@@ -128,7 +237,7 @@ const KioskApp: React.FC = () => {
             current_queue_length: count || 0,
             estimated_wait_time: calculateWaitTime(count || 0),
           };
-        })
+        }),
       );
 
       setServices(servicesWithQueue);
@@ -167,11 +276,11 @@ const KioskApp: React.FC = () => {
     }
 
     const message = encodeURIComponent(
-      `Hello ${organization.name}! I would like to join the queue.`
+      `Hello ${organization.name}! I would like to join the queue.`,
     );
     const whatsappUrl = `https://wa.me/${organization.whatsapp_business_number.replace(
       /^\+/,
-      ""
+      "",
     )}?text=${message}`;
 
     return await QRCode.toDataURL(whatsappUrl, {
@@ -180,23 +289,15 @@ const KioskApp: React.FC = () => {
     });
   };
 
-  const printTicket = async (service: Service, customerPhone?: string) => {
+  const printTicket = async (service: Service, phone: string) => {
     try {
-      // Create ticket in database
+      // Create ticket in database using atomic RPC
       const { data: ticket, error } = await supabase
-        .from("tickets")
-        .insert({
-          service_id: service.id,
-          customer_phone: customerPhone || "kiosk-generated",
-          status: "waiting",
-          created_via: "kiosk",
+        .rpc("create_ticket_for_service", {
+          p_service_id: service.id,
+          p_customer_phone: phone,
+          p_created_via: "kiosk",
         })
-        .select(
-          `
-          *,
-          services (name)
-        `
-        )
         .single();
 
       if (error) throw error;
@@ -213,7 +314,7 @@ const KioskApp: React.FC = () => {
       const ticketData = {
         ...ticket,
         position,
-        service_name: ticket.services.name,
+        service_name: service.name,
       };
 
       // Print physical ticket
@@ -224,10 +325,66 @@ const KioskApp: React.FC = () => {
       setLastTicket(ticketData);
 
       // Refresh services to update queue lengths
-      loadServices();
+      if (selectedDepartment) {
+        loadServices(selectedDepartment.id);
+      }
     } catch (error) {
       console.error("Error printing ticket:", error);
       alert("Error creating ticket. Please try again.");
+    }
+  };
+
+  const handleBranchSelect = async (branch: Branch) => {
+    setSelectedBranch(branch);
+    setSelectedDepartment(null);
+    setSelectedService(null);
+    setCustomerPhone("");
+    setPhoneError("");
+    await loadDepartments(branch.id);
+    setCurrentView("departments");
+  };
+
+  const handleDepartmentSelect = async (department: Department) => {
+    setSelectedDepartment(department);
+    setSelectedService(null);
+    setCustomerPhone("");
+    setPhoneError("");
+    await loadServices(department.id);
+    setCurrentView("services");
+  };
+
+  const handleServiceSelect = (service: Service) => {
+    setSelectedService(service);
+    setCustomerPhone("");
+    setPhoneError("");
+  };
+
+  const handlePrintConfirm = async () => {
+    if (!selectedService) return;
+    const trimmedPhone = customerPhone.trim();
+    if (!trimmedPhone) {
+      setPhoneError("Phone number is required.");
+      return;
+    }
+
+    setPhoneError("");
+    await printTicket(selectedService, trimmedPhone);
+    setSelectedService(null);
+    setCustomerPhone("");
+  };
+
+  const handleBack = () => {
+    if (currentView === "services") {
+      setSelectedDepartment(null);
+      setServices([]);
+      setCurrentView("departments");
+      return;
+    }
+
+    if (currentView === "departments") {
+      setSelectedBranch(null);
+      setDepartments([]);
+      setCurrentView("branches");
     }
   };
 
@@ -337,19 +494,37 @@ Thank you for using our service!
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {currentView === "main" && (
-          <MainView
-            services={services}
-            onPrintTicket={printTicket}
+        {currentView === "branches" && (
+          <BranchesView
+            branches={branches}
+            onSelectBranch={handleBranchSelect}
             onShowQR={() => setCurrentView("qr")}
             lastTicket={lastTicket}
+          />
+        )}
+
+        {currentView === "departments" && selectedBranch && (
+          <DepartmentsView
+            branch={selectedBranch}
+            departments={departments}
+            onSelectDepartment={handleDepartmentSelect}
+            onBack={handleBack}
+          />
+        )}
+
+        {currentView === "services" && selectedDepartment && (
+          <ServicesView
+            department={selectedDepartment}
+            services={services}
+            onSelectService={handleServiceSelect}
+            onBack={handleBack}
           />
         )}
 
         {currentView === "qr" && (
           <QRView
             organization={organization}
-            onBack={() => setCurrentView("main")}
+            onBack={() => setCurrentView("branches")}
             generateQR={generateWhatsAppQR}
           />
         )}
@@ -358,44 +533,54 @@ Thank you for using our service!
           <SettingsView
             organization={organization}
             isPrinterReady={isPrinterReady}
-            onBack={() => setCurrentView("main")}
+            onBack={() => setCurrentView("branches")}
             onCheckPrinter={checkPrinterStatus}
           />
         )}
       </main>
+
+      {selectedService && (
+        <PrintTicketModal
+          service={selectedService}
+          customerPhone={customerPhone}
+          phoneError={phoneError}
+          onChangePhone={(value) => {
+            setCustomerPhone(value);
+            if (phoneError) setPhoneError("");
+          }}
+          onCancel={() => setSelectedService(null)}
+          onConfirm={handlePrintConfirm}
+        />
+      )}
     </div>
   );
 };
 
-// Main View Component
-interface MainViewProps {
-  services: Service[];
-  onPrintTicket: (service: Service, phone?: string) => void;
+// Branches View Component
+interface BranchesViewProps {
+  branches: Branch[];
+  onSelectBranch: (branch: Branch) => void;
   onShowQR: () => void;
   lastTicket: Ticket | null;
 }
 
-const MainView: React.FC<MainViewProps> = ({
-  services,
-  onPrintTicket,
+const BranchesView: React.FC<BranchesViewProps> = ({
+  branches,
+  onSelectBranch,
   onShowQR,
   lastTicket,
 }) => {
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
-  const [customerPhone, setCustomerPhone] = useState("");
-
   return (
     <div className="space-y-8">
-      {/* Welcome Message */}
       <div className="text-center bg-white rounded-lg p-8 shadow-sm">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">
           Welcome to Our Queue System
         </h2>
         <p className="text-lg text-gray-600 mb-6">
-          Choose your preferred method to join the queue
+          Select a branch to get started
         </p>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-1 gap-6">
           <button
             onClick={onShowQR}
             className="flex flex-col items-center p-6 bg-green-50 border-2 border-green-200 rounded-lg hover:bg-green-100 transition-colors"
@@ -408,57 +593,34 @@ const MainView: React.FC<MainViewProps> = ({
               Scan QR code to join via WhatsApp and get real-time updates
             </p>
           </button>
-
-          <div className="flex flex-col items-center p-6 bg-blue-50 border-2 border-blue-200 rounded-lg">
-            <Printer className="w-12 h-12 text-blue-600 mb-3" />
-            <h3 className="text-xl font-semibold text-blue-900 mb-2">
-              Print Ticket
-            </h3>
-            <p className="text-blue-700 text-center">
-              Get a physical ticket and monitor your position here
-            </p>
-          </div>
         </div>
       </div>
 
-      {/* Services List */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h3 className="text-2xl font-bold text-gray-900 mb-6">
-          Available Services
+          Choose a Branch
         </h3>
 
         <div className="grid gap-4">
-          {services.map((service) => (
+          {branches.map((branch) => (
             <div
-              key={service.id}
+              key={branch.id}
               className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
-              onClick={() => setSelectedService(service)}
+              onClick={() => onSelectBranch(branch)}
             >
               <div>
                 <h4 className="text-lg font-semibold text-gray-900">
-                  {service.name}
+                  {branch.name}
                 </h4>
-                {service.description && (
-                  <p className="text-gray-600">{service.description}</p>
+                {branch.address && (
+                  <p className="text-gray-600">{branch.address}</p>
                 )}
-              </div>
-
-              <div className="text-right">
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  <Users className="w-4 h-4" />
-                  <span>{service.current_queue_length} in queue</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
-                  <Clock className="w-4 h-4" />
-                  <span>{service.estimated_wait_time}</span>
-                </div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Last Printed Ticket */}
       {lastTicket && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-green-900 mb-2">
@@ -484,56 +646,198 @@ const MainView: React.FC<MainViewProps> = ({
           </div>
         </div>
       )}
+    </div>
+  );
+};
 
-      {/* Service Selection Modal */}
-      {selectedService && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">
-              Print Ticket for {selectedService.name}
-            </h3>
+// Departments View Component
+interface DepartmentsViewProps {
+  branch: Branch;
+  departments: Department[];
+  onSelectDepartment: (department: Department) => void;
+  onBack: () => void;
+}
 
-            <div className="space-y-4">
+const DepartmentsView: React.FC<DepartmentsViewProps> = ({
+  branch,
+  departments,
+  onSelectDepartment,
+  onBack,
+}) => {
+  return (
+    <div className="space-y-8">
+      <button
+        onClick={onBack}
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+      >
+        <span>← Back to Branches</span>
+      </button>
+
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">{branch.name}</h3>
+        <p className="text-gray-600">Select a department</p>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <h3 className="text-2xl font-bold text-gray-900 mb-6">
+          Available Departments
+        </h3>
+
+        <div className="grid gap-4">
+          {departments.map((department) => (
+            <div
+              key={department.id}
+              className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
+              onClick={() => onSelectDepartment(department)}
+            >
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number (Optional)
-                </label>
-                <input
-                  type="tel"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="+1234567890"
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  For SMS notifications (optional)
-                </p>
-              </div>
-
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => {
-                    onPrintTicket(selectedService, customerPhone);
-                    setSelectedService(null);
-                    setCustomerPhone("");
-                  }}
-                  className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 flex items-center justify-center space-x-2"
-                >
-                  <Ticket className="w-5 h-5" />
-                  <span>Print Ticket</span>
-                </button>
-
-                <button
-                  onClick={() => setSelectedService(null)}
-                  className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
+                <h4 className="text-lg font-semibold text-gray-900">
+                  {department.name}
+                </h4>
               </div>
             </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Services View Component
+interface ServicesViewProps {
+  department: Department;
+  services: Service[];
+  onSelectService: (service: Service) => void;
+  onBack: () => void;
+}
+
+const ServicesView: React.FC<ServicesViewProps> = ({
+  department,
+  services,
+  onSelectService,
+  onBack,
+}) => {
+  return (
+    <div className="space-y-8">
+      <button
+        onClick={onBack}
+        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+      >
+        <span>← Back to Departments</span>
+      </button>
+
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">
+          {department.name}
+        </h3>
+        <p className="text-gray-600">Select a service</p>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <h3 className="text-2xl font-bold text-gray-900 mb-6">
+          Available Services
+        </h3>
+
+        <div className="grid gap-4">
+          {services.map((service) => (
+            <div
+              key={service.id}
+              className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
+              onClick={() => onSelectService(service)}
+            >
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900">
+                  {service.name}
+                </h4>
+                {service.description && (
+                  <p className="text-gray-600">{service.description}</p>
+                )}
+              </div>
+
+              <div className="text-right">
+                <div className="flex items-center space-x-2 text-sm text-gray-500">
+                  <Users className="w-4 h-4" />
+                  <span>{service.current_queue_length} in queue</span>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
+                  <Clock className="w-4 h-4" />
+                  <span>{service.estimated_wait_time}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Print Ticket Modal
+interface PrintTicketModalProps {
+  service: Service;
+  customerPhone: string;
+  phoneError: string;
+  onChangePhone: (value: string) => void;
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+const PrintTicketModal: React.FC<PrintTicketModalProps> = ({
+  service,
+  customerPhone,
+  phoneError,
+  onChangePhone,
+  onCancel,
+  onConfirm,
+}) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+        <h3 className="text-xl font-bold mb-4">
+          Print Ticket for {service.name}
+        </h3>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Phone Number (Required)
+            </label>
+            <input
+              type="tel"
+              value={customerPhone}
+              onChange={(e) => onChangePhone(e.target.value)}
+              placeholder="+1234567890"
+              className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                phoneError ? "border-red-500" : ""
+              }`}
+            />
+            {phoneError ? (
+              <p className="text-xs text-red-500 mt-1">{phoneError}</p>
+            ) : (
+              <p className="text-xs text-gray-500 mt-1">
+                Required for ticket updates
+              </p>
+            )}
+          </div>
+
+          <div className="flex space-x-3">
+            <button
+              onClick={onConfirm}
+              className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 flex items-center justify-center space-x-2"
+            >
+              <Ticket className="w-5 h-5" />
+              <span>Print Ticket</span>
+            </button>
+
+            <button
+              onClick={onCancel}
+              className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
