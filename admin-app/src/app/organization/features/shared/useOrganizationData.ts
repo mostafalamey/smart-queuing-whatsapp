@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 import { useAuth } from "@/lib/AuthContext";
@@ -57,6 +57,12 @@ export const useOrganizationData = () => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [qrGenerating, setQrGenerating] = useState(false);
+  const organizationQrInFlightRef = useRef(false);
+  const lastOrgQrGeneratedForRef = useRef<string | null>(null);
+  const branchQrCodesRef = useRef<QRCodeData>({});
+  const departmentQrCodesRef = useRef<QRCodeData>({});
+  const branchQrInFlightRef = useRef<Set<string>>(new Set());
+  const departmentQrInFlightRef = useRef<Set<string>>(new Set());
 
   const [orgForm, setOrgForm] = useState<OrganizationForm>({
     name: "",
@@ -108,9 +114,14 @@ export const useOrganizationData = () => {
         welcome_message: data.welcome_message || "", // Deprecated field
       });
 
-      // Generate organization QR code inline
-      if (data.name && !qrGenerating) {
+      // Generate organization QR code inline (avoid repeated regeneration)
+      if (
+        data.name &&
+        !organizationQrInFlightRef.current &&
+        lastOrgQrGeneratedForRef.current !== data.id
+      ) {
         try {
+          organizationQrInFlightRef.current = true;
           setQrGenerating(true);
           const response = await fetch("/api/whatsapp/qr-codes", {
             method: "POST",
@@ -126,15 +137,17 @@ export const useOrganizationData = () => {
           const qrData = await response.json();
           if (qrData.success && qrData.qrCode) {
             setQrCodeUrl(qrData.qrCode);
+            lastOrgQrGeneratedForRef.current = data.id;
           }
         } catch (error) {
           logger.error("Error generating organization QR code:", error);
         } finally {
           setQrGenerating(false);
+          organizationQrInFlightRef.current = false;
         }
       }
     }
-  }, [userProfile?.organization_id, qrGenerating]);
+  }, [userProfile?.organization_id]);
 
   const fetchMembers = useCallback(async () => {
     if (!userProfile?.organization_id) return;
@@ -173,9 +186,16 @@ export const useOrganizationData = () => {
 
     // Generate QR codes for each branch using WhatsApp endpoint
     if (data && data.length > 0 && organization?.name) {
-      const qrCodes: QRCodeData = {};
       for (const branch of data) {
+        if (branchQrCodesRef.current[branch.id]) {
+          continue;
+        }
+        if (branchQrInFlightRef.current.has(branch.id)) {
+          continue;
+        }
+
         try {
+          branchQrInFlightRef.current.add(branch.id);
           const response = await fetch("/api/whatsapp/qr-codes", {
             method: "POST",
             headers: {
@@ -190,13 +210,17 @@ export const useOrganizationData = () => {
 
           const qrData = await response.json();
           if (qrData.success && qrData.qrCode) {
-            qrCodes[branch.id] = qrData.qrCode;
+            setBranchQrCodes((prev) => ({
+              ...prev,
+              [branch.id]: qrData.qrCode,
+            }));
           }
         } catch (error) {
           logger.error("Error generating branch QR code:", error);
+        } finally {
+          branchQrInFlightRef.current.delete(branch.id);
         }
       }
-      setBranchQrCodes(qrCodes);
     }
   }, [userProfile?.organization_id, organization?.name]);
 
@@ -223,6 +247,7 @@ export const useOrganizationData = () => {
       const data = await response.json();
       if (data.success && data.qrCode) {
         setQrCodeUrl(data.qrCode);
+        lastOrgQrGeneratedForRef.current = userProfile.organization_id;
       } else {
         logger.error("Failed to generate WhatsApp QR code:", data.error);
       }
@@ -712,9 +737,16 @@ export const useOrganizationData = () => {
 
     // Generate QR codes for each department (like original version)
     if (orgDepartments && orgDepartments.length > 0 && organization?.name) {
-      const qrCodes: QRCodeData = {};
       for (const department of orgDepartments) {
+        if (departmentQrCodesRef.current[department.id]) {
+          continue;
+        }
+        if (departmentQrInFlightRef.current.has(department.id)) {
+          continue;
+        }
+
         try {
+          departmentQrInFlightRef.current.add(department.id);
           const response = await fetch("/api/whatsapp/qr-codes", {
             method: "POST",
             headers: {
@@ -729,15 +761,27 @@ export const useOrganizationData = () => {
 
           const qrData = await response.json();
           if (qrData.success && qrData.qrCode) {
-            qrCodes[department.id] = qrData.qrCode;
+            setDepartmentQrCodes((prev) => ({
+              ...prev,
+              [department.id]: qrData.qrCode,
+            }));
           }
         } catch (error) {
           logger.error("Error generating department QR code:", error);
+        } finally {
+          departmentQrInFlightRef.current.delete(department.id);
         }
       }
-      setDepartmentQrCodes(qrCodes);
     }
   }, [userProfile?.organization_id, organization?.name]);
+
+  useEffect(() => {
+    branchQrCodesRef.current = branchQrCodes;
+  }, [branchQrCodes]);
+
+  useEffect(() => {
+    departmentQrCodesRef.current = departmentQrCodes;
+  }, [departmentQrCodes]);
 
   // Effects
   useEffect(() => {
