@@ -4,18 +4,30 @@ import { logger } from "@/lib/logger";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
+// Cache for storage to prevent Edge from re-reading on visibility changes
+const storageCache = new Map<string, string>();
+let isStorageInitialized = false;
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
     flowType: "pkce",
-    // Enhanced storage with error handling
+    // Enhanced storage with caching to fix Edge re-auth issue
     storage: {
       getItem: (key: string) => {
         if (typeof window !== "undefined") {
           try {
-            return window.localStorage.getItem(key);
+            // Use cache for Edge compatibility
+            if (storageCache.has(key)) {
+              return storageCache.get(key) || null;
+            }
+            const value = window.localStorage.getItem(key);
+            if (value) {
+              storageCache.set(key, value);
+            }
+            return value;
           } catch (error) {
             logger.error("localStorage getItem error:", error);
             return null;
@@ -27,6 +39,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         if (typeof window !== "undefined") {
           try {
             window.localStorage.setItem(key, value);
+            storageCache.set(key, value);
           } catch (error) {
             logger.error("localStorage setItem error:", error);
           }
@@ -36,6 +49,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         if (typeof window !== "undefined") {
           try {
             window.localStorage.removeItem(key);
+            storageCache.delete(key);
           } catch (error) {
             logger.error("localStorage removeItem error:", error);
           }
@@ -44,6 +58,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     },
     // Add debug and retry settings
     debug: process.env.NEXT_PUBLIC_DEBUG_MODE === "true",
+    // Increase storage key to prevent Edge from treating it as expired
+    storageKey: 'sb-auth-token',
   },
   global: {
     headers: {

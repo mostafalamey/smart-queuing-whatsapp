@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/lib/AuthContext";
 import { useRouter } from "next/navigation";
 import ResetQueueModal from "@/components/ResetQueueModal";
@@ -137,10 +136,9 @@ export default function DashboardPage() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="p-6 space-y-6" suppressHydrationWarning={true}>
-        {/* Dashboard Header */}
-        <DashboardHeader
+    <div className="p-6 space-y-6" suppressHydrationWarning={true}>
+      {/* Dashboard Header */}
+      <DashboardHeader
           lastCleanupTime={dashboardData.lastCleanupTime}
           loading={dashboardData.loading}
           selectedDepartment={dashboardData.selectedDepartment}
@@ -171,12 +169,6 @@ export default function DashboardPage() {
                   branches={dashboardData.branches}
                   departments={dashboardData.departments}
                   services={dashboardData.services}
-                  queueData={dashboardData.queueData}
-                  loading={queueOperationLoading}
-                  onSkipTicket={handleSkipTicket}
-                  onCompleteTicket={handleCompleteTicket}
-                  showWarning={dashboardData.showWarning}
-                  showInfo={dashboardData.showInfo}
                   canSelectBranch={dashboardData.canSelectBranch}
                   canSelectDepartment={dashboardData.canSelectDepartment}
                   currentUserRole={dashboardData.userRole}
@@ -191,40 +183,42 @@ export default function DashboardPage() {
                   loading={queueOperationLoading}
                   onCallNext={handleCallNext}
                   onShowResetModal={() => setShowResetQueueModal(true)}
+                  onSkipTicket={handleSkipTicket}
+                  onCompleteTicket={handleCompleteTicket}
                   canResetQueue={dashboardData.canResetQueue}
                   currentTicketHandled={dashboardData.currentTicketHandled}
+                  showInfo={dashboardData.showInfo}
                 />
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Reset Queue Modal */}
-      <ResetQueueModal
-        isOpen={showResetQueueModal}
-        onClose={() => setShowResetQueueModal(false)}
-        onResetOnly={() => handleResetQueue(false)}
-        onResetWithCleanup={() => handleResetQueue(true)}
-        queueName={
-          dashboardData.queueData?.service
-            ? `${dashboardData.queueData.service.name} (${dashboardData.queueData.department?.name})`
-            : dashboardData.queueData?.department?.name || "queue"
-        }
-      />
-
-      {/* Member Onboarding Flow */}
-      {needsOnboarding && !onboardingLoading && dashboardData.userProfile && (
-        <MemberWelcomeFlow
-          userProfile={dashboardData.userProfile}
-          organization={dashboardData.organization}
-          onComplete={markOnboardingComplete}
-          onSkip={skipOnboarding}
+        {/* Reset Queue Modal */}
+        <ResetQueueModal
+          isOpen={showResetQueueModal}
+          onClose={() => setShowResetQueueModal(false)}
+          onResetOnly={() => handleResetQueue(false)}
+          onResetWithCleanup={() => handleResetQueue(true)}
+          queueName={
+            dashboardData.queueData?.service
+              ? `${dashboardData.queueData.service.name} (${dashboardData.queueData.department?.name})`
+              : dashboardData.queueData?.department?.name || "queue"
+          }
         />
-      )}
-    </DashboardLayout>
-  );
-}
+
+        {/* Member Onboarding Flow */}
+        {needsOnboarding && !onboardingLoading && dashboardData.userProfile && (
+          <MemberWelcomeFlow
+            userProfile={dashboardData.userProfile}
+            organization={dashboardData.organization}
+            onComplete={markOnboardingComplete}
+            onSkip={skipOnboarding}
+          />
+        )}
+      </div>
+    );
+  }
 
 // Force dynamic rendering for this page
 export const dynamic = "force-dynamic";

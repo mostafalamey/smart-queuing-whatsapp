@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { logger } from "@/lib/logger";
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { useAuth } from "@/lib/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useAppToast } from "@/hooks/useAppToast";
@@ -137,8 +136,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="p-6 max-w-2xl mx-auto">
+    <div className="p-6 max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -160,19 +158,19 @@ export default function ProfilePage() {
                     <img
                       src={avatarPreview}
                       alt="Avatar"
-                      className="w-32 h-32 rounded-full object-cover border-4 border-celestial-200 shadow-lg"
+                      className="w-32 h-32 rounded-full object-cover border-4 border-primary-200 shadow-lg"
                     />
                     <button
                       type="button"
                       onClick={removeAvatar}
                       title="Remove avatar"
-                      className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors duration-200"
+                      className="absolute -top-2 -right-2 w-8 h-8 bg-error-500 hover:bg-error-600 text-white rounded-full flex items-center justify-center transition-colors duration-150"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   </div>
                 ) : (
-                  <div className="w-32 h-32 bg-gradient-to-br from-celestial-400 to-celestial-500 rounded-full flex items-center justify-center border-4 border-celestial-200 shadow-lg">
+                  <div className="w-32 h-32 bg-primary-500 rounded-full flex items-center justify-center border-4 border-primary-200 shadow-lg">
                     <User className="w-16 h-16 text-white" />
                   </div>
                 )}
@@ -247,7 +245,7 @@ export default function ProfilePage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 px-6 py-3 bg-celestial-500 text-white rounded-xl hover:bg-celestial-600 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors duration-150 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <div className="flex items-center justify-center gap-2">
@@ -262,6 +260,6 @@ export default function ProfilePage() {
           </form>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }

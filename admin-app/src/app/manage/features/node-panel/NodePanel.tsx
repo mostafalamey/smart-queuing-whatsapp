@@ -82,11 +82,11 @@ export const NodePanel = ({
 
   return (
     <div
-      className={`absolute top-4 left-4 bg-white/10 backdrop-blur-md rounded-xl shadow-xl border border-white/20 z-10 transition-all duration-300 ${
+      className={`absolute top-4 left-4 bg-gray-800 rounded-xl shadow-xl border border-gray-700 z-10 transition-all duration-150 ${
         isMinimized ? "w-64" : "w-80"
       }`}
     >
-      <div className="p-4 border-b border-white/20">
+      <div className="p-4 border-b border-gray-700">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg node-icon">
@@ -219,11 +219,11 @@ export const NodePanel = ({
             </p>
           </div>
 
-          <div className="flex flex-col gap-2 pt-2 border-t border-white/20">
+          <div className="flex flex-col gap-2 pt-2 border-t border-gray-700">
             {canEditNode && (
               <button
                 onClick={handleEdit}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-white/90 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-100 hover:text-white hover:bg-gray-700 rounded-lg transition-colors duration-150"
               >
                 <Edit className="w-4 h-4" />
                 Edit {getNodeTypeLabel(node.type)}

@@ -70,6 +70,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [overlayStartTime] = useState(() => Date.now()); // Track when overlay started
   const [sessionRecovery] = useState(() => SessionRecovery.getInstance());
   const [isSigningOut, setIsSigningOut] = useState(false); // Prevent multiple simultaneous sign-outs
+  
+  // Edge browser fix: Track last user ID and visibility check time
+  const lastUserIdRef = React.useRef<string | null>(null);
+  const lastVisibilityCheckRef = React.useRef<number>(0);
+  const VISIBILITY_CHECK_THROTTLE = 2000; // 2 seconds minimum between checks
 
   // Helper function to hide overlay with minimum display time
   const hideAuthOverlay = (immediate = false) => {
@@ -292,20 +297,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(null);
           setUserProfile(null);
           setLoading(false);
+          lastUserIdRef.current = null;
           return;
         }
 
-        if (event === "TOKEN_REFRESHED") {
-          // Token refreshed successfully
+        // Edge browser fix: Ignore redundant TOKEN_REFRESHED events
+        if (event === "TOKEN_REFRESHED" && session?.user?.id === lastUserIdRef.current) {
+          // Token refresh for same user - no action needed
+          return;
         }
 
         if (event === "SIGNED_IN") {
           // User signed in
+          lastUserIdRef.current = session?.user?.id || null;
         }
 
         setUser(session?.user || null);
 
         if (session?.user) {
+          lastUserIdRef.current = session.user.id;
           // Fetching profile for signed in user...
           try {
             await fetchUserProfile(session.user.id);
@@ -315,6 +325,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         } else {
           setUserProfile(null);
+          lastUserIdRef.current = null;
         }
 
         // Always set loading to false after processing auth state change
@@ -330,47 +341,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // Enhanced tab visibility and focus handling
+    // Enhanced tab visibility and focus handling (Edge browser optimized)
     const handleVisibilityChange = async () => {
       // Only handle when page becomes visible (user switches back to tab)
       if (!document.hidden && mounted) {
-        // Tab became visible, checking session...
-        setAuthOverlayVisible(true); // Show overlay during tab switch validation
+        const now = Date.now();
+        
+        // Edge browser fix: Throttle visibility checks
+        if (now - lastVisibilityCheckRef.current < VISIBILITY_CHECK_THROTTLE) {
+          // Too soon since last check - skip
+          return;
+        }
+        
+        lastVisibilityCheckRef.current = now;
 
+        // Don't show overlay for visibility changes - only for actual auth issues
         // Small delay to ensure tab is fully focused
         setTimeout(async () => {
           if (!mounted || document.hidden) return;
 
           try {
-            // Use session recovery to handle the switch
-            const { session, recovered, error } =
-              await sessionRecovery.checkAndRecoverSession();
-
-            if (error) {
-              logger.error("Session recovery failed:", error);
-              if (!loading) {
-                setLoading(true);
-                await initializeAuth();
-              }
-              return;
-            }
+            // Quick session check without recovery (Edge optimized)
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
 
             const currentUser = user;
             const newUser = session?.user;
 
-            if (recovered) {
-              // Session recovered successfully
-            }
-
-            // Check for auth state mismatch
+            // Only update if there's a real mismatch (not just a refresh)
             if (newUser && !currentUser) {
               // Auth state mismatch: user exists but not in context
               setUser(newUser);
+              lastUserIdRef.current = newUser.id;
               await fetchUserProfile(newUser.id);
             } else if (!newUser && currentUser) {
               // Auth state mismatch: no user but exists in context
-              setUser(null);
-              setUserProfile(null);
+              // Try recovery first before clearing
+              const { session: recoveredSession } =
+                await sessionRecovery.checkAndRecoverSession();
+              
+              if (!recoveredSession) {
+                setUser(null);
+                setUserProfile(null);
+                lastUserIdRef.current = null;
+              }
             } else if (
               newUser &&
               currentUser &&
@@ -378,32 +393,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ) {
               // Auth state mismatch: different user
               setUser(newUser);
+              lastUserIdRef.current = newUser.id;
               await fetchUserProfile(newUser.id);
             }
+            // If user IDs match, no action needed (most common case in Edge)
 
             // Ensure loading is false
             if (loading) {
               setLoading(false);
             }
-
-            // Hide overlay after visibility change handling
-            hideAuthOverlay();
           } catch (error) {
             logger.error("Visibility change error:", error);
-            hideAuthOverlay(true); // Hide overlay immediately on error
-            if (!loading) {
-              setLoading(true);
-              await initializeAuth();
-            }
+            // Don't trigger full re-auth on visibility errors
           }
         }, 100); // Small delay to ensure tab is fully active
       }
     };
 
-    // Handle window focus events (additional layer)
+    // Handle window focus events (additional layer) - Edge optimized
     const handleWindowFocus = async () => {
       if (mounted && !document.hidden) {
-        // Window focused, performing quick session check...
+        const now = Date.now();
+        
+        // Edge browser fix: Don't check too frequently on focus
+        if (now - lastVisibilityCheckRef.current < VISIBILITY_CHECK_THROTTLE) {
+          return;
+        }
 
         try {
           // Quick session check without full recovery
@@ -411,11 +426,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             data: { session },
           } = await supabase.auth.getSession();
 
-          // Quick check - if we have a session but no user in context, refresh
+          // Only act if there's a real mismatch
           if (session?.user && !user && !loading) {
             // Found session but no user in context
             setLoading(true);
             setUser(session.user);
+            lastUserIdRef.current = session.user.id;
             await fetchUserProfile(session.user.id);
             setLoading(false);
           } else if (!session?.user && user) {
@@ -425,8 +441,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             if (!recoveredSession) {
               setUser(null);
               setUserProfile(null);
+              lastUserIdRef.current = null;
             }
           }
+          // If session.user.id === lastUserIdRef.current, no action needed
         } catch (error) {
           logger.error("Window focus error:", error);
         }

@@ -46,7 +46,7 @@ export default function ProfileDropdown({ userProfile, onEditProfile, onSignOut 
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center space-x-6 p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all duration-200"
+        className="w-full flex items-center space-x-6 p-3 rounded-xl bg-gray-700/50 border border-gray-600 hover:bg-gray-700 transition-colors duration-150"
       >
         <div className="relative">
           {userProfile?.avatar_url ? (
@@ -56,18 +56,18 @@ export default function ProfileDropdown({ userProfile, onEditProfile, onSignOut 
               className="w-16 h-16 rounded-xl object-cover shadow-lg"
             />
           ) : (
-            <div className="w-16 h-16 bg-gradient-to-br from-caramel-400 to-caramel-500 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 bg-primary-500 rounded-xl flex items-center justify-center shadow-lg">
               <User className="w-8 h-8 text-white" />
             </div>
           )}
-          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-yellowgreen-400 rounded-full border-2 border-white/20"></div>
+          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success-400 rounded-full border-2 border-gray-800"></div>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex flex-col items-start">
             <p className="text-white text-sm font-semibold truncate">
               {userProfile?.name || 'User'}
             </p>
-            <span className="text-white/60 text-xs capitalize bg-white/10 px-2 py-1 rounded-md mt-1">
+            <span className="text-gray-400 text-xs capitalize bg-gray-700 px-2 py-1 rounded-md mt-1">
               {userProfile?.role || 'Role'}
             </span>
             <p className="text-white/60 text-xs mt-2">

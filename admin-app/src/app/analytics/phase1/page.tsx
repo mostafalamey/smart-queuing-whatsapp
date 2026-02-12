@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { RoleRestrictedAccess } from "@/components/RoleRestrictedAccess";
 import { useAuth } from "@/lib/AuthContext";
 import { useRolePermissions } from "@/hooks/useRolePermissions";
@@ -96,13 +95,12 @@ export default function Phase1AnalyticsPage() {
             </p>
           </div>
         </RoleRestrictedAccess>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-8">
+    <div className="space-y-8">
         {/* Enhanced Header with Mode Toggle */}
         <div className="flex items-center justify-between">
           <div>
@@ -395,6 +393,6 @@ export default function Phase1AnalyticsPage() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </div>
   );
 }

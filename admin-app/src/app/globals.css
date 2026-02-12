@@ -2,35 +2,63 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap");
 
 @layer base {
   :root {
+    /* Color System - Healthcare Professional Palette */
+    --color-primary: #2563eb;
+    --color-primary-dark: #1e40af;
+    --color-primary-light: #dbeafe;
+    --color-primary-400: #60a5fa;
+    --color-primary-700: #1e3a8a;
+
+    /* Semantic Colors */
+    --color-success: #16a34a;
+    --color-success-light: #dcfce7;
+    --color-warning: #d97706;
+    --color-warning-light: #fef3c7;
+    --color-error: #dc2626;
+    --color-error-light: #fee2e2;
+    --color-error-600: #b91c1c;
+    --color-info: #0891b2;
+    --color-info-light: #cffafe;
+
+    /* Surfaces */
+    --color-background: #f8fafc;
+    --color-surface: #ffffff;
+
+    /* Text */
+    --color-text-primary: #0f172a;
+    --color-text-secondary: #475569;
+    --color-text-muted: #64748b;
+    --color-text-inverse: #ffffff;
+
+    /* Borders */
+    --color-border: #e2e8f0;
+    --color-border-strong: #cbd5e1;
+
+    /* Legacy support */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 203 94% 48%; /* Celestial Blue */
+    --primary: 217 91% 60%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 82 52% 51%; /* Yellow Green */
+    --secondary: 142 71% 45%;
     --secondary-foreground: 222.2 84% 4.9%;
     --muted: 210 40% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 45 84% 56%; /* Citrine */
+    --accent: 45 93% 47%;
     --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 203 94% 48%;
-    --radius: 0.75rem;
-
-    /* Custom gradient variables */
-    --gradient-primary: linear-gradient(135deg, #1e91d6 0%, #0072bb 100%);
-    --gradient-secondary: linear-gradient(135deg, #8fc93a 0%, #e4cc37 100%);
-    --gradient-accent: linear-gradient(135deg, #e4cc37 0%, #e18335 100%);
+    --ring: 217 91% 60%;
+    --radius: 0.5rem;
   }
 }
 
@@ -44,47 +72,68 @@
   }
 
   body {
-    @apply bg-gradient-to-br from-slate-100 to-blue-100 text-foreground font-sans antialiased;
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
     min-height: 100vh;
   }
 }
 
 @layer components {
-  /* Enhanced Button Styles - Updated with analytics shadows, no translate-y */
+  /* Button Styles - Healthcare Professional Design */
   .btn-primary {
-    @apply relative bg-gradient-primary text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
+    @apply bg-primary-500 text-white font-medium py-2.5 px-5 rounded-lg transition-colors duration-150;
+    height: 40px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
   .btn-primary:hover {
-    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
+    @apply bg-primary-600;
+  }
+
+  .btn-primary:active {
+    @apply bg-primary-700;
+  }
+
+  .btn-primary:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .btn-primary:focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
   }
 
   .btn-secondary {
-    @apply relative bg-gradient-secondary text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
+    @apply bg-transparent border-2 border-primary-500 text-primary-500 font-medium py-2.5 px-5 rounded-lg transition-colors duration-150;
+    height: 40px;
   }
 
   .btn-secondary:hover {
-    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
+    @apply bg-primary-500 text-white;
+  }
+
+  .btn-secondary:active {
+    @apply bg-primary-600 border-primary-600;
+  }
+
+  .btn-secondary:disabled {
+    @apply opacity-50 cursor-not-allowed;
   }
 
   .btn-outline {
-    @apply relative border-2 border-celestial-500 text-celestial-600 hover:bg-celestial-500 hover:text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-
-  .btn-outline:hover {
-    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
+    @apply border-2 border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-medium py-2.5 px-5 rounded-lg transition-colors duration-150;
+    height: 40px;
   }
 
   .btn-ghost {
-    @apply relative text-gray-600 hover:text-celestial-600 hover:bg-celestial-50 font-medium py-2 px-4 rounded-lg transition-all duration-200;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
+    @apply text-gray-600 hover:text-gray-900 hover:bg-gray-100 font-medium py-2 px-4 rounded-lg transition-colors duration-150;
   }
 
-  .btn-ghost:hover {
-    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
+  .btn-destructive {
+    @apply bg-error-500 text-white font-medium py-2.5 px-5 rounded-lg transition-colors duration-150;
+    height: 40px;
+  }
+
+  .btn-destructive:hover {
+    @apply bg-error-600;
   }
 
   /* Input Field Styles */
@@ -113,62 +162,49 @@
     @apply bg-gray-50 cursor-not-allowed text-gray-500;
   }
 
-  /* Enhanced Card Styles - Updated with analytics shadows, no translate-y */
+  /* Card Styles - Professional, No Glassmorphism */
   .card {
-    @apply bg-white/80 backdrop-blur-sm rounded-2xl border border-white/20 transition-all duration-300;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
+    @apply bg-white rounded-xl border border-gray-200 transition-shadow duration-150;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
   .card:hover {
-    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
 
-  .card-glass {
-    @apply bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 transition-all duration-300 hover:bg-white/20;
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+  .card-elevated {
+    @apply bg-white rounded-xl border border-gray-200;
+    padding: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
 
-  .card-gradient {
-    @apply relative overflow-hidden rounded-2xl transition-all duration-300;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-
-  .card-gradient:hover {
-    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
-  }
-
-  .card-gradient::before {
-    @apply absolute inset-0 bg-gradient-primary opacity-90;
-    content: "";
-    z-index: -1;
-  }
-
-  /* Analytics Card Styles */
+  /* Analytics Card - kept for compatibility */
   .analytics-card {
-    @apply bg-white/95 backdrop-blur-sm rounded-xl border border-gray-200/90 transition-all duration-300;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
+    @apply bg-white rounded-xl border border-gray-200 transition-shadow duration-150;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
   .analytics-card:hover {
-    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
-    @apply border-gray-300/70;
+    @apply border-gray-300;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
 
   .analytics-card-stats {
-    @apply bg-gradient-to-r from-slate-50/80 to-gray-50/80 backdrop-blur-sm rounded-xl border border-gray-200/50;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05),
-      0 2px 8px rgba(0, 0, 0, 0.06);
+    @apply bg-gray-50 rounded-lg border border-gray-200;
+    padding: 16px;
   }
 
-  /* KPI Card Styles */
   .analytics-card-kpi {
-    @apply bg-white/95 backdrop-blur-sm rounded-xl border border-gray-200/90 transition-all duration-300;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
+    @apply bg-white rounded-xl border border-gray-200 transition-shadow duration-150;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
   .analytics-card-kpi:hover {
-    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
-    @apply border-gray-300/70;
+    @apply border-gray-300;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
 
   /* Pattern Analysis Styles */
@@ -222,84 +258,36 @@
     @apply bg-red-400;
   }
 
-  /* Tree View Styles - Updated with analytics shadows, no translate-y */
-  .tree-canvas {
-    @apply h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden relative;
-  }
-
-  .tree-node {
-    @apply w-48 bg-white/90 backdrop-blur-sm rounded-xl border border-white/20 transition-all duration-300 cursor-pointer hover:scale-105;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-
-  .tree-node:hover {
-    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
-  }
-
-  .tree-node-selected {
-    @apply ring-2 ring-blue-400;
-  }
-
-  .tree-toolbar {
-    @apply absolute top-4 left-4 z-10 flex flex-col gap-2;
-  }
-
-  .tree-toolbar-group {
-    @apply bg-white/10 backdrop-blur-md rounded-lg p-2 flex gap-2;
-  }
-
-  .tree-toolbar-button {
-    @apply p-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors;
-  }
-
-  .tree-info-panel {
-    @apply absolute top-4 right-4 z-10 bg-white/10 backdrop-blur-md rounded-lg p-4 text-white max-w-xs;
-  }
-
-  .tree-connection {
-    @apply drop-shadow-sm;
-  }
-
   .input-floating label {
-    @apply absolute left-4 top-4 text-gray-500 transition-all duration-300 peer-focus:top-2 peer-focus:text-xs peer-focus:text-celestial-600 peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-gray-600;
+    @apply absolute left-4 top-4 text-gray-500 transition-all duration-150 peer-focus:top-2 peer-focus:text-xs peer-focus:text-primary-600 peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-gray-600;
   }
 
-  /* Enhanced Navigation - Updated with analytics shadows, no translate-y */
+  /* Navigation - Professional Sidebar */
   .nav-item {
-    @apply flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
+    @apply flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150;
+    color: rgba(255, 255, 255, 0.7);
   }
 
   .nav-item.active {
-    @apply bg-white text-celestial-600;
-    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
-  }
-
-  .nav-item:not(.active) {
-    @apply text-white/90 hover:bg-white/10 hover:text-white;
+    @apply bg-white text-gray-900;
   }
 
   .nav-item:not(.active):hover {
-    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
+    @apply bg-white/10 text-white;
   }
 
   /* Tab Styles */
   .tab-button {
-    @apply relative py-3 px-6 font-medium text-sm transition-all duration-300 border-b-2 border-transparent hover:text-celestial-600;
+    @apply relative py-3 px-6 font-medium text-sm transition-colors duration-150 border-b-2 border-transparent hover:text-primary-600;
   }
 
   .tab-button.active {
-    @apply text-celestial-600 border-celestial-500;
-  }
-
-  .tab-button.active::after {
-    @apply absolute bottom-0 left-0 w-full h-0.5 bg-gradient-primary rounded-full;
-    content: "";
+    @apply text-primary-600 border-primary-500;
   }
 
   /* Loading and Animation Utilities */
   .loading-spinner {
-    @apply animate-spin rounded-full border-2 border-gray-200 border-t-celestial-500;
+    @apply animate-spin rounded-full border-2 border-gray-200 border-t-primary-500;
   }
 
   .fade-in {
@@ -314,49 +302,29 @@
     @apply animate-slide-in-left;
   }
 
-  /* Shadow Utilities */
-  .shadow-glow {
-    @apply shadow-glow-primary;
-  }
-
-  .shadow-glow-secondary {
-    box-shadow: 0 0 20px rgba(143, 201, 58, 0.3);
-  }
-
+  /* Shadow Utilities - Simplified */
   .shadow-elegant {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
   .shadow-elevated {
-    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
-  }
-
-  .shadow-glass {
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
 
   /* Color Preview */
   .color-preview {
-    @apply w-12 h-12 rounded-xl border-2 border-gray-300 transition-all duration-200 hover:scale-110;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
+    @apply w-12 h-12 rounded-lg border-2 border-gray-300 transition-shadow duration-150;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
   .color-preview:hover {
-    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
+    @apply border-primary-400;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
 
-  /* Gradient Text */
-  .text-gradient-primary {
-    @apply bg-gradient-primary bg-clip-text text-transparent;
-  }
-
-  .text-gradient-secondary {
-    @apply bg-gradient-secondary bg-clip-text text-transparent;
-  }
-
-  /* Page Header Styles */
+  /* Page Header Styles - Simplified */
   .page-header {
-    @apply relative overflow-hidden bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 p-6 text-white shadow-lg mb-6;
+    @apply relative overflow-hidden bg-white p-6 border-b border-gray-200 mb-6;
   }
 
   .page-header.full-width {
@@ -368,36 +336,7 @@
   }
 
   .page-header:not(.full-width) {
-    @apply rounded-xl;
-  }
-
-  .page-header::before {
-    @apply absolute inset-0 bg-black/10;
-    content: "";
-  }
-
-  .page-header::after {
-    @apply absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full;
-    content: "";
-    transform: translate(3rem, -3rem);
-  }
-
-  .page-header .header-accent {
-    @apply absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full;
-    transform: translate(-2rem, 2rem);
-  }
-
-  .page-header .header-icon-container {
-    @apply relative;
-  }
-
-  .page-header .header-icon-container::before {
-    @apply absolute inset-0 bg-white/20 rounded-xl blur-sm;
-    content: "";
-  }
-
-  .page-header .header-icon {
-    @apply relative w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/30;
+    @apply rounded-lg;
   }
 
   .page-header .header-content {
@@ -405,16 +344,16 @@
   }
 
   .page-header .header-title {
-    @apply text-2xl font-bold tracking-tight;
+    @apply text-2xl font-semibold text-gray-900;
   }
 
   .page-header .header-subtitle {
-    @apply text-white/80;
+    @apply text-gray-600;
   }
 
-  /* Page Transitions - No translate-y */
+  /* Page Transitions - Fast */
   .page-transition {
-    @apply transition-all duration-500 ease-out;
+    @apply transition-opacity duration-200 ease-out;
   }
 
   .page-enter {
@@ -439,15 +378,15 @@
   }
 
   .animation-delay-1 {
-    animation-delay: 0.1s;
+    animation-delay: 0.05s;
   }
 
   .animation-delay-2 {
-    animation-delay: 0.2s;
+    animation-delay: 0.1s;
   }
 
   .animation-delay-3 {
-    animation-delay: 0.3s;
+    animation-delay: 0.15s;
   }
 
   /* Toast Progress Animation */
@@ -476,28 +415,81 @@
     }
   }
 
-  /* Tree View Enhanced Styles - Updated with analytics shadows */
+  /* Tree View Styles - Professional Healthcare Design */
   .tree-canvas {
-    @apply h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden relative;
+    @apply h-screen bg-gray-800 overflow-hidden relative;
+    isolation: isolate;
+    touch-action: pinch-zoom; /* Allow pinch-zoom but prevent single-finger pan */
+    -webkit-user-select: none; /* Prevent text selection during gestures */
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  .tree-svg-container {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+    transform-origin: 0 0;
+    backface-visibility: hidden;
+    will-change: transform;
+    shape-rendering: geometricPrecision;
+  }
+
+  .tree-nodes-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-origin: 0 0;
+    backface-visibility: hidden;
+    will-change: transform;
+    transform-style: preserve-3d;
+  }
+
+  .tree-node-wrapper {
+    position: absolute;
+    backface-visibility: hidden;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    touch-action: manipulation; /* Enable touch interactions including taps */
   }
 
   .tree-node {
-    @apply backdrop-blur-sm rounded-3xl transition-all duration-300 cursor-move select-none hover:scale-105 overflow-hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1);
+    @apply rounded-xl transition-shadow duration-150 cursor-pointer select-none overflow-hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    min-height: 44px; /* iOS recommended minimum touch target */
+    touch-action: manipulation; /* Allow all touch interactions on nodes */
   }
 
-  .tree-node:hover {
-    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
+  .tree-node:hover:not(.tree-node-selected) {
+    outline: 3px solid rgba(37, 99, 235, 0.55);
+    outline-offset: 6px;
+    box-shadow:
+      inset 8px 16px -6px rgba(15, 23, 42, 0.2),
+      0 0 0 2px rgba(37, 99, 235, 0.35);
+  }
+
+  .tree-node-selected {
+    outline: 4px solid #2563eb;
+    outline-offset: 8px;
+    box-shadow:
+      0 12px 20px -8px rgba(15, 23, 42, 0.28),
+      0 0 0 3px rgba(37, 99, 235, 0.5);
   }
 
   /* Branch Nodes - Blue Theme - Largest */
   .tree-node.branch {
-    @apply w-64 bg-gradient-to-br from-blue-100 to-blue-200 border-2 border-blue-300 hover:from-blue-200 hover:to-blue-300;
-    box-shadow: 0 12px 40px rgba(59, 130, 246, 0.25);
+    @apply w-64 bg-blue-50 border-2 border-blue-200 hover:border-blue-300;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.15);
   }
 
   .tree-node.branch:hover {
-    box-shadow: 0 16px 50px rgba(59, 130, 246, 0.35);
+    box-shadow: 0 6px 12px 8px rgba(59, 130, 246, 0.2);
   }
 
   .tree-node.branch .node-icon {
@@ -522,12 +514,12 @@
 
   /* Department Nodes - Green Theme - Medium */
   .tree-node.department {
-    @apply w-64 bg-gradient-to-br from-emerald-100 to-emerald-200 border-2 border-emerald-300 hover:from-emerald-200 hover:to-emerald-300;
-    box-shadow: 0 10px 35px rgba(16, 185, 129, 0.25);
+    @apply w-64 bg-emerald-50 border-2 border-emerald-200 hover:border-emerald-300;
+    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.15);
   }
 
   .tree-node.department:hover {
-    box-shadow: 0 14px 45px rgba(16, 185, 129, 0.35);
+    box-shadow: 0 6px 12px 8px rgba(16, 185, 129, 0.2);
   }
 
   .tree-node.department .node-icon {
@@ -548,12 +540,12 @@
 
   /* Service Nodes - Amber/Orange Theme - Smallest */
   .tree-node.service {
-    @apply w-56 bg-gradient-to-br from-orange-100 to-orange-200 border-2 border-orange-300 hover:from-orange-200 hover:to-orange-300;
-    box-shadow: 0 8px 30px rgba(251, 146, 60, 0.25);
+    @apply w-56 bg-orange-50 border-2 border-orange-200 hover:border-orange-300;
+    box-shadow: 0 4px 6px -1px rgba(251, 146, 60, 0.15);
   }
 
   .tree-node.service:hover {
-    box-shadow: 0 12px 40px rgba(251, 146, 60, 0.35);
+    box-shadow: 0 6px 12px 8px rgba(251, 146, 60, 0.2);
   }
 
   .tree-node.service .node-icon {
@@ -576,37 +568,38 @@
     @apply p-3;
   }
 
-  .tree-node-selected {
-    @apply ring-2 ring-purple-400;
-  }
-
   /* Node header styling */
   .tree-node .node-header {
     @apply pb-2 mb-2;
   }
 
-  /* Branch node header */
   .tree-node.branch .node-header {
-    @apply border-b border-blue-200/50;
+    @apply border-b border-blue-200;
   }
 
-  /* Department node header */
   .tree-node.department .node-header {
-    @apply border-b border-emerald-200/50;
+    @apply border-b border-emerald-200;
   }
 
-  /* Service node header */
   .tree-node.service .node-header {
-    @apply border-b border-amber-200/50;
+    @apply border-b border-orange-200;
   }
 
   /* Add button styling for different node types */
   .tree-node.branch .add-child-btn {
-    @apply bg-blue-200 hover:bg-blue-300 text-blue-700;
+    @apply bg-blue-100 hover:bg-blue-200 text-blue-700;
   }
 
   .tree-node.department .add-child-btn {
-    @apply bg-emerald-200 hover:bg-emerald-300 text-emerald-700;
+    @apply bg-emerald-100 hover:bg-emerald-200 text-emerald-700;
+  }
+
+  .tree-node button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 12px;
+    touch-action: manipulation; /* Full touch support for buttons */
+    cursor: pointer;
   }
 
   .tree-toolbar {
@@ -614,15 +607,15 @@
   }
 
   .tree-toolbar-group {
-    @apply bg-white/10 backdrop-blur-md rounded-lg p-2 flex gap-2;
+    @apply bg-gray-700 rounded-lg p-2 flex gap-2;
   }
 
   .tree-toolbar-button {
-    @apply p-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors;
+    @apply p-2 rounded-lg bg-gray-600 hover:bg-gray-500 transition-colors duration-150 text-white;
   }
 
   .tree-info-panel {
-    @apply absolute top-4 right-4 z-10 bg-white/10 backdrop-blur-md rounded-lg p-4 text-white max-w-xs;
+    @apply absolute top-4 right-4 z-10 bg-gray-700 rounded-lg p-4 text-white max-w-xs;
   }
 
   .tree-connection {
@@ -643,16 +636,6 @@
     opacity: 0.7;
   }
 
-  .tree-nodes-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-  }
-
-  .tree-node-wrapper {
-    position: absolute;
-  }
-
   .tree-container-visible {
     overflow: visible !important;
   }
@@ -670,69 +653,6 @@
     right: 0;
     bottom: 0;
   }
-
-  /* Base classes for tree elements */
-  .tree-svg-container {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    overflow: visible;
-    transform-origin: 0 0;
-  }
-
-  .tree-nodes-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transform-origin: 0 0;
-  }
-
-  .tree-node-wrapper {
-    position: absolute;
-  }
-
-  /* Touch-specific improvements - simplified for better compatibility */
-  .tree-canvas {
-    touch-action: pinch-zoom; /* Allow pinch-zoom but prevent single-finger pan */
-    -webkit-user-select: none; /* Prevent text selection during gestures */
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-
-  .tree-node {
-    /* Larger touch targets for better mobile interaction */
-    min-height: 44px; /* iOS recommended minimum touch target */
-  }
-
-  .tree-node button {
-    /* Ensure buttons have adequate touch targets */
-    min-width: 44px;
-    min-height: 44px;
-    padding: 12px;
-  }
-
-  /* Allow normal touch interactions on nodes - this is key for clicks to work */
-  .tree-node-wrapper {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    touch-action: manipulation; /* Enable touch interactions including taps */
-  }
-
-  .tree-node {
-    touch-action: manipulation; /* Allow all touch interactions on nodes */
-    cursor: pointer; /* Make it clear nodes are clickable */
-  }
-
-  /* Ensure buttons within nodes are fully touchable */
-  .tree-node button {
-    touch-action: manipulation; /* Full touch support for buttons */
-    cursor: pointer;
-  }
 }
 
 /* Progress bar component styles */
@@ -740,5 +660,55 @@
   .progress-bar {
     width: var(--progress-width, 0%);
     transition: width 0.3s ease-in-out;
+  }
+}
+
+@layer utilities {
+  .bg-primary-500 {
+    background-color: var(--color-primary);
+  }
+
+  .bg-primary-600 {
+    background-color: var(--color-primary-dark);
+  }
+
+  .bg-primary-700 {
+    background-color: var(--color-primary-700);
+  }
+
+  .text-primary-500 {
+    color: var(--color-primary);
+  }
+
+  .text-primary-600 {
+    color: var(--color-primary-dark);
+  }
+
+  .border-primary-400 {
+    border-color: var(--color-primary-400);
+  }
+
+  .border-primary-500 {
+    border-color: var(--color-primary);
+  }
+
+  .border-primary-600 {
+    border-color: var(--color-primary-dark);
+  }
+
+  .ring-primary-500 {
+    --tw-ring-color: var(--color-primary);
+  }
+
+  .border-t-primary-500 {
+    border-top-color: var(--color-primary);
+  }
+
+  .bg-error-500 {
+    background-color: var(--color-error);
+  }
+
+  .bg-error-600 {
+    background-color: var(--color-error-600);
   }
 }

@@ -147,7 +147,7 @@ export const PlanLimitsDashboard = ({
             </div>
           </div>
           {planLimits.plan !== "enterprise" && (
-            <button className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md">
+            <button className="px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-lg hover:bg-primary-600 transition-colors duration-150 shadow-sm">
               Upgrade Plan
             </button>
           )}
@@ -219,9 +219,9 @@ export const PlanLimitsDashboard = ({
             getUsagePercentage("department") > 50 ||
             getUsagePercentage("service") > 50 ||
             getUsagePercentage("staff") > 50) && (
-            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
+            <div className="mt-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
               <div className="flex items-start gap-3">
-                <div className="p-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full">
+                <div className="p-1 bg-primary-500 rounded-full">
                   <Crown className="w-4 h-4 text-white" />
                 </div>
                 <div className="flex-1">

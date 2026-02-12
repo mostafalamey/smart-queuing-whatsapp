@@ -6,7 +6,6 @@ import { useAuth } from "@/lib/AuthContext";
 import { useRolePermissions } from "@/hooks/useRolePermissions";
 import { getAllowedOrganizationTabs } from "@/lib/roleUtils";
 import { useAppToast } from "@/hooks/useAppToast";
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { PlanLimitsDashboard } from "@/components/PlanLimitsDashboard";
 import { supabase } from "@/lib/supabase";
 import { useOrganizationData } from "./features/shared/useOrganizationData";
@@ -125,11 +124,9 @@ export default function OrganizationPage() {
   // Show loading or redirect if no access
   if (authLoading || !canAccessOrganization) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-celestial-600"></div>
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      </div>
     );
   }
 
@@ -355,60 +352,53 @@ export default function OrganizationPage() {
 
   if (authLoading || loading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center p-6">
-          <div className="flex flex-col items-center gap-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="text-gray-600">Loading organization details...</p>
-          </div>
+      <div className="flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="text-gray-600">Loading organization details...</p>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   if (!userProfile) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center p-6">
-          <div className="text-center">
-            <p className="text-gray-600">
-              Please log in to view organization details.
-            </p>
-          </div>
+      <div className="flex items-center justify-center p-6">
+        <div className="text-center">
+          <p className="text-gray-600">
+            Please log in to view organization details.
+          </p>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   if (!organization) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center p-6">
-          <div className="text-center">
-            <p className="text-gray-600">
-              No organization found. Please contact support.
-            </p>
-          </div>
+      <div className="flex items-center justify-center p-6">
+        <div className="text-center">
+          <p className="text-gray-600">
+            No organization found. Please contact support.
+          </p>
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="p-4 lg:p-6 max-h-screen overflow-y-auto">
-        {/* Header */}
-        <OrganizationHeader organization={organization} />
+    <div className="p-4 lg:p-6 max-h-screen overflow-y-auto">
+      {/* Header */}
+      <OrganizationHeader organization={organization} />
 
-        {/* Tab Navigation */}
-        <div className="border-b border-gray-200 mt-4 mb-6">
-          {/* Mobile: Scrollable horizontal tabs */}
-          <div className="sm:hidden">
-            <nav
-              className="-mb-px flex overflow-x-auto scrollbar-hide"
-              aria-label="Tabs"
-            >
-              <div className="flex space-x-1 px-1">
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200 mt-4 mb-6">
+        {/* Mobile: Scrollable horizontal tabs */}
+        <div className="sm:hidden">
+          <nav
+            className="-mb-px flex overflow-x-auto scrollbar-hide"
+            aria-label="Tabs"
+          >
+            <div className="flex space-x-1 px-1">
                 {(() => {
                   const allowedTabs = userRole
                     ? getAllowedOrganizationTabs(userRole)
@@ -495,9 +485,9 @@ export default function OrganizationPage() {
             </nav>
           </div>
 
-          {/* Desktop: Standard horizontal tabs */}
-          <div className="hidden sm:block">
-            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+        {/* Desktop: Standard horizontal tabs */}
+        <div className="hidden sm:block">
+          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
               {(() => {
                 const allowedTabs = userRole
                   ? getAllowedOrganizationTabs(userRole)
@@ -584,176 +574,175 @@ export default function OrganizationPage() {
           </div>
         </div>
 
-        {/* Tab Content */}
-        <div className="pb-4">
-          {activeTab === "details" && (
-            <OrganizationDetails
-              orgForm={orgForm}
-              setOrgForm={setOrgForm}
-              loading={loading}
-              uploading={uploading}
-              onSubmit={handleUpdateOrganization}
-              onLogoUpload={handleLogoUploadFile}
-              onRemoveLogo={handleRemoveLogo}
-              readOnly={!rolePermissions.canEditOrganization}
-              onTestConnection={handleTestConnection}
-              testingConnection={testingConnection}
-              testResult={testResult}
-            />
-          )}
+      {/* Tab Content */}
+      <div className="pb-4">
+        {activeTab === "details" && (
+          <OrganizationDetails
+            orgForm={orgForm}
+            setOrgForm={setOrgForm}
+            loading={loading}
+            uploading={uploading}
+            onSubmit={handleUpdateOrganization}
+            onLogoUpload={handleLogoUploadFile}
+            onRemoveLogo={handleRemoveLogo}
+            readOnly={!rolePermissions.canEditOrganization}
+            onTestConnection={handleTestConnection}
+            testingConnection={testingConnection}
+            testResult={testResult}
+          />
+        )}
 
-          {activeTab === "plan" && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                  Subscription Plan & Usage
-                </h2>
-                <p className="text-sm text-gray-600 mb-4">
-                  Monitor your current plan usage and upgrade when needed to
-                  unlock more features.
-                </p>
-              </div>
-              <PlanLimitsDashboard />
+        {activeTab === "plan" && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                Subscription Plan & Usage
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                Monitor your current plan usage and upgrade when needed to
+                unlock more features.
+              </p>
             </div>
-          )}
+            <PlanLimitsDashboard />
+          </div>
+        )}
 
-          {activeTab === "qr" && (
-            <QRManagement
-              organization={organization}
-              userProfile={userProfile}
-              branches={branches}
-              departments={departments}
-              qrCodeUrl={qrCodeUrl}
-              branchQrCodes={branchQrCodes}
-              departmentQrCodes={departmentQrCodes}
-              qrGenerating={qrGenerating}
-              onGenerateQR={generateQRCode}
-              onDownloadQR={downloadQR}
-              onCopyQRUrl={copyQRUrl}
-              onPrintQR={printQR}
-              onDownloadBranchQR={downloadBranchQR}
-              onCopyBranchQRUrl={copyBranchQRUrl}
-              onPrintBranchQR={printBranchQR}
-              onRefreshBranchQR={() => {}}
-              onDownloadDepartmentQR={downloadDepartmentQR}
-              onCopyDepartmentQRUrl={copyDepartmentQRUrl}
-              onPrintDepartmentQR={printDepartmentQR}
-              onRefreshDepartmentQR={() => {}}
-            />
-          )}
+        {activeTab === "qr" && (
+          <QRManagement
+            organization={organization}
+            userProfile={userProfile}
+            branches={branches}
+            departments={departments}
+            qrCodeUrl={qrCodeUrl}
+            branchQrCodes={branchQrCodes}
+            departmentQrCodes={departmentQrCodes}
+            qrGenerating={qrGenerating}
+            onGenerateQR={generateQRCode}
+            onDownloadQR={downloadQR}
+            onCopyQRUrl={copyQRUrl}
+            onPrintQR={printQR}
+            onDownloadBranchQR={downloadBranchQR}
+            onCopyBranchQRUrl={copyBranchQRUrl}
+            onPrintBranchQR={printBranchQR}
+            onRefreshBranchQR={() => {}}
+            onDownloadDepartmentQR={downloadDepartmentQR}
+            onCopyDepartmentQRUrl={copyDepartmentQRUrl}
+            onPrintDepartmentQR={printDepartmentQR}
+            onRefreshDepartmentQR={() => {}}
+          />
+        )}
 
-          {activeTab === "members" && (
-            <MemberManagement
-              members={members}
-              branches={branches}
-              departments={departments}
-              onUpdateMemberRole={handleUpdateMemberRole}
-              onUpdateMemberBranch={async (
-                memberId: string,
-                branchId: string | null
-              ) => {
-                await updateMemberBranch(
-                  memberId,
-                  branchId,
-                  setMembers,
-                  showSuccess,
-                  showError
-                );
-              }}
-              onUpdateMemberDepartments={async (
-                memberId: string,
-                departmentIds: string[] | null
-              ) => {
-                await updateMemberDepartments(
-                  memberId,
-                  departmentIds,
-                  setMembers,
-                  showSuccess,
-                  showError
-                );
-              }}
-              onDeactivateMember={handleDeactivateMember}
-              onPermanentDeleteMember={handlePermanentDeleteMember}
-              onReactivateMember={handleReactivateMember}
-              processing={Object.values(isRemovingMember).some(Boolean)}
-              onInviteMember={handleInviteMember}
-              showInviteModal={showInviteModal}
-              setShowInviteModal={setShowInviteModal}
-              inviteEmail={inviteEmail}
-              setInviteEmail={setInviteEmail}
-              inviteRole={inviteRole}
-              setInviteRole={(role: string) => {
-                if (["admin", "manager", "employee"].includes(role)) {
-                  setInviteRole(role as "admin" | "manager" | "employee");
-                }
-              }}
-              inviteBranchId={inviteBranchId}
-              setInviteBranchId={setInviteBranchId}
-              inviteDepartmentIds={inviteDepartmentIds}
-              setInviteDepartmentIds={setInviteDepartmentIds}
-              inviting={inviting}
-              onSubmitInvite={handleSubmitInvite}
-              // Role permissions
-              currentUserRole={userRole}
-              currentUserId={user?.id}
-              canInviteMembers={rolePermissions.canInviteMembers}
-              canEditOtherMembers={rolePermissions.canEditOtherMembers}
-              canDeleteMembers={rolePermissions.canDeleteMembers}
-              canAssignMembersInDepartment={
-                rolePermissions.canAssignMembersInDepartment
+        {activeTab === "members" && (
+          <MemberManagement
+            members={members}
+            branches={branches}
+            departments={departments}
+            onUpdateMemberRole={handleUpdateMemberRole}
+            onUpdateMemberBranch={async (
+              memberId: string,
+              branchId: string | null
+            ) => {
+              await updateMemberBranch(
+                memberId,
+                branchId,
+                setMembers,
+                showSuccess,
+                showError
+              );
+            }}
+            onUpdateMemberDepartments={async (
+              memberId: string,
+              departmentIds: string[] | null
+            ) => {
+              await updateMemberDepartments(
+                memberId,
+                departmentIds,
+                setMembers,
+                showSuccess,
+                showError
+              );
+            }}
+            onDeactivateMember={handleDeactivateMember}
+            onPermanentDeleteMember={handlePermanentDeleteMember}
+            onReactivateMember={handleReactivateMember}
+            processing={Object.values(isRemovingMember).some(Boolean)}
+            onInviteMember={handleInviteMember}
+            showInviteModal={showInviteModal}
+            setShowInviteModal={setShowInviteModal}
+            inviteEmail={inviteEmail}
+            setInviteEmail={setInviteEmail}
+            inviteRole={inviteRole}
+            setInviteRole={(role: string) => {
+              if (["admin", "manager", "employee"].includes(role)) {
+                setInviteRole(role as "admin" | "manager" | "employee");
               }
-              userAssignedBranchId={rolePermissions.assignedBranchId}
-              userAssignedDepartmentIds={rolePermissions.assignedDepartmentIds}
-              showWarning={showWarning}
-              // Invitation management props
-              organizationId={organization.id}
-              organizationName={organization.name}
-              showSuccess={showSuccess}
-              showError={showError}
-              showInfo={showInfo}
-            />
-          )}
+            }}
+            inviteBranchId={inviteBranchId}
+            setInviteBranchId={setInviteBranchId}
+            inviteDepartmentIds={inviteDepartmentIds}
+            setInviteDepartmentIds={setInviteDepartmentIds}
+            inviting={inviting}
+            onSubmitInvite={handleSubmitInvite}
+            // Role permissions
+            currentUserRole={userRole}
+            currentUserId={user?.id}
+            canInviteMembers={rolePermissions.canInviteMembers}
+            canEditOtherMembers={rolePermissions.canEditOtherMembers}
+            canDeleteMembers={rolePermissions.canDeleteMembers}
+            canAssignMembersInDepartment={
+              rolePermissions.canAssignMembersInDepartment
+            }
+            userAssignedBranchId={rolePermissions.assignedBranchId}
+            userAssignedDepartmentIds={rolePermissions.assignedDepartmentIds}
+            showWarning={showWarning}
+            // Invitation management props
+            organizationId={organization.id}
+            organizationName={organization.name}
+            showSuccess={showSuccess}
+            showError={showError}
+            showInfo={showInfo}
+          />
+        )}
 
-          {activeTab === "analytics" && organization && userRole && (
-            <MemberAnalytics
-              organizationId={organization.id}
-              currentUserRole={userRole}
-            />
-          )}
+        {activeTab === "analytics" && organization && userRole && (
+          <MemberAnalytics
+            organizationId={organization.id}
+            currentUserRole={userRole}
+          />
+        )}
 
-          {activeTab === "messages" && organization && userRole && (
-            <MessageTemplateManagement
-              organizationId={organization.id}
-              organizationName={organization.name}
-              qrCodeTemplate={
-                organization.qr_code_message_template ||
-                "Hello {{organizationName}}! I would like to join the queue."
+        {activeTab === "messages" && organization && userRole && (
+          <MessageTemplateManagement
+            organizationId={organization.id}
+            organizationName={organization.name}
+            qrCodeTemplate={
+              organization.qr_code_message_template ||
+              "Hello {{organizationName}}! I would like to join the queue."
+            }
+            onUpdateQrCodeTemplate={async (message: string) => {
+              try {
+                // Update organization's QR code template directly in database
+                const { error } = await supabase
+                  .from("organizations")
+                  .update({ qr_code_message_template: message })
+                  .eq("id", organization.id);
+
+                if (error) throw error;
+
+                // Update local state
+                setOrganization((prev) =>
+                  prev ? { ...prev, qr_code_message_template: message } : null
+                );
+                showSuccess("QR Code message template updated successfully!");
+              } catch (error) {
+                console.error("Error updating QR code template:", error);
+                showError("Failed to update QR code message template");
               }
-              onUpdateQrCodeTemplate={async (message: string) => {
-                try {
-                  // Update organization's QR code template directly in database
-                  const { error } = await supabase
-                    .from("organizations")
-                    .update({ qr_code_message_template: message })
-                    .eq("id", organization.id);
-
-                  if (error) throw error;
-
-                  // Update local state
-                  setOrganization((prev) =>
-                    prev ? { ...prev, qr_code_message_template: message } : null
-                  );
-                  showSuccess("QR Code message template updated successfully!");
-                } catch (error) {
-                  console.error("Error updating QR code template:", error);
-                  showError("Failed to update QR code message template");
-                }
-              }}
-              canEditMessages={rolePermissions.canEditOrganization}
-            />
-          )}
-        </div>
+            }}
+            canEditMessages={rolePermissions.canEditOrganization}
+          />
+        )}
       </div>
-    </DashboardLayout>
+    </div>
   );
 }

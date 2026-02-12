@@ -13,7 +13,6 @@ import {
   User,
   LogOut,
   X,
-  Sparkles,
   GitBranch,
   BarChart3,
 } from "lucide-react";
@@ -25,28 +24,24 @@ const navigationItems = [
     name: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
-    color: "text-celestial-400",
     route: "dashboard",
   },
   {
     name: "Organization",
     href: "/organization",
     icon: Building2,
-    color: "text-yellowgreen-400",
     route: "organization",
   },
   {
     name: "Analytics",
     href: "/analytics",
     icon: BarChart3,
-    color: "text-citrine-400",
     route: "analytics",
   },
   {
-    name: "Tree View",
+    name: "Department Structure",
     href: "/tree",
     icon: GitBranch,
-    color: "text-purple-400",
     route: "tree",
   },
 ];
@@ -78,28 +73,23 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-80 bg-gradient-to-br from-celestial-600 via-french-600 to-celestial-700 transform transition-all duration-300 ease-out shadow-2xl",
+          "fixed inset-y-0 left-0 z-50 w-[280px] bg-slate-800 transform transition-transform duration-150 ease-out shadow-xl",
           isOpen ? "translate-x-0" : "-translate-x-full",
           "lg:translate-x-0"
         )}
       >
-        <div className="flex flex-col h-full relative overflow-hidden">
-          {/* Decorative background elements */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-yellowgreen-400/10 rounded-full -ml-12 -mb-12"></div>
-
+        <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="relative flex items-center justify-between p-6 border-b border-white/10 backdrop-blur-sm">
-            <div className="flex items-center space-x-3 fade-in">
-              <div className="relative w-12 h-12 flex items-center justify-center">
-                <div className="absolute inset-0 bg-white rounded-xl shadow-lg"></div>
+          <div className="flex items-center justify-between p-5 border-b border-white/10">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 flex items-center justify-center bg-white rounded-lg shadow-sm">
                 {!logoError ? (
                   <Image
                     src="/Logo.png"
                     alt="Smart Queue Logo"
-                    width={48}
-                    height={48}
-                    className="relative w-12 h-12 object-contain p-1"
+                    width={40}
+                    height={40}
+                    className="w-10 h-10 object-contain p-1"
                     onError={(e) => {
                       console.error("Logo failed to load:", e);
                       setLogoError(true);
@@ -108,27 +98,23 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     unoptimized
                   />
                 ) : (
-                  <div className="relative w-12 h-12 flex items-center justify-center bg-gradient-to-br from-celestial-500 to-french-blue-600 rounded-xl text-white font-bold text-lg shadow-lg">
+                  <div className="w-10 h-10 flex items-center justify-center bg-primary-500 rounded-lg text-white font-bold text-sm">
                     SQ
                   </div>
                 )}
               </div>
               <div>
-                <div className="font-bold text-2xl tracking-wide">
-                  <span className="text-black">Smart</span>
-                  <span className="text-blue-200">Queue</span>
+                <div className="font-semibold text-lg text-white">
+                  Smart Queue
                 </div>
-                <div className="flex items-center space-x-1 mt-0.5">
-                  <Sparkles className="w-3 h-3 text-citrine-400" />
-                  <span className="text-white/70 text-xs font-medium">
-                    Admin Portal
-                  </span>
+                <div className="text-white/60 text-xs">
+                  Admin Portal
                 </div>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="lg:hidden text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-all duration-200"
+              className="lg:hidden text-white/70 hover:text-white hover:bg-white/10 p-2 rounded-lg transition-colors duration-150"
               aria-label="Close sidebar"
             >
               <X className="w-5 h-5" />
@@ -136,10 +122,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* Organization Badge */}
-          <div className="p-6 border-b border-white/10">
-            <div className="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+          <div className="p-4 border-b border-white/10">
+            <div className="flex items-center space-x-3 bg-white/5 rounded-lg p-3 border border-white/10">
               {/* Organization Logo */}
-              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center overflow-hidden">
+              <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
                 {userProfile?.organization?.logo_url ? (
                   <img
                     src={userProfile.organization.logo_url}
@@ -147,62 +133,41 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-caramel-400 to-caramel-500 rounded-lg flex items-center justify-center text-white text-lg font-bold shadow-lg">
+                  <div className="w-full h-full bg-primary-500 rounded-lg flex items-center justify-center text-white text-base font-semibold">
                     {userProfile?.organization?.name?.charAt(0) || "O"}
                   </div>
                 )}
               </div>
-              <div className="text-left">
-                <span className="text-sm font-semibold block text-white">
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-medium text-white truncate">
                   {userProfile?.organization?.name || "Organization"}
-                </span>
-                <span className="text-white/60 text-xs">Active workspace</span>
+                </div>
+                <div className="text-white/50 text-xs">Active workspace</div>
               </div>
             </div>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-6">
-            <div className="mb-6">
-              <h3 className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-4 flex items-center space-x-2">
-                <span>Navigation</span>
-                <div className="flex-1 h-px bg-white/20"></div>
+          <nav className="flex-1 p-4 overflow-y-auto">
+            <div className="mb-2">
+              <h3 className="text-white/50 text-xs font-medium uppercase tracking-wider mb-3 px-3">
+                Navigation
               </h3>
-              <ul className="space-y-2">
-                {filteredNavigationItems.map((item, index) => {
+              <ul className="space-y-1">
+                {filteredNavigationItems.map((item) => {
                   const isActive = pathname === item.href;
                   return (
-                    <li
-                      key={item.name}
-                      className={`slide-in-left animation-delay-${index}`}
-                    >
+                    <li key={item.name}>
                       <Link
                         href={item.href}
                         className={cn(
-                          "nav-item relative group",
+                          "nav-item",
                           isActive && "active"
                         )}
                         onClick={onClose}
                       >
-                        {isActive && (
-                          <div className="absolute inset-0 bg-white/20 rounded-xl blur-sm"></div>
-                        )}
-                        <div className="relative flex items-center space-x-3">
-                          <div
-                            className={cn(
-                              "w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300",
-                              isActive
-                                ? "bg-white text-celestial-600 shadow-lg"
-                                : "bg-white/10 text-white group-hover:bg-white/20"
-                            )}
-                          >
-                            <item.icon className="w-5 h-5" />
-                          </div>
-                          <span className="font-medium">{item.name}</span>
-                        </div>
-                        {isActive && (
-                          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-citrine-400 rounded-full shadow-glow"></div>
-                        )}
+                        <item.icon className="w-5 h-5" />
+                        <span className="font-medium">{item.name}</span>
                       </Link>
                     </li>
                   );
@@ -212,7 +177,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </nav>
 
           {/* User Profile */}
-          <div className="p-6 border-t border-white/10 backdrop-blur-sm">
+          <div className="p-4 border-t border-white/10">
             <ProfileDropdown
               userProfile={userProfile}
               onEditProfile={handleEditProfile}
@@ -225,7 +190,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden fade-in"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={onClose}
         />
       )}

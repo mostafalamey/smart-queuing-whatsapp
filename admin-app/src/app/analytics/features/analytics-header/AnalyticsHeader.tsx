@@ -29,11 +29,10 @@ export const AnalyticsHeader: React.FC<AnalyticsHeaderProps> = ({
 
         <button
           onClick={onRefresh}
-          className="group relative overflow-hidden bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-lg font-medium transition-all duration-300 border border-white/30"
+          className="group bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-150 border border-primary-500"
         >
-          <div className="absolute inset-0 bg-white/10 translate-x-full group-hover:translate-x-0 transition-transform duration-300"></div>
-          <div className="relative flex items-center space-x-2">
-            <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-300" />
+          <div className="flex items-center space-x-2">
+            <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-150" />
             <span className="text-sm">Refresh Data</span>
           </div>
         </button>

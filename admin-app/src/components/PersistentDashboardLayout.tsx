@@ -1,21 +1,49 @@
 "use client";
 
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+import { Menu } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import Image from "next/image";
 
-interface DashboardLayoutProps {
+interface PersistentDashboardLayoutProps {
   children: React.ReactNode;
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+// Routes that should show the sidebar
+const DASHBOARD_ROUTES = [
+  "/dashboard",
+  "/tree",
+  "/profile",
+  "/organization",
+  "/analytics",
+  "/manage",
+];
+
+export function PersistentDashboardLayout({
+  children,
+}: PersistentDashboardLayoutProps) {
+  const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mobileLogoError, setMobileLogoError] = useState(false);
 
+  // Check if current route should show sidebar
+  const shouldShowSidebar = DASHBOARD_ROUTES.some((route) =>
+    pathname?.startsWith(route)
+  );
+
+  // Close mobile sidebar when route changes
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [pathname]);
+
+  if (!shouldShowSidebar) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="min-h-screen bg-gray-200">
-      {/* Sidebar Component */}
+      {/* Sidebar Component - Persists across all dashboard routes */}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
       {/* Main Content Area */}
@@ -60,9 +88,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Page Content */}
-        <main className="transition-opacity duration-200">
-          {children}
-        </main>
+        <main className="transition-opacity duration-200">{children}</main>
       </div>
     </div>
   );

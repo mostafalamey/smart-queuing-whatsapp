@@ -99,7 +99,7 @@ export const OrganizationDetails = ({
         {/* Basic Information Card - Takes 2 columns on large screens */}
         <div className="lg:col-span-2 analytics-card p-5">
           <div className="flex items-center space-x-3 mb-5">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
               <Building2 className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -211,7 +211,7 @@ export const OrganizationDetails = ({
         {/* Branding Card */}
         <div className="analytics-card p-6">
           <div className="flex items-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-info-500 rounded-lg flex items-center justify-center">
               <Palette className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -251,7 +251,7 @@ export const OrganizationDetails = ({
                         )}
                       </>
                     ) : (
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-orange-500 rounded-lg opacity-30"></div>
+                      <div className="w-8 h-8 bg-gray-300 rounded-lg"></div>
                     )}
                   </div>
                 </div>
@@ -356,7 +356,7 @@ export const OrganizationDetails = ({
       <div className="analytics-card p-6 mb-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-success-500 rounded-lg flex items-center justify-center">
               <MessageSquare className="w-5 h-5 text-white" />
             </div>
             <div>

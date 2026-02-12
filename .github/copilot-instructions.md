@@ -75,9 +75,13 @@ This is a queue management system consisting of:
 
 1. **UI/UX**
 
+   - **IMPORTANT:** Follow the Design Language document at `docs/DESIGN_LANGUAGE.md` for all UI work.
    - Follow Tailwind best practices for responsive layouts.
-   - Keep color palette consistent with branding.
+   - Keep color palette consistent with the healthcare-appropriate design system.
    - Reuse components from `/shared` wherever possible.
+   - **No gradients, glassmorphism, or decorative elements** in the admin app.
+   - Use solid colors, clear hierarchy, and professional aesthetics.
+   - Ensure WCAG AA accessibility compliance (4.5:1 contrast ratio minimum).
 
 2. **Database Queries**
 
@@ -119,10 +123,36 @@ When prompting Copilot for code, use:
 
 ---
 
+## 🎨 Design System Reference
+
+The Admin App follows a strict design language for healthcare environments.
+
+**Key Documents:**
+- Design Language: `docs/DESIGN_LANGUAGE.md`
+- UI/UX Redesign Plan: `docs/UI_UX_REDESIGN_PLAN.md`
+
+**Design Principles:**
+- "Clinical Precision" — Every pixel serves a purpose
+- Professional, muted color palette (no playful gradients)
+- Clear visual hierarchy through spacing and typography
+- Fast transitions (150-200ms max)
+- Accessibility-first approach
+
+**Anti-Patterns to Avoid:**
+- ❌ Gradient backgrounds
+- ❌ Glassmorphism (`backdrop-blur`)
+- ❌ Decorative floating shapes
+- ❌ Scale transforms on hover
+- ❌ Animation durations > 300ms
+- ❌ Oversized elements (e.g., 100px+ fonts)
+
+---
+
 ## ✅ Definition of Done
 
 - Code follows naming conventions.
-- UI matches tailwind.config.js.
+- UI matches the Design Language (`docs/DESIGN_LANGUAGE.md`).
 - Queries are secure and role-checked.
 - All tests pass.
 - No console errors/warnings.
+- Accessibility: WCAG AA compliance verified.

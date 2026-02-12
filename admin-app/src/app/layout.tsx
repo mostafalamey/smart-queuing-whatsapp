@@ -5,6 +5,7 @@ import { AuthProvider } from "../lib/AuthContext";
 import { ClientErrorBoundary } from "../components/ClientErrorBoundary";
 import { ToastProvider } from "../contexts/ToastContext";
 import ToastContainer from "../components/ToastContainer";
+import { PersistentDashboardLayout } from "../components/PersistentDashboardLayout";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -57,7 +58,9 @@ export default function RootLayout({
         <AuthProvider>
           <ToastProvider>
             <ClientErrorBoundary>
-              {children}
+              <PersistentDashboardLayout>
+                {children}
+              </PersistentDashboardLayout>
             </ClientErrorBoundary>
             <ToastContainer />
           </ToastProvider>

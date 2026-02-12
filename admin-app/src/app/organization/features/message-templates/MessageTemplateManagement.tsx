@@ -471,63 +471,63 @@ export function MessageTemplateManagement({
         </div>
 
         {/* Journey Overview Card */}
-        <div className="bg-gradient-to-br from-celestial-50 to-french-50 rounded-xl p-6 border border-celestial-200 shadow-sm">
+        <div className="bg-primary-50 rounded-xl p-6 border border-primary-200 shadow-sm">
           <div className="flex items-center space-x-2 mb-4">
             <span className="text-2xl">🎯</span>
-            <h3 className="text-xl font-bold text-celestial-900">
+            <h3 className="text-xl font-bold text-gray-900">
               WhatsApp-First Customer Journey
             </h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="flex items-start space-x-3">
-              <div className="bg-celestial-100 rounded-full p-2 mt-1">
-                <span className="text-celestial-700 font-bold text-sm">1</span>
+              <div className="bg-primary-100 rounded-full p-2 mt-1">
+                <span className="text-primary-700 font-bold text-sm">1</span>
               </div>
               <div>
-                <p className="font-semibold text-celestial-800">Scan QR</p>
-                <p className="text-sm text-celestial-600">
+                <p className="font-semibold text-gray-800">Scan QR</p>
+                <p className="text-sm text-gray-600">
                   Opens WhatsApp with welcome message
                 </p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="bg-celestial-100 rounded-full p-2 mt-1">
-                <span className="text-celestial-700 font-bold text-sm">2</span>
+              <div className="bg-primary-100 rounded-full p-2 mt-1">
+                <span className="text-primary-700 font-bold text-sm">2</span>
               </div>
               <div>
-                <p className="font-semibold text-celestial-800">Send Message</p>
-                <p className="text-sm text-celestial-600">
+                <p className="font-semibold text-gray-800">Send Message</p>
+                <p className="text-sm text-gray-600">
                   Gets branch/department/service menu
                 </p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="bg-celestial-100 rounded-full p-2 mt-1">
-                <span className="text-celestial-700 font-bold text-sm">3</span>
+              <div className="bg-primary-100 rounded-full p-2 mt-1">
+                <span className="text-primary-700 font-bold text-sm">3</span>
               </div>
               <div>
-                <p className="font-semibold text-celestial-800">
+                <p className="font-semibold text-gray-800">
                   Select Service
                 </p>
-                <p className="text-sm text-celestial-600">
+                <p className="text-sm text-gray-600">
                   Gets ticket confirmation immediately
                 </p>
               </div>
             </div>
             <div className="flex items-start space-x-3">
-              <div className="bg-celestial-100 rounded-full p-2 mt-1">
-                <span className="text-celestial-700 font-bold text-sm">4</span>
+              <div className="bg-primary-100 rounded-full p-2 mt-1">
+                <span className="text-primary-700 font-bold text-sm">4</span>
               </div>
               <div>
-                <p className="font-semibold text-celestial-800">Stay Updated</p>
-                <p className="text-sm text-celestial-600">
+                <p className="font-semibold text-gray-800">Stay Updated</p>
+                <p className="text-sm text-gray-600">
                   All status updates via WhatsApp
                 </p>
               </div>
             </div>
           </div>
-          <div className="mt-4 p-3 bg-white/70 rounded-lg border border-celestial-200">
-            <p className="text-celestial-700 font-medium flex items-center space-x-2">
+          <div className="mt-4 p-3 bg-white rounded-lg border border-primary-200">
+            <p className="text-gray-700 font-medium flex items-center space-x-2">
               <span>📱</span>
               <span>Phone number automatically detected from WhatsApp!</span>
             </p>
@@ -547,14 +547,14 @@ export function MessageTemplateManagement({
                 <div
                   className={`p-2 rounded-lg ${
                     categoryKey === "whatsappConversation"
-                      ? "bg-celestial-100"
-                      : "bg-french-100"
+                      ? "bg-primary-100"
+                      : "bg-gray-100"
                   }`}
                 >
                   {categoryKey === "whatsappConversation" ? (
-                    <QrCode className="h-6 w-6 text-celestial-600" />
+                    <QrCode className="h-6 w-6 text-primary-600" />
                   ) : (
-                    <MessageSquare className="h-6 w-6 text-french-600" />
+                    <MessageSquare className="h-6 w-6 text-gray-600" />
                   )}
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900">
@@ -566,7 +566,7 @@ export function MessageTemplateManagement({
                   <button
                     onClick={resetToDefaults}
                     disabled={!canEditMessages}
-                    className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-celestial-500 flex items-center justify-center space-x-2 disabled:opacity-50 transition-colors duration-200"
+                    className="px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 flex items-center justify-center space-x-2 disabled:opacity-50 transition-colors duration-150"
                   >
                     <RotateCcw className="h-4 w-4" />
                     <span className="hidden sm:inline">Reset to Defaults</span>
@@ -575,7 +575,7 @@ export function MessageTemplateManagement({
                   <button
                     onClick={saveTemplates}
                     disabled={saving || !canEditMessages}
-                    className="px-3 sm:px-4 py-2 bg-gradient-primary border border-transparent rounded-lg text-sm font-medium text-white hover:shadow-glow-primary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-celestial-500 disabled:opacity-50 flex items-center justify-center space-x-2 transition-all duration-200 shadow-elegant"
+                    className="px-3 sm:px-4 py-2 bg-primary-500 border border-transparent rounded-lg text-sm font-medium text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 flex items-center justify-center space-x-2 transition-colors duration-150 shadow-sm"
                   >
                     <Save className="h-4 w-4" />
                     <span className="hidden sm:inline">
@@ -600,11 +600,11 @@ export function MessageTemplateManagement({
                       <button
                         key={templateKey}
                         onClick={() => setActiveTemplate(templateKey as any)}
-                        className={`py-3 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition-colors duration-200 ${
+                        className={`py-3 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap transition-colors duration-150 ${
                           activeTemplate === templateKey
                             ? categoryKey === "whatsappConversation"
-                              ? "border-celestial-500 text-celestial-600"
-                              : "border-french-500 text-french-600"
+                              ? "border-primary-500 text-primary-600"
+                              : "border-info-500 text-info-600"
                             : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                         }`}
                       >
@@ -621,11 +621,11 @@ export function MessageTemplateManagement({
               <>
                 {/* Special handling for QR Code Template */}
                 {activeTemplate === "qrCodeMessage" && (
-                  <div className="mb-6 p-4 bg-gradient-to-br from-celestial-50 to-celestial-100/50 border border-celestial-200 rounded-lg">
-                    <h3 className="text-lg font-medium text-celestial-900 mb-2">
+                  <div className="mb-6 p-4 bg-primary-50 border border-primary-200 rounded-lg">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
                       QR Code WhatsApp Message
                     </h3>
-                    <p className="text-sm text-celestial-700 mb-4">
+                    <p className="text-sm text-gray-700 mb-4">
                       This message appears when customers scan your QR code. It
                       opens WhatsApp with this pre-filled message.
                     </p>
@@ -638,7 +638,7 @@ export function MessageTemplateManagement({
                       }}
                       disabled={!canEditMessages}
                       rows={2}
-                      className={`w-full px-3 py-2 border border-celestial-300 rounded-lg shadow-sm focus:ring-2 focus:ring-celestial-500 focus:border-celestial-500 resize-none transition-all duration-200 ${
+                      className={`w-full px-3 py-2 border border-primary-300 rounded-lg shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none transition-all duration-150 ${
                         !canEditMessages
                           ? "bg-gray-50 cursor-not-allowed text-gray-700"
                           : "bg-white"
@@ -659,7 +659,7 @@ export function MessageTemplateManagement({
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                        <span className="w-2 h-2 bg-celestial-500 rounded-full"></span>
+                        <span className="w-2 h-2 bg-primary-500 rounded-full"></span>
                         <span className="text-sm sm:text-base">
                           Edit WhatsApp Message Template
                         </span>
@@ -680,7 +680,7 @@ export function MessageTemplateManagement({
                           }
                           disabled={!canEditMessages}
                           rows={10}
-                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-celestial-500 focus:border-celestial-500 font-mono text-xs sm:text-sm resize-none transition-all duration-200 shadow-sm ${
+                          className={`w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 font-mono text-xs sm:text-sm resize-none transition-all duration-150 shadow-sm ${
                             !canEditMessages
                               ? "bg-gray-50 cursor-not-allowed text-gray-700"
                               : "bg-white"
@@ -692,7 +692,7 @@ export function MessageTemplateManagement({
 
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
-                        <span className="w-2 h-2 bg-french-500 rounded-full"></span>
+                        <span className="w-2 h-2 bg-info-500 rounded-full"></span>
                         <span className="text-sm sm:text-base">
                           Live Preview
                         </span>
@@ -712,7 +712,7 @@ export function MessageTemplateManagement({
                               onClick={() =>
                                 copyToClipboard(generatePreview() as string)
                               }
-                              className="text-celestial-600 hover:text-celestial-800 p-1 rounded hover:bg-celestial-50 transition-colors duration-200"
+                              className="text-primary-600 hover:text-primary-800 p-1 rounded hover:bg-primary-50 transition-colors duration-150"
                               title="Copy preview to clipboard"
                             >
                               <Copy className="h-4 w-4" />
@@ -729,46 +729,46 @@ export function MessageTemplateManagement({
 
                 {/* Variables Section - Full Width Below Templates */}
                 {activeTemplate !== "qrCodeMessage" && (
-                  <div className="mt-6 p-3 sm:p-4 bg-gradient-to-r from-citrine-50 to-caramel-50 border border-citrine-200 rounded-lg shadow-sm">
-                    <h4 className="text-sm font-semibold text-citrine-800 mb-3 flex items-center space-x-2">
+                  <div className="mt-6 p-3 sm:p-4 bg-warning-50 border border-warning-200 rounded-lg shadow-sm">
+                    <h4 className="text-sm font-semibold text-warning-800 mb-3 flex items-center space-x-2">
                       <span>🏷️</span>
                       <span>Available Variables:</span>
                     </h4>
                     <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                      <code className="text-xs bg-warning-100 text-warning-800 px-2 py-1 rounded font-mono shadow-sm break-all">
                         {"{{organizationName}}"}
                       </code>
-                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                      <code className="text-xs bg-warning-100 text-warning-800 px-2 py-1 rounded font-mono shadow-sm break-all">
                         {"{{ticketNumber}}"}
                       </code>
-                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                      <code className="text-xs bg-warning-100 text-warning-800 px-2 py-1 rounded font-mono shadow-sm break-all">
                         {"{{serviceName}}"}
                       </code>
-                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                      <code className="text-xs bg-warning-100 text-warning-800 px-2 py-1 rounded font-mono shadow-sm break-all">
                         {"{{departmentName}}"}
                       </code>
-                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                      <code className="text-xs bg-warning-100 text-warning-800 px-2 py-1 rounded font-mono shadow-sm break-all">
                         {"{{branchName}}"}
                       </code>
-                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                      <code className="text-xs bg-warning-100 text-warning-800 px-2 py-1 rounded font-mono shadow-sm break-all">
                         {"{{estimatedWaitTime}}"}
                       </code>
-                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                      <code className="text-xs bg-warning-100 text-warning-800 px-2 py-1 rounded font-mono shadow-sm break-all">
                         {"{{queuePosition}}"}
                       </code>
-                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                      <code className="text-xs bg-warning-100 text-warning-800 px-2 py-1 rounded font-mono shadow-sm break-all">
                         {"{{totalInQueue}}"}
                       </code>
-                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                      <code className="text-xs bg-warning-100 text-warning-800 px-2 py-1 rounded font-mono shadow-sm break-all">
                         {"{{currentlyServing}}"}
                       </code>
-                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                      <code className="text-xs bg-warning-100 text-warning-800 px-2 py-1 rounded font-mono shadow-sm break-all">
                         {"{{branchList}}"}
                       </code>
-                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                      <code className="text-xs bg-warning-100 text-warning-800 px-2 py-1 rounded font-mono shadow-sm break-all">
                         {"{{departmentList}}"}
                       </code>
-                      <code className="text-xs bg-citrine-100 text-citrine-800 px-2 py-1 rounded font-mono shadow-sm break-all">
+                      <code className="text-xs bg-warning-100 text-warning-800 px-2 py-1 rounded font-mono shadow-sm break-all">
                         {"{{serviceList}}"}
                       </code>
                     </div>
@@ -781,25 +781,25 @@ export function MessageTemplateManagement({
       ))}
 
       {/* WhatsApp Flow Information */}
-      <div className="bg-gradient-to-br from-celestial-50 to-french-50 border border-celestial-200 rounded-xl p-6 shadow-elegant">
+      <div className="bg-info-50 border border-info-200 rounded-xl p-6 shadow-sm">
         <div className="flex items-center space-x-2 mb-4">
           <span className="text-2xl">📱</span>
-          <h3 className="text-xl font-bold text-celestial-900">
+          <h3 className="text-xl font-bold text-gray-900">
             WhatsApp Customer Journey Flow
           </h3>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-white/60 rounded-lg p-4 border border-celestial-100 shadow-sm">
-            <h4 className="font-bold text-celestial-800 mb-3 flex items-center space-x-2">
-              <span className="w-2 h-2 bg-celestial-500 rounded-full"></span>
+          <div className="bg-white rounded-lg p-4 border border-info-100 shadow-sm">
+            <h4 className="font-bold text-gray-800 mb-3 flex items-center space-x-2">
+              <span className="w-2 h-2 bg-primary-500 rounded-full"></span>
               <span>Conversation Flow Messages</span>
             </h4>
-            <ul className="space-y-2 text-sm text-celestial-700">
+            <ul className="space-y-2 text-sm text-gray-700">
               <li className="flex items-start space-x-2">
                 <strong className="min-w-0 font-semibold">
                   QR Code Message:
                 </strong>
-                <span className="text-celestial-600">
+                <span className="text-gray-600">
                   Pre-filled when scanning QR
                 </span>
               </li>
@@ -807,7 +807,7 @@ export function MessageTemplateManagement({
                 <strong className="min-w-0 font-semibold">
                   Welcome Message:
                 </strong>
-                <span className="text-celestial-600">
+                <span className="text-gray-600">
                   First response from system
                 </span>
               </li>
@@ -815,7 +815,7 @@ export function MessageTemplateManagement({
                 <strong className="min-w-0 font-semibold">
                   Branch Selection:
                 </strong>
-                <span className="text-celestial-600">
+                <span className="text-gray-600">
                   If multiple branches exist
                 </span>
               </li>
@@ -823,13 +823,13 @@ export function MessageTemplateManagement({
                 <strong className="min-w-0 font-semibold">
                   Department Selection:
                 </strong>
-                <span className="text-celestial-600">Choose department</span>
+                <span className="text-gray-600">Choose department</span>
               </li>
               <li className="flex items-start space-x-2">
                 <strong className="min-w-0 font-semibold">
                   Service Selection:
                 </strong>
-                <span className="text-celestial-600">
+                <span className="text-gray-600">
                   Pick specific service
                 </span>
               </li>
@@ -837,23 +837,23 @@ export function MessageTemplateManagement({
                 <strong className="min-w-0 font-semibold">
                   Ticket Confirmation:
                 </strong>
-                <span className="text-celestial-600">
+                <span className="text-gray-600">
                   Immediate ticket creation (phone auto-detected)
                 </span>
               </li>
             </ul>
           </div>
-          <div className="bg-white/60 rounded-lg p-4 border border-french-100 shadow-sm">
-            <h4 className="font-bold text-french-800 mb-3 flex items-center space-x-2">
-              <span className="w-2 h-2 bg-french-500 rounded-full"></span>
+          <div className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
+            <h4 className="font-bold text-gray-800 mb-3 flex items-center space-x-2">
+              <span className="w-2 h-2 bg-info-500 rounded-full"></span>
               <span>Status Update Messages</span>
             </h4>
-            <ul className="space-y-2 text-sm text-french-700">
+            <ul className="space-y-2 text-sm text-gray-700">
               <li className="flex items-start space-x-2">
                 <strong className="min-w-0 font-semibold">
                   Status Update:
                 </strong>
-                <span className="text-french-600">
+                <span className="text-gray-600">
                   When customer checks position
                 </span>
               </li>
@@ -861,23 +861,23 @@ export function MessageTemplateManagement({
                 <strong className="min-w-0 font-semibold">
                   Invalid Input:
                 </strong>
-                <span className="text-french-600">
+                <span className="text-gray-600">
                   When customer sends wrong format
                 </span>
               </li>
               <li className="flex items-start space-x-2">
                 <strong className="min-w-0 font-semibold">System Error:</strong>
-                <span className="text-french-600">
+                <span className="text-gray-600">
                   When technical issues occur
                 </span>
               </li>
               <li className="flex items-start space-x-2">
                 <strong className="min-w-0 font-semibold">You Are Next:</strong>
-                <span className="text-french-600">One before their turn</span>
+                <span className="text-gray-600">One before their turn</span>
               </li>
               <li className="flex items-start space-x-2">
                 <strong className="min-w-0 font-semibold">Your Turn:</strong>
-                <span className="text-french-600">Time to be served</span>
+                <span className="text-gray-600">Time to be served</span>
               </li>
             </ul>
           </div>

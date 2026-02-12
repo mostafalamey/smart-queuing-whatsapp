@@ -25,14 +25,14 @@ export const ToastDemo = () => {
         
         <button
           onClick={() => showWarning('Warning!', 'Please check your input before proceeding.')}
-          className="px-4 py-2 bg-citrine-500 text-white rounded-lg hover:bg-citrine-600 transition-colors text-sm font-medium"
+          className="px-4 py-2 bg-warning-500 text-white rounded-lg hover:bg-warning-600 transition-colors duration-150 text-sm font-medium"
         >
           Warning Toast
         </button>
         
         <button
           onClick={() => showInfo('Info', 'Here is some helpful information for you.')}
-          className="px-4 py-2 bg-celestial-500 text-white rounded-lg hover:bg-celestial-600 transition-colors text-sm font-medium"
+          className="px-4 py-2 bg-info-500 text-white rounded-lg hover:bg-info-600 transition-colors duration-150 text-sm font-medium"
         >
           Info Toast
         </button>
@@ -46,7 +46,7 @@ export const ToastDemo = () => {
               onClick: () => alert('Action clicked!')
             }
           )}
-          className="px-4 py-2 bg-french-500 text-white rounded-lg hover:bg-french-600 transition-colors text-sm font-medium"
+          className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors duration-150 text-sm font-medium"
         >
           With Action
         </button>

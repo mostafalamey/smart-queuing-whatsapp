@@ -448,52 +448,50 @@ Thank you for using our service!
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            {organization.logo_url && (
-              <img
-                src={organization.logo_url}
-                alt={organization.name}
-                className="w-12 h-12 object-contain"
-              />
+    <div className="kiosk-shell">
+      <header className="kiosk-topbar">
+        <div className="kiosk-brand">
+          {organization.logo_url && (
+            <img
+              src={organization.logo_url}
+              alt={organization.name}
+              className="kiosk-logo"
+            />
+          )}
+          <div>
+            <p className="kiosk-brand-kicker">Queue Management Kiosk</p>
+            <h1 className="kiosk-brand-title">{organization.name}</h1>
+          </div>
+        </div>
+
+        <div className="kiosk-status">
+          <div className="kiosk-pill">
+            {isConnected ? (
+              <Wifi className="w-4 h-4 text-emerald-600" />
+            ) : (
+              <WifiOff className="w-4 h-4 text-rose-500" />
             )}
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {organization.name}
-              </h1>
-              <p className="text-sm text-gray-500">Queue Management Kiosk</p>
-            </div>
+            <span>{isConnected ? "Online" : "Offline"}</span>
           </div>
-
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              {isConnected ? (
-                <Wifi className="w-5 h-5 text-green-500" />
-              ) : (
-                <WifiOff className="w-5 h-5 text-red-500" />
-              )}
-              {isPrinterReady ? (
-                <Printer className="w-5 h-5 text-green-500" />
-              ) : (
-                <Printer className="w-5 h-5 text-red-500" />
-              )}
-            </div>
-
-            <button
-              onClick={() => setCurrentView("settings")}
-              className="p-2 rounded-lg hover:bg-gray-100"
-            >
-              <Settings className="w-5 h-5 text-gray-600" />
-            </button>
+          <div className="kiosk-pill">
+            {isPrinterReady ? (
+              <Printer className="w-4 h-4 text-emerald-600" />
+            ) : (
+              <Printer className="w-4 h-4 text-rose-500" />
+            )}
+            <span>{isPrinterReady ? "Printer Ready" : "Printer Offline"}</span>
           </div>
+          <button
+            onClick={() => setCurrentView("settings")}
+            className="kiosk-icon-button"
+            aria-label="Open settings"
+          >
+            <Settings className="w-5 h-5 text-slate-600" />
+          </button>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="kiosk-main">
         {currentView === "branches" && (
           <BranchesView
             branches={branches}
@@ -571,81 +569,89 @@ const BranchesView: React.FC<BranchesViewProps> = ({
   lastTicket,
 }) => {
   return (
-    <div className="space-y-8">
-      <div className="text-center bg-white rounded-lg p-8 shadow-sm">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          Welcome to Our Queue System
-        </h2>
-        <p className="text-lg text-gray-600 mb-6">
-          Select a branch to get started
-        </p>
+    <div className="kiosk-view">
+      <div className="kiosk-stepbar">
+        <div>
+          <p className="kiosk-step-label">Step 1 of 3</p>
+          <h2 className="kiosk-title">Choose a branch</h2>
+          <p className="kiosk-subtitle">Tap a branch to continue.</p>
+        </div>
+        <div className="kiosk-step-hint">
+          <Users className="w-4 h-4 text-teal-700" />
+          <span>Touch-friendly selection</span>
+        </div>
+      </div>
 
-        <div className="grid md:grid-cols-1 gap-6">
+      <div className="kiosk-grid">
+        <section className="kiosk-panel kiosk-panel-accent">
+          <div className="kiosk-panel-title">Quick actions</div>
           <button
             onClick={onShowQR}
-            className="flex flex-col items-center p-6 bg-green-50 border-2 border-green-200 rounded-lg hover:bg-green-100 transition-colors"
+            className="kiosk-choice kiosk-choice-accent"
           >
-            <MessageSquare className="w-12 h-12 text-green-600 mb-3" />
-            <h3 className="text-xl font-semibold text-green-900 mb-2">
-              WhatsApp Queue
-            </h3>
-            <p className="text-green-700 text-center">
-              Scan QR code to join via WhatsApp and get real-time updates
-            </p>
-          </button>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h3 className="text-2xl font-bold text-gray-900 mb-6">
-          Choose a Branch
-        </h3>
-
-        <div className="grid gap-4">
-          {branches.map((branch) => (
-            <div
-              key={branch.id}
-              className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
-              onClick={() => onSelectBranch(branch)}
-            >
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900">
-                  {branch.name}
-                </h4>
-                {branch.address && (
-                  <p className="text-gray-600">{branch.address}</p>
-                )}
+            <div>
+              <div className="kiosk-choice-title">Join by WhatsApp</div>
+              <div className="kiosk-choice-meta">
+                Scan the QR code to receive updates on your phone.
               </div>
             </div>
-          ))}
-        </div>
-      </div>
+            <MessageSquare className="w-6 h-6 text-teal-700" />
+          </button>
 
-      {lastTicket && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-green-900 mb-2">
-            Last Printed Ticket
-          </h3>
-          <div className="grid md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <span className="font-medium">Ticket:</span>{" "}
-              {lastTicket.ticket_number}
+          {lastTicket && (
+            <div className="kiosk-ticket-card">
+              <div className="kiosk-panel-title">Last ticket</div>
+              <div className="kiosk-ticket-grid">
+                <div>
+                  <span className="kiosk-ticket-label">Ticket</span>
+                  <div className="kiosk-ticket-value">
+                    {lastTicket.ticket_number}
+                  </div>
+                </div>
+                <div>
+                  <span className="kiosk-ticket-label">Service</span>
+                  <div className="kiosk-ticket-value">
+                    {lastTicket.service_name}
+                  </div>
+                </div>
+                <div>
+                  <span className="kiosk-ticket-label">Position</span>
+                  <div className="kiosk-ticket-value">
+                    {lastTicket.position}
+                  </div>
+                </div>
+                <div>
+                  <span className="kiosk-ticket-label">Time</span>
+                  <div className="kiosk-ticket-value">
+                    {new Date(lastTicket.created_at).toLocaleTimeString()}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <span className="font-medium">Service:</span>{" "}
-              {lastTicket.service_name}
-            </div>
-            <div>
-              <span className="font-medium">Position:</span>{" "}
-              {lastTicket.position}
-            </div>
-            <div>
-              <span className="font-medium">Time:</span>{" "}
-              {new Date(lastTicket.created_at).toLocaleTimeString()}
-            </div>
+          )}
+        </section>
+
+        <section className="kiosk-panel">
+          <div className="kiosk-panel-title">Available branches</div>
+          <div className="kiosk-choice-grid">
+            {branches.map((branch) => (
+              <button
+                key={branch.id}
+                className="kiosk-choice"
+                onClick={() => onSelectBranch(branch)}
+              >
+                <div>
+                  <div className="kiosk-choice-title">{branch.name}</div>
+                  {branch.address && (
+                    <div className="kiosk-choice-meta">{branch.address}</div>
+                  )}
+                </div>
+                <span className="kiosk-choice-action">Select</span>
+              </button>
+            ))}
           </div>
-        </div>
-      )}
+        </section>
+      </div>
     </div>
   );
 };
@@ -665,39 +671,51 @@ const DepartmentsView: React.FC<DepartmentsViewProps> = ({
   onBack,
 }) => {
   return (
-    <div className="space-y-8">
-      <button
-        onClick={onBack}
-        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
-      >
-        <span>← Back to Branches</span>
-      </button>
-
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">{branch.name}</h3>
-        <p className="text-gray-600">Select a department</p>
+    <div className="kiosk-view">
+      <div className="kiosk-stepbar">
+        <button onClick={onBack} className="kiosk-back-button">
+          Back
+        </button>
+        <div>
+          <p className="kiosk-step-label">Step 2 of 3</p>
+          <h2 className="kiosk-title">{branch.name}</h2>
+          <p className="kiosk-subtitle">Select a department to continue.</p>
+        </div>
+        <div className="kiosk-step-hint">
+          <Users className="w-4 h-4 text-teal-700" />
+          <span>{departments.length} departments</span>
+        </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h3 className="text-2xl font-bold text-gray-900 mb-6">
-          Available Departments
-        </h3>
-
-        <div className="grid gap-4">
-          {departments.map((department) => (
-            <div
-              key={department.id}
-              className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
-              onClick={() => onSelectDepartment(department)}
-            >
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900">
-                  {department.name}
-                </h4>
-              </div>
+      <div className="kiosk-grid">
+        <section className="kiosk-panel">
+          <div className="kiosk-panel-title">Branch overview</div>
+          <div className="kiosk-info-card">
+            <div className="kiosk-info-title">{branch.name}</div>
+            <div className="kiosk-info-subtitle">
+              Choose a department below for the service you need.
             </div>
-          ))}
-        </div>
+          </div>
+          <div className="kiosk-helper">
+            Need assistance? Please ask the front desk.
+          </div>
+        </section>
+
+        <section className="kiosk-panel">
+          <div className="kiosk-panel-title">Available departments</div>
+          <div className="kiosk-choice-grid">
+            {departments.map((department) => (
+              <button
+                key={department.id}
+                className="kiosk-choice"
+                onClick={() => onSelectDepartment(department)}
+              >
+                <div className="kiosk-choice-title">{department.name}</div>
+                <span className="kiosk-choice-action">Select</span>
+              </button>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -717,56 +735,77 @@ const ServicesView: React.FC<ServicesViewProps> = ({
   onSelectService,
   onBack,
 }) => {
-  return (
-    <div className="space-y-8">
-      <button
-        onClick={onBack}
-        className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
-      >
-        <span>← Back to Departments</span>
-      </button>
+  const totalWaiting = services.reduce(
+    (sum, service) => sum + service.current_queue_length,
+    0,
+  );
 
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">
-          {department.name}
-        </h3>
-        <p className="text-gray-600">Select a service</p>
+  return (
+    <div className="kiosk-view">
+      <div className="kiosk-stepbar">
+        <button onClick={onBack} className="kiosk-back-button">
+          Back
+        </button>
+        <div>
+          <p className="kiosk-step-label">Step 3 of 3</p>
+          <h2 className="kiosk-title">{department.name}</h2>
+          <p className="kiosk-subtitle">Choose the service you need.</p>
+        </div>
+        <div className="kiosk-step-hint">
+          <Clock className="w-4 h-4 text-teal-700" />
+          <span>Live queue status</span>
+        </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h3 className="text-2xl font-bold text-gray-900 mb-6">
-          Available Services
-        </h3>
-
-        <div className="grid gap-4">
-          {services.map((service) => (
-            <div
-              key={service.id}
-              className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
-              onClick={() => onSelectService(service)}
-            >
-              <div>
-                <h4 className="text-lg font-semibold text-gray-900">
-                  {service.name}
-                </h4>
-                {service.description && (
-                  <p className="text-gray-600">{service.description}</p>
-                )}
-              </div>
-
-              <div className="text-right">
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  <Users className="w-4 h-4" />
-                  <span>{service.current_queue_length} in queue</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
-                  <Clock className="w-4 h-4" />
-                  <span>{service.estimated_wait_time}</span>
-                </div>
-              </div>
+      <div className="kiosk-grid">
+        <section className="kiosk-panel">
+          <div className="kiosk-panel-title">Queue insights</div>
+          <div className="kiosk-metrics">
+            <div>
+              <p className="kiosk-metric-label">Total waiting</p>
+              <p className="kiosk-metric-value">{totalWaiting}</p>
             </div>
-          ))}
-        </div>
+            <div>
+              <p className="kiosk-metric-label">Services available</p>
+              <p className="kiosk-metric-value">{services.length}</p>
+            </div>
+          </div>
+          <div className="kiosk-helper">
+            Select a service to print a ticket and receive updates.
+          </div>
+        </section>
+
+        <section className="kiosk-panel">
+          <div className="kiosk-panel-title">Available services</div>
+          <div className="kiosk-choice-grid">
+            {services.map((service) => (
+              <button
+                key={service.id}
+                className="kiosk-choice"
+                onClick={() => onSelectService(service)}
+              >
+                <div>
+                  <div className="kiosk-choice-title">{service.name}</div>
+                  {service.description && (
+                    <div className="kiosk-choice-meta">
+                      {service.description}
+                    </div>
+                  )}
+                </div>
+                <div className="kiosk-choice-stats">
+                  <span className="kiosk-chip">
+                    <Users className="w-4 h-4" />
+                    {service.current_queue_length} waiting
+                  </span>
+                  <span className="kiosk-chip kiosk-chip-ghost">
+                    <Clock className="w-4 h-4" />
+                    {service.estimated_wait_time}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -791,51 +830,37 @@ const PrintTicketModal: React.FC<PrintTicketModalProps> = ({
   onConfirm,
 }) => {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full">
-        <h3 className="text-xl font-bold mb-4">
-          Print Ticket for {service.name}
-        </h3>
+    <div className="kiosk-modal-backdrop">
+      <div className="kiosk-modal">
+        <div className="kiosk-modal-header">
+          <h3 className="kiosk-modal-title">Confirm your ticket</h3>
+          <p className="kiosk-modal-subtitle">Service: {service.name}</p>
+        </div>
 
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Phone Number (Required)
-            </label>
-            <input
-              type="tel"
-              value={customerPhone}
-              onChange={(e) => onChangePhone(e.target.value)}
-              placeholder="+1234567890"
-              className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                phoneError ? "border-red-500" : ""
-              }`}
-            />
-            {phoneError ? (
-              <p className="text-xs text-red-500 mt-1">{phoneError}</p>
-            ) : (
-              <p className="text-xs text-gray-500 mt-1">
-                Required for ticket updates
-              </p>
-            )}
-          </div>
+        <div className="kiosk-modal-body">
+          <label className="kiosk-label">Mobile number</label>
+          <input
+            type="tel"
+            value={customerPhone}
+            onChange={(e) => onChangePhone(e.target.value)}
+            placeholder="+1234567890"
+            className={`kiosk-input ${phoneError ? "kiosk-input-error" : ""}`}
+          />
+          {phoneError ? (
+            <p className="kiosk-error">{phoneError}</p>
+          ) : (
+            <p className="kiosk-hint">Used to send ticket updates.</p>
+          )}
+        </div>
 
-          <div className="flex space-x-3">
-            <button
-              onClick={onConfirm}
-              className="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 flex items-center justify-center space-x-2"
-            >
-              <Ticket className="w-5 h-5" />
-              <span>Print Ticket</span>
-            </button>
-
-            <button
-              onClick={onCancel}
-              className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-          </div>
+        <div className="kiosk-modal-actions">
+          <button onClick={onCancel} className="kiosk-secondary-button">
+            Cancel
+          </button>
+          <button onClick={onConfirm} className="kiosk-primary-button">
+            <Ticket className="w-5 h-5" />
+            Print ticket
+          </button>
         </div>
       </div>
     </div>
@@ -865,82 +890,55 @@ const QRView: React.FC<QRViewProps> = ({
   }, []);
 
   return (
-    <div className="max-w-2xl mx-auto text-center">
-      <button
-        onClick={onBack}
-        className="mb-6 flex items-center space-x-2 text-gray-600 hover:text-gray-900"
-      >
-        <span>← Back</span>
-      </button>
-
-      <div className="bg-white rounded-lg shadow-sm p-8">
-        <QrCode className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          Join Queue via WhatsApp
-        </h2>
-
-        <div className="mb-6">
-          {loading ? (
-            <div className="w-64 h-64 bg-gray-100 rounded-lg mx-auto flex items-center justify-center">
-              <RefreshCw className="w-8 h-8 animate-spin text-gray-400" />
-            </div>
-          ) : qrCode ? (
-            <img
-              src={qrCode}
-              alt="WhatsApp QR Code"
-              className="mx-auto rounded-lg shadow-sm"
-            />
-          ) : (
-            <div className="w-64 h-64 bg-red-50 rounded-lg mx-auto flex items-center justify-center">
-              <p className="text-red-500">Error generating QR code</p>
-            </div>
-          )}
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">How it works:</h3>
-          <div className="grid gap-4 text-left max-w-md mx-auto">
-            <div className="flex space-x-3">
-              <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                1
-              </div>
-              <p className="text-gray-700">
-                Scan the QR code with your phone camera
-              </p>
-            </div>
-            <div className="flex space-x-3">
-              <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                2
-              </div>
-              <p className="text-gray-700">
-                Send the WhatsApp message to start
-              </p>
-            </div>
-            <div className="flex space-x-3">
-              <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                3
-              </div>
-              <p className="text-gray-700">
-                Choose your service and get your ticket
-              </p>
-            </div>
-            <div className="flex space-x-3">
-              <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                4
-              </div>
-              <p className="text-gray-700">
-                Receive real-time updates on WhatsApp
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 p-4 bg-green-50 rounded-lg">
-          <p className="text-sm text-green-700">
-            <Phone className="w-4 h-4 inline mr-1" />
-            WhatsApp: {organization.whatsapp_business_number}
+    <div className="kiosk-view">
+      <div className="kiosk-stepbar">
+        <button onClick={onBack} className="kiosk-back-button">
+          Back
+        </button>
+        <div>
+          <p className="kiosk-step-label">Optional path</p>
+          <h2 className="kiosk-title">Join via WhatsApp</h2>
+          <p className="kiosk-subtitle">
+            Scan the code to receive updates on your phone.
           </p>
         </div>
+      </div>
+
+      <div className="kiosk-grid kiosk-qr-grid">
+        <section className="kiosk-panel">
+          <div className="kiosk-panel-title">How it works</div>
+          <ol className="kiosk-steps">
+            <li>Scan the QR code with your phone camera.</li>
+            <li>Send the WhatsApp message to start.</li>
+            <li>Choose your service and receive a ticket.</li>
+            <li>Get real-time updates from the clinic.</li>
+          </ol>
+          <div className="kiosk-info-card">
+            <Phone className="w-4 h-4 text-teal-700" />
+            <span>WhatsApp: {organization.whatsapp_business_number}</span>
+          </div>
+        </section>
+
+        <section className="kiosk-panel kiosk-qr-panel">
+          <div className="kiosk-panel-title">Scan to join</div>
+          <div className="kiosk-qr-frame">
+            {loading ? (
+              <div className="kiosk-qr-loading">
+                <RefreshCw className="w-8 h-8 animate-spin text-slate-400" />
+              </div>
+            ) : qrCode ? (
+              <img
+                src={qrCode}
+                alt="WhatsApp QR Code"
+                className="kiosk-qr-image"
+              />
+            ) : (
+              <div className="kiosk-qr-error">
+                <p>Unable to generate QR code.</p>
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -961,82 +959,75 @@ const SettingsView: React.FC<SettingsViewProps> = ({
   onCheckPrinter,
 }) => {
   return (
-    <div className="max-w-2xl mx-auto">
-      <button
-        onClick={onBack}
-        className="mb-6 flex items-center space-x-2 text-gray-600 hover:text-gray-900"
-      >
-        <span>← Back</span>
-      </button>
-
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          Kiosk Settings
-        </h2>
-
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">
-              Organization
-            </h3>
-            <div className="grid gap-2 text-sm">
-              <div>
-                <span className="font-medium">Name:</span> {organization.name}
-              </div>
-              <div>
-                <span className="font-medium">ID:</span> {organization.id}
-              </div>
-              <div>
-                <span className="font-medium">WhatsApp:</span>{" "}
-                {organization.whatsapp_business_number}
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">
-              Printer Status
-            </h3>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Printer
-                  className={`w-5 h-5 ${
-                    isPrinterReady ? "text-green-500" : "text-red-500"
-                  }`}
-                />
-                <span
-                  className={isPrinterReady ? "text-green-700" : "text-red-700"}
-                >
-                  {isPrinterReady ? "Ready" : "Not Connected"}
-                </span>
-              </div>
-              <button
-                onClick={onCheckPrinter}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Check Printer
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">
-              System Info
-            </h3>
-            <div className="grid gap-2 text-sm">
-              <div>
-                <span className="font-medium">Version:</span> 2.0.0
-              </div>
-              <div>
-                <span className="font-medium">Mode:</span> Kiosk
-              </div>
-              <div>
-                <span className="font-medium">Last Updated:</span>{" "}
-                {new Date().toLocaleString()}
-              </div>
-            </div>
-          </div>
+    <div className="kiosk-view">
+      <div className="kiosk-stepbar">
+        <button onClick={onBack} className="kiosk-back-button">
+          Back
+        </button>
+        <div>
+          <p className="kiosk-step-label">Administration</p>
+          <h2 className="kiosk-title">Kiosk settings</h2>
+          <p className="kiosk-subtitle">Device diagnostics and details.</p>
         </div>
+      </div>
+
+      <div className="kiosk-grid">
+        <section className="kiosk-panel">
+          <div className="kiosk-panel-title">Organization</div>
+          <div className="kiosk-info-list">
+            <div>
+              <span className="kiosk-info-label">Name</span>
+              <span className="kiosk-info-value">{organization.name}</span>
+            </div>
+            <div>
+              <span className="kiosk-info-label">ID</span>
+              <span className="kiosk-info-value">{organization.id}</span>
+            </div>
+            <div>
+              <span className="kiosk-info-label">WhatsApp</span>
+              <span className="kiosk-info-value">
+                {organization.whatsapp_business_number}
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <section className="kiosk-panel">
+          <div className="kiosk-panel-title">Printer status</div>
+          <div className="kiosk-status-row">
+            <div className="kiosk-status-pill">
+              <Printer
+                className={`w-5 h-5 ${
+                  isPrinterReady ? "text-emerald-600" : "text-rose-500"
+                }`}
+              />
+              <span>
+                {isPrinterReady ? "Ready to print" : "Not connected"}
+              </span>
+            </div>
+            <button onClick={onCheckPrinter} className="kiosk-primary-button">
+              Check printer
+            </button>
+          </div>
+
+          <div className="kiosk-panel-title">System info</div>
+          <div className="kiosk-info-list">
+            <div>
+              <span className="kiosk-info-label">Version</span>
+              <span className="kiosk-info-value">2.0.0</span>
+            </div>
+            <div>
+              <span className="kiosk-info-label">Mode</span>
+              <span className="kiosk-info-value">Kiosk</span>
+            </div>
+            <div>
+              <span className="kiosk-info-label">Last updated</span>
+              <span className="kiosk-info-value">
+                {new Date().toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );

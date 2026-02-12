@@ -38,19 +38,19 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
 
   const getToastStyles = () => {
     const baseStyles =
-      "relative overflow-hidden backdrop-blur-sm border shadow-2xl";
+      "relative overflow-hidden border shadow-lg";
 
     switch (toast.type) {
       case "success":
-        return `${baseStyles} bg-gradient-to-r from-emerald-50 to-emerald-100/80 border-emerald-200 text-emerald-900`;
+        return `${baseStyles} bg-success-50 border-success-200 text-success-900`;
       case "error":
-        return `${baseStyles} bg-gradient-to-r from-red-50 to-red-100/80 border-red-200 text-red-900`;
+        return `${baseStyles} bg-error-50 border-error-200 text-error-900`;
       case "warning":
-        return `${baseStyles} bg-gradient-to-r from-amber-50 to-amber-100/80 border-amber-200 text-amber-900`;
+        return `${baseStyles} bg-warning-50 border-warning-200 text-warning-900`;
       case "info":
-        return `${baseStyles} bg-gradient-to-r from-blue-50 to-blue-100/80 border-blue-200 text-blue-900`;
+        return `${baseStyles} bg-info-50 border-info-200 text-info-900`;
       default:
-        return `${baseStyles} bg-gradient-to-r from-gray-50 to-gray-100/80 border-gray-200 text-gray-900`;
+        return `${baseStyles} bg-gray-50 border-gray-200 text-gray-900`;
     }
   };
 
@@ -90,20 +90,14 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
     <div
       className={`
         ${getToastStyles()}
-        rounded-xl p-4 transition-all duration-300 ease-out transform
+        rounded-xl p-4 transition-all duration-200 ease-out transform
         ${
           isVisible && !isExiting
             ? "translate-y-0 opacity-100 scale-100"
             : "translate-y-full opacity-0 scale-95"
         }
-        hover:scale-105 hover:shadow-2xl
       `}
     >
-      {/* Animated Background Effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-white/5 rounded-xl"></div>
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
-      <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full translate-y-8 -translate-x-8"></div>
-
       <div className="relative flex items-start gap-3">
         {/* Icon */}
         <div className="mt-0.5">{getIcon()}</div>
