@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 import {
@@ -51,11 +51,35 @@ export const DeactivatedMembers: React.FC<DeactivatedMembersProps> = ({
 
   const canManageInactiveMembers = currentUserRole === "admin";
 
+  const fetchDeactivatedMembers = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      const { data, error } = await supabase
+        .from("members")
+        .select("*")
+        .eq("organization_id", organizationId)
+        .eq("is_active", false)
+        .order("updated_at", { ascending: false });
+
+      if (error) throw error;
+
+      setDeactivatedMembers(data || []);
+
+      logger.info("Deactivated members fetched:", { count: data?.length || 0 });
+    } catch (error) {
+      logger.error("Error fetching deactivated members:", error);
+      showError("Loading Failed", "Unable to load deactivated members.");
+    } finally {
+      setLoading(false);
+    }
+  }, [organizationId, showError]);
+
   useEffect(() => {
     if (canManageInactiveMembers) {
       fetchDeactivatedMembers();
     }
-  }, [organizationId, canManageInactiveMembers]);
+  }, [canManageInactiveMembers, fetchDeactivatedMembers]);
 
   // Realtime subscription for deactivated members
   useEffect(() => {
@@ -84,23 +108,23 @@ export const DeactivatedMembers: React.FC<DeactivatedMembersProps> = ({
             if (updatedMember.is_active) {
               // Member was reactivated, remove from deactivated list
               setDeactivatedMembers((prev) =>
-                prev.filter((member) => member.id !== updatedMember.id)
+                prev.filter((member) => member.id !== updatedMember.id),
               );
             } else {
               // Member info was updated while still deactivated
               setDeactivatedMembers((prev) =>
                 prev.map((member) =>
-                  member.id === updatedMember.id ? updatedMember : member
-                )
+                  member.id === updatedMember.id ? updatedMember : member,
+                ),
               );
             }
           } else if (payload.eventType === "DELETE") {
             // Member was permanently deleted
             setDeactivatedMembers((prev) =>
-              prev.filter((member) => member.id !== payload.old.id)
+              prev.filter((member) => member.id !== payload.old.id),
             );
           }
-        }
+        },
       )
       .subscribe();
 
@@ -110,33 +134,9 @@ export const DeactivatedMembers: React.FC<DeactivatedMembersProps> = ({
     };
   }, [canManageInactiveMembers, organizationId]);
 
-  const fetchDeactivatedMembers = async () => {
-    try {
-      setLoading(true);
-
-      const { data, error } = await supabase
-        .from("members")
-        .select("*")
-        .eq("organization_id", organizationId)
-        .eq("is_active", false)
-        .order("updated_at", { ascending: false });
-
-      if (error) throw error;
-
-      setDeactivatedMembers(data || []);
-
-      logger.info("Deactivated members fetched:", { count: data?.length || 0 });
-    } catch (error) {
-      logger.error("Error fetching deactivated members:", error);
-      showError("Loading Failed", "Unable to load deactivated members.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleReactivate = async (
     member: DeactivatedMember,
-    newRole: "admin" | "manager" | "employee"
+    newRole: "admin" | "manager" | "employee",
   ) => {
     setProcessing((prev) => ({ ...prev, [member.id]: true }));
 
@@ -157,7 +157,7 @@ export const DeactivatedMembers: React.FC<DeactivatedMembersProps> = ({
 
       showSuccess(
         "Member Reactivated!",
-        `${member.name || member.email} has been reactivated as ${newRole}.`
+        `${member.name || member.email} has been reactivated as ${newRole}.`,
       );
 
       // Refresh active members list
@@ -176,7 +176,7 @@ export const DeactivatedMembers: React.FC<DeactivatedMembersProps> = ({
         `Are you sure you want to permanently delete ${
           member.name || member.email
         }? ` +
-          `This action cannot be undone and will allow them to be re-invited with a fresh account.`
+          `This action cannot be undone and will allow them to be re-invited with a fresh account.`,
       )
     ) {
       return;
@@ -199,7 +199,7 @@ export const DeactivatedMembers: React.FC<DeactivatedMembersProps> = ({
         "Member Permanently Removed!",
         `${
           member.name || member.email
-        } has been permanently deleted and can now be re-invited.`
+        } has been permanently deleted and can now be re-invited.`,
       );
     } catch (error) {
       logger.error("Error permanently deleting member:", error);
@@ -213,7 +213,7 @@ export const DeactivatedMembers: React.FC<DeactivatedMembersProps> = ({
     if (!member.auth_user_id) {
       showError(
         "Cannot Disable",
-        "This member has no associated authentication account."
+        "This member has no associated authentication account.",
       );
       return;
     }
@@ -222,7 +222,7 @@ export const DeactivatedMembers: React.FC<DeactivatedMembersProps> = ({
       !confirm(
         `Are you sure you want to disable the authentication account for ${
           member.name || member.email
-        }? ` + `This will prevent them from signing into the app entirely.`
+        }? ` + `This will prevent them from signing into the app entirely.`,
       )
     ) {
       return;
@@ -230,7 +230,7 @@ export const DeactivatedMembers: React.FC<DeactivatedMembersProps> = ({
 
     showInfo(
       "Account Disable Requested",
-      "This feature requires Supabase admin privileges. Please contact support to disable the user account."
+      "This feature requires Supabase admin privileges. Please contact support to disable the user account.",
     );
 
     // Note: Disabling auth accounts requires admin privileges
@@ -356,8 +356,8 @@ export const DeactivatedMembers: React.FC<DeactivatedMembersProps> = ({
                           member.role === "admin"
                             ? "bg-red-100 text-red-800"
                             : member.role === "manager"
-                            ? "bg-blue-100 text-blue-800"
-                            : "bg-gray-100 text-gray-800"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-gray-100 text-gray-800"
                         }`}
                       >
                         {member.role}
@@ -366,12 +366,12 @@ export const DeactivatedMembers: React.FC<DeactivatedMembersProps> = ({
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         {new Date(
-                          member.deactivated_at || member.updated_at
+                          member.deactivated_at || member.updated_at,
                         ).toLocaleDateString()}
                       </div>
                       <div className="text-xs text-gray-500">
                         {new Date(
-                          member.deactivated_at || member.updated_at
+                          member.deactivated_at || member.updated_at,
                         ).toLocaleTimeString()}
                       </div>
                     </td>
@@ -393,7 +393,7 @@ export const DeactivatedMembers: React.FC<DeactivatedMembersProps> = ({
                                   e.target.value as
                                     | "admin"
                                     | "manager"
-                                    | "employee"
+                                    | "employee",
                                 );
                                 e.target.value = ""; // Reset select
                               }

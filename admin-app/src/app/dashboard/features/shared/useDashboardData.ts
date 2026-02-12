@@ -92,7 +92,7 @@ export const useDashboardData = () => {
             id,
             name
           )
-        `
+        `,
         )
         .eq("branch_id", selectedBranch);
 
@@ -103,17 +103,17 @@ export const useDashboardData = () => {
         if (assignedDepartmentIds && assignedDepartmentIds.length > 0) {
           // For users with specific department assignments, select the first assigned department
           const firstAssignedDept = data.find((dept) =>
-            assignedDepartmentIds.includes(dept.id)
+            assignedDepartmentIds.includes(dept.id),
           );
           if (firstAssignedDept) {
             logger.info(
               "Auto-selecting assigned department:",
-              firstAssignedDept.name
+              firstAssignedDept.name,
             );
             setSelectedDepartment(firstAssignedDept.id);
           } else {
             logger.error(
-              "None of assigned departments found in branch departments!"
+              "None of assigned departments found in branch departments!",
             );
           }
         } else {
@@ -140,7 +140,7 @@ export const useDashboardData = () => {
           {
             selectedDepartment,
             assignedDepartmentIds,
-          }
+          },
         );
         return;
       }
@@ -160,7 +160,7 @@ export const useDashboardData = () => {
               name
             )
           )
-        `
+        `,
         )
         .eq("department_id", selectedDepartment)
         .eq("is_active", true)
@@ -195,7 +195,7 @@ export const useDashboardData = () => {
             id,
             name
           )
-        `
+        `,
         )
         .eq("id", selectedDepartment)
         .single();
@@ -274,7 +274,7 @@ export const useDashboardData = () => {
       setLoading(false);
       isFetchingRef.current = false;
     }
-  }, [selectedDepartment, selectedService]);
+  }, [selectedDepartment, selectedService, queueData?.currentServing]);
 
   const handleRefresh = useCallback(() => {
     fetchQueueData();
@@ -285,7 +285,7 @@ export const useDashboardData = () => {
     // Show refresh toast
     showInfo(
       "Data Refreshed",
-      "Queue information has been updated with the latest data."
+      "Queue information has been updated with the latest data.",
     );
   }, [fetchQueueData, connectionError, fetchBranches, showInfo]);
 
@@ -314,7 +314,7 @@ export const useDashboardData = () => {
       !selectedBranch
     ) {
       const assignedBranch = branches.find(
-        (branch) => branch.id === assignedBranchId
+        (branch) => branch.id === assignedBranchId,
       );
       if (assignedBranch) {
         logger.info("Auto-selecting assigned branch:", assignedBranch.name);
@@ -338,18 +338,18 @@ export const useDashboardData = () => {
           {
             currentSelection: selectedDepartment,
             assignedDepartments: assignedDepartmentIds,
-          }
+          },
         );
 
         const firstAssignedDeptId = assignedDepartmentIds[0];
         const assignedDepartment = departments.find(
-          (dept) => dept.id === firstAssignedDeptId
+          (dept) => dept.id === firstAssignedDeptId,
         );
 
         if (assignedDepartment) {
           logger.info(
             "Correcting department selection to assigned department:",
-            assignedDepartment.name
+            assignedDepartment.name,
           );
           setSelectedDepartment(firstAssignedDeptId);
         }
@@ -437,7 +437,7 @@ export const useDashboardData = () => {
         departments.length > 0
       ) {
         const assignedDept = departments.find(
-          (dept) => dept.id === assignedDepartmentIds[0]
+          (dept) => dept.id === assignedDepartmentIds[0],
         );
         return assignedDept?.name;
       }

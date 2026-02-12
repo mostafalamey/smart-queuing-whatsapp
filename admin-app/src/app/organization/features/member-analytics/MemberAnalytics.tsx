@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 import {
@@ -65,13 +65,7 @@ export const MemberAnalytics: React.FC<MemberAnalyticsProps> = ({
 
   const canViewAnalytics = ["admin", "manager"].includes(currentUserRole);
 
-  useEffect(() => {
-    if (canViewAnalytics) {
-      fetchMemberAnalytics();
-    }
-  }, [organizationId, timeRange, canViewAnalytics]);
-
-  const fetchMemberAnalytics = async () => {
+  const fetchMemberAnalytics = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -82,7 +76,7 @@ export const MemberAnalytics: React.FC<MemberAnalyticsProps> = ({
           `
           *,
           branches:branch_id(id, name)
-        `
+        `,
         )
         .eq("organization_id", organizationId);
 
@@ -127,7 +121,7 @@ export const MemberAnalytics: React.FC<MemberAnalyticsProps> = ({
         members?.filter(
           (m) =>
             m.is_active &&
-            new Date(m.updated_at || m.created_at) >= thirtyDaysAgo
+            new Date(m.updated_at || m.created_at) >= thirtyDaysAgo,
         ).length || 0;
 
       // Acceptance rate
@@ -147,8 +141,8 @@ export const MemberAnalytics: React.FC<MemberAnalyticsProps> = ({
                 0,
                 Math.floor(
                   (updated.getTime() - created.getTime()) /
-                    (1000 * 60 * 60 * 24)
-                )
+                    (1000 * 60 * 60 * 24),
+                ),
               );
               return acc + diffDays;
             }, 0) / acceptedMembers.length
@@ -165,7 +159,7 @@ export const MemberAnalytics: React.FC<MemberAnalyticsProps> = ({
       const onboardingCompletionRate =
         activeMembers > 0
           ? Math.round(
-              ((onboardingCompleted + onboardingSkipped) / activeMembers) * 100
+              ((onboardingCompleted + onboardingSkipped) / activeMembers) * 100,
             )
           : 0;
 
@@ -201,7 +195,7 @@ export const MemberAnalytics: React.FC<MemberAnalyticsProps> = ({
                   m.is_active &&
                   m.department_ids &&
                   Array.isArray(m.department_ids) &&
-                  m.department_ids.includes(dept.id)
+                  m.department_ids.includes(dept.id),
               ).length || 0;
             return {
               department_id: dept.id,
@@ -267,7 +261,13 @@ export const MemberAnalytics: React.FC<MemberAnalyticsProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId]);
+
+  useEffect(() => {
+    if (canViewAnalytics) {
+      fetchMemberAnalytics();
+    }
+  }, [canViewAnalytics, fetchMemberAnalytics]);
 
   if (!canViewAnalytics) {
     return (
@@ -531,7 +531,7 @@ export const MemberAnalytics: React.FC<MemberAnalyticsProps> = ({
                   <span className="text-xs text-gray-500 ml-2">
                     (
                     {Math.round(
-                      (branch.member_count / analytics.active_members) * 100
+                      (branch.member_count / analytics.active_members) * 100,
                     )}
                     %)
                   </span>

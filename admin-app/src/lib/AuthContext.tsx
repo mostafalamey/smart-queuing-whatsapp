@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { supabase } from "./supabase";
@@ -13,7 +19,7 @@ import { useMemberStatusMonitor } from "../hooks/useMemberStatusMonitor";
 
 // Helper function to parse PostgreSQL array format to JavaScript array
 const parseDepartmentIds = (
-  departmentIdsString: string | string[] | null
+  departmentIdsString: string | string[] | null,
 ): string[] | null => {
   if (!departmentIdsString) return null;
 
@@ -53,7 +59,7 @@ interface AuthContextType {
   signUp: (
     email: string,
     password: string,
-    organizationData: any
+    organizationData: any,
   ) => Promise<{ error?: any }>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -70,75 +76,101 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [overlayStartTime] = useState(() => Date.now()); // Track when overlay started
   const [sessionRecovery] = useState(() => SessionRecovery.getInstance());
   const [isSigningOut, setIsSigningOut] = useState(false); // Prevent multiple simultaneous sign-outs
-  
+  const profileFetchInFlightRef = React.useRef(false);
+  const lastProfileFetchAtRef = React.useRef(0);
+
   // Edge browser fix: Track last user ID and visibility check time
   const lastUserIdRef = React.useRef<string | null>(null);
   const lastVisibilityCheckRef = React.useRef<number>(0);
   const VISIBILITY_CHECK_THROTTLE = 2000; // 2 seconds minimum between checks
 
   // Helper function to hide overlay with minimum display time
-  const hideAuthOverlay = (immediate = false) => {
-    if (immediate) {
-      setAuthOverlayVisible(false);
-      return;
-    }
-
-    const minDisplayTime = 1500; // Minimum 1.5 seconds display
-    const elapsed = Date.now() - overlayStartTime;
-    const remainingTime = Math.max(0, minDisplayTime - elapsed);
-
-    setTimeout(() => {
-      setAuthOverlayVisible(false);
-    }, remainingTime);
-  };
-
-  // Function to fetch user profile
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      // Increased timeout to 10s for production reliability
-      const profilePromise = supabase
-        .from("members")
-        .select(
-          `
-          *,
-          organization:organizations(*)
-        `
-        )
-        .eq("auth_user_id", userId)
-        .single();
-
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Profile fetch timeout")), 3000)
-      );
-
-      const { data, error } = (await Promise.race([
-        profilePromise,
-        timeoutPromise,
-      ])) as any;
-
-      if (error) {
-        logger.error("Profile fetch error:", error);
-        throw error;
+  const hideAuthOverlay = useCallback(
+    (immediate = false) => {
+      if (immediate) {
+        setAuthOverlayVisible(false);
+        return;
       }
 
-      // Parse department_ids from PostgreSQL array format to JavaScript array
-      const parsedProfile = {
-        ...data,
-        department_ids: parseDepartmentIds(data.department_ids),
-      };
+      const minDisplayTime = 1500; // Minimum 1.5 seconds display
+      const elapsed = Date.now() - overlayStartTime;
+      const remainingTime = Math.max(0, minDisplayTime - elapsed);
 
-      setUserProfile(parsedProfile);
-    } catch (error) {
-      logger.error("Failed to fetch user profile:", error);
-      // Set minimal profile fallback for functionality
-      setUserProfile({
-        id: userId,
-        email: user?.email || "Unknown",
-        role: "member",
-        organization: null,
-      } as any);
-    }
-  };
+      setTimeout(() => {
+        setAuthOverlayVisible(false);
+      }, remainingTime);
+    },
+    [overlayStartTime],
+  );
+
+  // Function to fetch user profile
+  const fetchUserProfile = useCallback(
+    async (userId: string) => {
+      const now = Date.now();
+      if (profileFetchInFlightRef.current) {
+        return;
+      }
+      if (now - lastProfileFetchAtRef.current < 2000) {
+        return;
+      }
+
+      profileFetchInFlightRef.current = true;
+      lastProfileFetchAtRef.current = now;
+
+      try {
+        // Increased timeout to 10s for production reliability
+        const profilePromise = supabase
+          .from("members")
+          .select(
+            `
+          *,
+          organization:organizations(*)
+        `,
+          )
+          .eq("auth_user_id", userId)
+          .single();
+
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Profile fetch timeout")), 10000),
+        );
+
+        const { data, error } = (await Promise.race([
+          profilePromise,
+          timeoutPromise,
+        ])) as any;
+
+        if (error) {
+          logger.error("Profile fetch error:", error);
+          throw error;
+        }
+
+        // Parse department_ids from PostgreSQL array format to JavaScript array
+        const parsedProfile = {
+          ...data,
+          department_ids: parseDepartmentIds(data.department_ids),
+        };
+
+        setUserProfile(parsedProfile);
+      } catch (error) {
+        logger.error("Failed to fetch user profile:", error);
+        // Preserve existing profile if we already have one
+        setUserProfile((prev) => {
+          if (prev?.id === userId) {
+            return prev;
+          }
+          return {
+            id: userId,
+            email: user?.email || "Unknown",
+            role: "member",
+            organization: null,
+          } as any;
+        });
+      } finally {
+        profileFetchInFlightRef.current = false;
+      }
+    },
+    [user?.email],
+  );
 
   // Function to refresh user profile data
   const refreshUser = async () => {
@@ -267,7 +299,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const keys = Object.keys(localStorage).filter(
           (key) =>
             key.startsWith("sb-") &&
-            (key.includes("auth-token") || key.includes("session"))
+            (key.includes("auth-token") || key.includes("session")),
         );
 
         return (
@@ -302,7 +334,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         // Edge browser fix: Ignore redundant TOKEN_REFRESHED events
-        if (event === "TOKEN_REFRESHED" && session?.user?.id === lastUserIdRef.current) {
+        if (
+          event === "TOKEN_REFRESHED" &&
+          session?.user?.id === lastUserIdRef.current
+        ) {
           // Token refresh for same user - no action needed
           return;
         }
@@ -346,13 +381,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Only handle when page becomes visible (user switches back to tab)
       if (!document.hidden && mounted) {
         const now = Date.now();
-        
+
         // Edge browser fix: Throttle visibility checks
         if (now - lastVisibilityCheckRef.current < VISIBILITY_CHECK_THROTTLE) {
           // Too soon since last check - skip
           return;
         }
-        
+
         lastVisibilityCheckRef.current = now;
 
         // Don't show overlay for visibility changes - only for actual auth issues
@@ -380,7 +415,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               // Try recovery first before clearing
               const { session: recoveredSession } =
                 await sessionRecovery.checkAndRecoverSession();
-              
+
               if (!recoveredSession) {
                 setUser(null);
                 setUserProfile(null);
@@ -414,7 +449,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const handleWindowFocus = async () => {
       if (mounted && !document.hidden) {
         const now = Date.now();
-        
+
         // Edge browser fix: Don't check too frequently on focus
         if (now - lastVisibilityCheckRef.current < VISIBILITY_CHECK_THROTTLE) {
           return;
@@ -485,7 +520,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener("focus", handleWindowFocus);
       window.removeEventListener("online", handleOnline);
     };
-  }, []);
+  }, [
+    authOverlayVisible,
+    fetchUserProfile,
+    hideAuthOverlay,
+    loading,
+    sessionRecovery,
+    user,
+  ]);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -516,7 +558,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (
     email: string,
     password: string,
-    organizationData: any
+    organizationData: any,
   ) => {
     // First create the auth user
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -566,7 +608,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error: new Error("User creation failed") };
   };
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     // Prevent multiple simultaneous sign-out attempts
     if (isSigningOut) {
       logger.info("Sign out already in progress, ignoring duplicate request");
@@ -623,7 +665,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsSigningOut(false);
     }
-  };
+  }, [isSigningOut, router]);
 
   // Set up member status monitoring to automatically log out users when deactivated/deleted
   useMemberStatusMonitor(user, userProfile, signOut);

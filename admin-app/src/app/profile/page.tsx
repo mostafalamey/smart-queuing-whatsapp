@@ -137,128 +137,123 @@ export default function ProfilePage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Edit Profile
-          </h1>
-          <p className="text-gray-600">
-            Update your personal information and avatar
-          </p>
-        </div>
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Profile</h1>
+        <p className="text-gray-600">
+          Update your personal information and avatar
+        </p>
+      </div>
 
-        {/* Profile Form */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Avatar Section */}
-            <div className="flex flex-col items-center mb-8">
-              <div className="relative mb-4">
-                {avatarPreview ? (
-                  <div className="relative">
-                    <img
-                      src={avatarPreview}
-                      alt="Avatar"
-                      className="w-32 h-32 rounded-full object-cover border-4 border-primary-200 shadow-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={removeAvatar}
-                      title="Remove avatar"
-                      className="absolute -top-2 -right-2 w-8 h-8 bg-error-500 hover:bg-error-600 text-white rounded-full flex items-center justify-center transition-colors duration-150"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="w-32 h-32 bg-primary-500 rounded-full flex items-center justify-center border-4 border-primary-200 shadow-lg">
-                    <User className="w-16 h-16 text-white" />
-                  </div>
-                )}
+      {/* Profile Form */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Avatar Section */}
+          <div className="flex flex-col items-center mb-8">
+            <div className="relative mb-4">
+              {avatarPreview ? (
+                <div className="relative">
+                  <img
+                    src={avatarPreview}
+                    alt="Avatar"
+                    className="w-32 h-32 rounded-full object-cover border-4 border-primary-200 shadow-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeAvatar}
+                    title="Remove avatar"
+                    className="absolute -top-2 -right-2 w-8 h-8 bg-error-500 hover:bg-error-600 text-white rounded-full flex items-center justify-center transition-colors duration-150"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-32 h-32 bg-primary-500 rounded-full flex items-center justify-center border-4 border-primary-200 shadow-lg">
+                  <User className="w-16 h-16 text-white" />
+                </div>
+              )}
 
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  title="Upload new avatar"
-                  className="absolute -bottom-2 -right-2 w-10 h-10 bg-yellowgreen-500 hover:bg-yellowgreen-600 text-white rounded-full flex items-center justify-center transition-colors duration-200 shadow-lg"
-                >
-                  <Camera className="w-5 h-5" />
-                </button>
-              </div>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-                aria-label="Upload avatar image"
-              />
-
-              <p className="text-sm text-gray-500 text-center">
-                Click the camera icon to upload a new avatar
-                <br />
-                <span className="text-xs">JPG, PNG or GIF. Max 5MB</span>
-              </p>
-            </div>
-
-            {/* Name Field */}
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Full Name *
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="input-field"
-                placeholder="Enter your full name"
-                required
-              />
-            </div>
-
-            {/* Current Role (Read-only) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Role
-              </label>
-              <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-600">
-                {userProfile?.role || "N/A"}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Role cannot be changed
-              </p>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-4 pt-6">
               <button
                 type="button"
-                onClick={() => window.history.back()}
-                className="flex-1 px-6 py-3 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium"
+                onClick={() => fileInputRef.current?.click()}
+                title="Upload new avatar"
+                className="absolute -bottom-2 -right-2 w-10 h-10 bg-yellowgreen-500 hover:bg-yellowgreen-600 text-white rounded-full flex items-center justify-center transition-colors duration-200 shadow-lg"
               >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="flex-1 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors duration-150 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Saving...
-                  </div>
-                ) : (
-                  "Save Changes"
-                )}
+                <Camera className="w-5 h-5" />
               </button>
             </div>
-          </form>
-        </div>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+              aria-label="Upload avatar image"
+            />
+
+            <p className="text-sm text-gray-500 text-center">
+              Click the camera icon to upload a new avatar
+              <br />
+              <span className="text-xs">JPG, PNG or GIF. Max 5MB</span>
+            </p>
+          </div>
+
+          {/* Name Field */}
+          <div>
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Full Name *
+            </label>
+            <input
+              type="text"
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="input-field"
+              placeholder="Enter your full name"
+              required
+            />
+          </div>
+
+          {/* Current Role (Read-only) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Role
+            </label>
+            <div className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-600">
+              {userProfile?.role || "N/A"}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Role cannot be changed</p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-4 pt-6">
+            <button
+              type="button"
+              onClick={() => window.history.back()}
+              className="flex-1 px-6 py-3 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 px-6 py-3 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors duration-150 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Saving...
+                </div>
+              ) : (
+                "Save Changes"
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

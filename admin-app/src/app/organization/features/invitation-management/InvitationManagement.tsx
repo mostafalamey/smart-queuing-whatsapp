@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 import {
@@ -74,13 +74,7 @@ export const InvitationManagement: React.FC<InvitationManagementProps> = ({
   // Only allow admins to access invitation management
   const canManageInvitations = currentUserRole === "admin";
 
-  useEffect(() => {
-    if (canManageInvitations) {
-      fetchInvitationData();
-    }
-  }, [organizationId, canManageInvitations]);
-
-  const fetchInvitationData = async () => {
+  const fetchInvitationData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -126,12 +120,18 @@ export const InvitationManagement: React.FC<InvitationManagementProps> = ({
       logger.error("Error fetching invitation data:", error);
       showError(
         "Data Loading Failed",
-        "Unable to load invitation data. Please try again."
+        "Unable to load invitation data. Please try again.",
       );
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, showError]);
+
+  useEffect(() => {
+    if (canManageInvitations) {
+      fetchInvitationData();
+    }
+  }, [canManageInvitations, fetchInvitationData]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -150,7 +150,7 @@ export const InvitationManagement: React.FC<InvitationManagementProps> = ({
         organizationId,
         organizationName,
         showSuccess,
-        showError
+        showError,
       );
 
       // Refresh data after successful resend
@@ -163,11 +163,11 @@ export const InvitationManagement: React.FC<InvitationManagementProps> = ({
   };
 
   const handleDeletePendingInvitation = async (
-    invitation: PendingInvitation
+    invitation: PendingInvitation,
   ) => {
     if (
       !confirm(
-        `Are you sure you want to delete the pending invitation for ${invitation.email}?`
+        `Are you sure you want to delete the pending invitation for ${invitation.email}?`,
       )
     ) {
       return;
@@ -185,12 +185,12 @@ export const InvitationManagement: React.FC<InvitationManagementProps> = ({
       if (error) throw error;
 
       setPendingInvitations((prev) =>
-        prev.filter((inv) => inv.id !== invitation.id)
+        prev.filter((inv) => inv.id !== invitation.id),
       );
 
       showSuccess(
         "Invitation Deleted",
-        `Pending invitation for ${invitation.email} has been removed.`
+        `Pending invitation for ${invitation.email} has been removed.`,
       );
 
       // Refresh stats
@@ -199,7 +199,7 @@ export const InvitationManagement: React.FC<InvitationManagementProps> = ({
       logger.error("Error deleting pending invitation:", error);
       showError(
         "Delete Failed",
-        "Unable to delete invitation. Please try again."
+        "Unable to delete invitation. Please try again.",
       );
     } finally {
       setDeletingInvitations((prev) => ({ ...prev, [invitation.id]: false }));
@@ -383,7 +383,7 @@ export const InvitationManagement: React.FC<InvitationManagementProps> = ({
               <tbody className="bg-white divide-y divide-gray-200">
                 {pendingInvitations.map((invitation) => {
                   const ageStatus = getInvitationAgeStatus(
-                    invitation.created_at
+                    invitation.created_at,
                   );
 
                   return (
@@ -404,8 +404,8 @@ export const InvitationManagement: React.FC<InvitationManagementProps> = ({
                             invitation.role === "admin"
                               ? "bg-red-100 text-red-800"
                               : invitation.role === "manager"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-gray-100 text-gray-800"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
                           }`}
                         >
                           {invitation.role}
@@ -425,16 +425,16 @@ export const InvitationManagement: React.FC<InvitationManagementProps> = ({
                             ageStatus === "recent"
                               ? "bg-green-100 text-green-800"
                               : ageStatus === "moderate"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-red-100 text-red-800"
                           }`}
                         >
                           <Clock className="w-3 h-3 mr-1" />
                           {ageStatus === "recent"
                             ? "Recent"
                             : ageStatus === "moderate"
-                            ? "Pending"
-                            : "Expired?"}
+                              ? "Pending"
+                              : "Expired?"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 
@@ -13,11 +13,7 @@ export const useOnboarding = (userProfile: any): UseOnboardingResult => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    checkOnboardingStatus();
-  }, [userProfile]);
-
-  const checkOnboardingStatus = async () => {
+  const checkOnboardingStatus = useCallback(async () => {
     if (!userProfile?.auth_user_id) {
       setLoading(false);
       return;
@@ -50,7 +46,7 @@ export const useOnboarding = (userProfile: any): UseOnboardingResult => {
       const hasSkippedOnboarding = data?.onboarding_skipped === true;
 
       setNeedsOnboarding(
-        isNewUser && !hasCompletedOnboarding && !hasSkippedOnboarding
+        isNewUser && !hasCompletedOnboarding && !hasSkippedOnboarding,
       );
 
       logger.info("Onboarding status checked:", {
@@ -65,7 +61,11 @@ export const useOnboarding = (userProfile: any): UseOnboardingResult => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userProfile?.auth_user_id]);
+
+  useEffect(() => {
+    checkOnboardingStatus();
+  }, [checkOnboardingStatus]);
 
   const markOnboardingComplete = async () => {
     if (!userProfile?.auth_user_id) return;

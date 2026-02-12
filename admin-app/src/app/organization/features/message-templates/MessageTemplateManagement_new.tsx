@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAppToast } from "@/hooks/useAppToast";
 import { supabase } from "@/lib/supabase";
 import {
@@ -34,7 +34,7 @@ export function MessageTemplateManagement({
 }: MessageTemplateManagementProps) {
   const { showSuccess, showError, showInfo } = useAppToast();
   const [templates, setTemplates] = useState<MessageTemplates>(
-    defaultMessageTemplates
+    defaultMessageTemplates,
   );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -106,25 +106,7 @@ export function MessageTemplateManagement({
       "1️⃣ Fresh Bread Counter (5 min)\n2️⃣ Custom Cake Orders (15 min)\n3️⃣ Pastry Selection (3 min)",
   };
 
-  useEffect(() => {
-    loadTemplates();
-  }, [organizationId]);
-
-  // Sync local QR code template with prop
-  useEffect(() => {
-    setLocalQrCodeTemplate(qrCodeTemplate);
-  }, [qrCodeTemplate]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (qrCodeTemplateTimeout) {
-        clearTimeout(qrCodeTemplateTimeout);
-      }
-    };
-  }, [qrCodeTemplateTimeout]);
-
-  const loadTemplates = async () => {
+  const loadTemplates = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -153,7 +135,25 @@ export function MessageTemplateManagement({
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, showError]);
+
+  useEffect(() => {
+    loadTemplates();
+  }, [loadTemplates]);
+
+  // Sync local QR code template with prop
+  useEffect(() => {
+    setLocalQrCodeTemplate(qrCodeTemplate);
+  }, [qrCodeTemplate]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (qrCodeTemplateTimeout) {
+        clearTimeout(qrCodeTemplateTimeout);
+      }
+    };
+  }, [qrCodeTemplateTimeout]);
 
   const saveTemplates = async () => {
     try {
@@ -169,7 +169,7 @@ export function MessageTemplateManagement({
         {
           onConflict: "organization_id",
           ignoreDuplicates: false,
-        }
+        },
       );
 
       if (error) throw error;
@@ -228,7 +228,7 @@ export function MessageTemplateManagement({
   const updateTemplate = (
     templateKey: string,
     field: string,
-    value: string
+    value: string,
   ) => {
     if (!canEditMessages) return;
 
@@ -382,7 +382,7 @@ export function MessageTemplateManagement({
                     >
                       {label}
                     </button>
-                  )
+                  ),
                 )}
               </nav>
             </div>
@@ -444,7 +444,7 @@ export function MessageTemplateManagement({
                           updateTemplate(
                             activeTemplate,
                             "whatsapp",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         disabled={!canEditMessages}

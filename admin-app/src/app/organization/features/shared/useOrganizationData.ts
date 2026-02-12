@@ -6,7 +6,7 @@ import { useAppToast } from "@/hooks/useAppToast";
 
 // Helper function to parse PostgreSQL array format to JavaScript array
 const parseDepartmentIds = (
-  departmentIdsString: string | string[] | null
+  departmentIdsString: string | string[] | null,
 ): string[] | null => {
   if (!departmentIdsString) return null;
 
@@ -134,7 +134,7 @@ export const useOrganizationData = () => {
         }
       }
     }
-  }, [userProfile?.organization_id]);
+  }, [userProfile?.organization_id, qrGenerating]);
 
   const fetchMembers = useCallback(async () => {
     if (!userProfile?.organization_id) return;
@@ -145,7 +145,7 @@ export const useOrganizationData = () => {
         `
         *,
         organizations(*)
-      `
+      `,
       )
       .eq("organization_id", userProfile.organization_id);
 
@@ -255,7 +255,7 @@ export const useOrganizationData = () => {
       {
         label: "Test URL",
         onClick: () => window.open(url, "_blank"),
-      }
+      },
     );
   };
 
@@ -263,7 +263,7 @@ export const useOrganizationData = () => {
     if (!qrCodeUrl) {
       showError(
         "Print Failed",
-        "QR code not available. Please generate it first."
+        "QR code not available. Please generate it first.",
       );
       return;
     }
@@ -272,7 +272,7 @@ export const useOrganizationData = () => {
     if (!printWindow) {
       showError(
         "Print Failed",
-        "Unable to open print window. Please check your browser settings."
+        "Unable to open print window. Please check your browser settings.",
       );
       return;
     }
@@ -367,7 +367,7 @@ export const useOrganizationData = () => {
 
     showSuccess(
       "Print Dialog Opened!",
-      "Organization QR code is ready for printing."
+      "Organization QR code is ready for printing.",
     );
   };
 
@@ -376,7 +376,7 @@ export const useOrganizationData = () => {
     if (!qrCode) {
       showError(
         "Download Failed",
-        "QR code not available. Please generate it first."
+        "QR code not available. Please generate it first.",
       );
       return;
     }
@@ -388,7 +388,7 @@ export const useOrganizationData = () => {
 
     showSuccess(
       "QR Code Downloaded!",
-      `${branchName} QR code has been saved to your device.`
+      `${branchName} QR code has been saved to your device.`,
     );
   };
 
@@ -409,7 +409,7 @@ export const useOrganizationData = () => {
         {
           label: "Try URL",
           onClick: () => window.open(url, "_blank"),
-        }
+        },
       );
     } catch (error) {
       showError("Copy Failed", "Unable to copy URL to clipboard.");
@@ -421,7 +421,7 @@ export const useOrganizationData = () => {
     if (!qrCode) {
       showError(
         "Print Failed",
-        "QR code not available. Please generate it first."
+        "QR code not available. Please generate it first.",
       );
       return;
     }
@@ -430,7 +430,7 @@ export const useOrganizationData = () => {
     if (!printWindow) {
       showError(
         "Print Failed",
-        "Unable to open print window. Please check your browser settings."
+        "Unable to open print window. Please check your browser settings.",
       );
       return;
     }
@@ -520,19 +520,19 @@ export const useOrganizationData = () => {
 
     showSuccess(
       "Print Dialog Opened!",
-      `${branchName} QR code is ready for printing.`
+      `${branchName} QR code is ready for printing.`,
     );
   };
 
   const downloadDepartmentQR = (
     departmentId: string,
-    departmentName: string
+    departmentName: string,
   ) => {
     const qrCode = departmentQrCodes[departmentId];
     if (!qrCode) {
       showError(
         "Download Failed",
-        "QR code not available. Please generate it first."
+        "QR code not available. Please generate it first.",
       );
       return;
     }
@@ -544,14 +544,14 @@ export const useOrganizationData = () => {
 
     showSuccess(
       "QR Code Downloaded!",
-      `${departmentName} QR code has been saved to your device.`
+      `${departmentName} QR code has been saved to your device.`,
     );
   };
 
   const copyDepartmentQRUrl = async (
     departmentId: string,
     departmentName?: string,
-    branchId?: string
+    branchId?: string,
   ) => {
     if (!userProfile?.organization_id) return;
 
@@ -569,7 +569,7 @@ export const useOrganizationData = () => {
         {
           label: "Try URL",
           onClick: () => window.open(url, "_blank"),
-        }
+        },
       );
     } catch (error) {
       showError("Copy Failed", "Unable to copy URL to clipboard.");
@@ -579,13 +579,13 @@ export const useOrganizationData = () => {
   const printDepartmentQR = (
     departmentId: string,
     departmentName: string,
-    branchId: string
+    branchId: string,
   ) => {
     const qrCode = departmentQrCodes[departmentId];
     if (!qrCode) {
       showError(
         "Print Failed",
-        "QR code not available. Please generate it first."
+        "QR code not available. Please generate it first.",
       );
       return;
     }
@@ -594,7 +594,7 @@ export const useOrganizationData = () => {
     if (!printWindow) {
       showError(
         "Print Failed",
-        "Unable to open print window. Please check your browser settings."
+        "Unable to open print window. Please check your browser settings.",
       );
       return;
     }
@@ -678,7 +678,7 @@ export const useOrganizationData = () => {
 
     showInfo(
       "Print Dialog Opened",
-      `${departmentName} department QR code is ready to print.`
+      `${departmentName} department QR code is ready to print.`,
     );
   };
 
@@ -694,7 +694,7 @@ export const useOrganizationData = () => {
           id,
           name
         )
-      `
+      `,
       )
       .order("name");
 
@@ -783,15 +783,15 @@ export const useOrganizationData = () => {
 
             setMembers((prev) =>
               prev.map((member) =>
-                member.id === updatedMember.id ? updatedMember : member
-              )
+                member.id === updatedMember.id ? updatedMember : member,
+              ),
             );
           } else if (payload.eventType === "DELETE") {
             setMembers((prev) =>
-              prev.filter((member) => member.id !== payload.old.id)
+              prev.filter((member) => member.id !== payload.old.id),
             );
           }
-        }
+        },
       )
       .subscribe();
 

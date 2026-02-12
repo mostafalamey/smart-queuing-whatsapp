@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Building2, CheckCircle, X, Loader2 } from "lucide-react";
@@ -19,11 +19,7 @@ function AcceptInvitationContent() {
     confirmPassword: "",
   });
 
-  useEffect(() => {
-    handleInvitationAcceptance();
-  }, []);
-
-  const handleInvitationAcceptance = async () => {
+  const handleInvitationAcceptance = useCallback(async () => {
     setLoading(true);
 
     try {
@@ -45,7 +41,7 @@ function AcceptInvitationContent() {
 
       if (typeof window !== "undefined") {
         const hashParams = new URLSearchParams(
-          window.location.hash.substring(1)
+          window.location.hash.substring(1),
         );
 
         if (!access_token) {
@@ -78,11 +74,11 @@ function AcceptInvitationContent() {
 
         if (authErrorCode === "otp_expired") {
           setError(
-            "This invitation link has expired. Please request a new invitation from your administrator."
+            "This invitation link has expired. Please request a new invitation from your administrator.",
           );
         } else {
           setError(
-            `Authentication error: ${authErrorDescription || authError}`
+            `Authentication error: ${authErrorDescription || authError}`,
           );
         }
 
@@ -105,7 +101,7 @@ function AcceptInvitationContent() {
           if (error) {
             console.error("Error setting session:", error);
             setError(
-              "Authentication failed. Please try the invitation link again."
+              "Authentication failed. Please try the invitation link again.",
             );
             setLoading(false);
             return;
@@ -122,7 +118,7 @@ function AcceptInvitationContent() {
 
         if (!userEmail) {
           setError(
-            "Could not determine user email. Please try the invitation link again."
+            "Could not determine user email. Please try the invitation link again.",
           );
           setLoading(false);
           return;
@@ -148,7 +144,11 @@ function AcceptInvitationContent() {
       setError("Failed to process invitation");
       setLoading(false);
     }
-  };
+  }, [searchParams]);
+
+  useEffect(() => {
+    handleInvitationAcceptance();
+  }, [handleInvitationAcceptance]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,7 +184,7 @@ function AcceptInvitationContent() {
 
       if (!session?.user) {
         setError(
-          "Authentication session not found. Please try the invitation link again."
+          "Authentication session not found. Please try the invitation link again.",
         );
         setLoading(false);
         return;

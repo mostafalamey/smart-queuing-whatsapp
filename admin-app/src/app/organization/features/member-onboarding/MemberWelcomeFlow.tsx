@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 import {
@@ -41,11 +41,7 @@ export const MemberWelcomeFlow: React.FC<WelcomeFlowProps> = ({
   const [steps, setSteps] = useState<OnboardingStep[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    initializeOnboardingSteps();
-  }, [userProfile, organization]);
-
-  const initializeOnboardingSteps = async () => {
+  const initializeOnboardingSteps = useCallback(async () => {
     if (!userProfile || !organization) return;
 
     const baseSteps: OnboardingStep[] = [
@@ -123,7 +119,11 @@ export const MemberWelcomeFlow: React.FC<WelcomeFlowProps> = ({
 
     setSteps(baseSteps);
     setLoading(false);
-  };
+  }, [organization, userProfile]);
+
+  useEffect(() => {
+    initializeOnboardingSteps();
+  }, [initializeOnboardingSteps]);
 
   const getRoleDescription = (role: string) => {
     switch (role) {
@@ -142,7 +142,7 @@ export const MemberWelcomeFlow: React.FC<WelcomeFlowProps> = ({
     if (currentStep < steps.length - 1) {
       // Mark current step as completed
       const updatedSteps = steps.map((step, index) =>
-        index === currentStep ? { ...step, completed: true } : step
+        index === currentStep ? { ...step, completed: true } : step,
       );
       setSteps(updatedSteps);
       setCurrentStep(currentStep + 1);
@@ -251,8 +251,8 @@ export const MemberWelcomeFlow: React.FC<WelcomeFlowProps> = ({
                     index < currentStep
                       ? "bg-green-600"
                       : index === currentStep
-                      ? "bg-blue-600"
-                      : "bg-gray-300"
+                        ? "bg-blue-600"
+                        : "bg-gray-300"
                   }`}
                 />
                 {index < steps.length - 1 && (
@@ -393,8 +393,8 @@ export const MemberWelcomeFlow: React.FC<WelcomeFlowProps> = ({
                   index <= currentStep
                     ? "bg-blue-600"
                     : index === currentStep
-                    ? "bg-blue-300"
-                    : "bg-gray-300"
+                      ? "bg-blue-300"
+                      : "bg-gray-300"
                 }`}
               />
             ))}

@@ -15,16 +15,25 @@ interface UserProfile {
 export const useMemberStatusMonitor = (
   user: User | null,
   userProfile: UserProfile | null,
-  signOut: () => Promise<void>
+  signOut: () => Promise<void>,
 ) => {
   const subscriptionRef = useRef<any>(null);
   const hasShownLogoutMessage = useRef(false);
+  const activeUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
+    const userId = user?.id;
+
     // Only set up monitoring if user is logged in and we have profile data
-    if (!user || !userProfile?.id) {
+    if (!userId || !userProfile?.id) {
       return;
     }
+
+    if (activeUserIdRef.current === userId && subscriptionRef.current) {
+      return;
+    }
+
+    activeUserIdRef.current = userId;
 
     const setupMemberStatusMonitoring = () => {
       try {
@@ -33,18 +42,18 @@ export const useMemberStatusMonitor = (
           supabase.removeChannel(subscriptionRef.current);
         }
 
-        logger.info("Setting up member status monitoring for user:", user.id);
+        logger.info("Setting up member status monitoring for user:", userId);
 
         // Subscribe to changes on the members table for this specific user
         subscriptionRef.current = supabase
-          .channel(`member-status-${user.id}`)
+          .channel(`member-status-${userId}`)
           .on(
             "postgres_changes",
             {
               event: "*",
               schema: "public",
               table: "members",
-              filter: `auth_user_id=eq.${user.id}`,
+              filter: `auth_user_id=eq.${userId}`,
             },
             async (payload) => {
               logger.info("Member status change detected:", payload);
@@ -59,7 +68,7 @@ export const useMemberStatusMonitor = (
 
                   // Show notification and sign out after delay to ensure message is seen
                   showLogoutNotification(
-                    "Your account has been removed from the organization. You will be logged out."
+                    "Your account has been removed from the organization. You will be logged out.",
                   );
                 }
                 return;
@@ -77,7 +86,7 @@ export const useMemberStatusMonitor = (
 
                     // Show notification and sign out
                     showLogoutNotification(
-                      "Your account has been deactivated by an administrator. You will be logged out."
+                      "Your account has been deactivated by an administrator. You will be logged out.",
                     );
                   }
                   return;
@@ -86,7 +95,7 @@ export const useMemberStatusMonitor = (
                 // Check if organization_id was removed (old deletion method)
                 if (updatedMember.organization_id === null) {
                   logger.warn(
-                    "Member removed from organization - logging out user"
+                    "Member removed from organization - logging out user",
                   );
 
                   if (!hasShownLogoutMessage.current) {
@@ -94,13 +103,13 @@ export const useMemberStatusMonitor = (
 
                     // Show notification and sign out
                     showLogoutNotification(
-                      "You have been removed from the organization. You will be logged out."
+                      "You have been removed from the organization. You will be logged out.",
                     );
                   }
                   return;
                 }
               }
-            }
+            },
           )
           .subscribe((status) => {
             if (status === "SUBSCRIBED") {
@@ -110,7 +119,7 @@ export const useMemberStatusMonitor = (
 
               // Retry after 5 seconds
               setTimeout(() => {
-                if (user && userProfile?.id) {
+                if (userId && userProfile?.id) {
                   setupMemberStatusMonitoring();
                 }
               }, 5000);
@@ -154,7 +163,7 @@ export const useMemberStatusMonitor = (
 
     // Handle page visibility changes to reconnect if needed
     const handleVisibilityChange = () => {
-      if (!document.hidden && user && userProfile?.id) {
+      if (!document.hidden && userId && userProfile?.id) {
         // Page became visible, ensure subscription is active
         if (!subscriptionRef.current) {
           setupMemberStatusMonitoring();
@@ -164,7 +173,7 @@ export const useMemberStatusMonitor = (
 
     // Handle online/offline events
     const handleOnline = () => {
-      if (user && userProfile?.id && !subscriptionRef.current) {
+      if (userId && userProfile?.id && !subscriptionRef.current) {
         setupMemberStatusMonitoring();
       }
     };
@@ -182,6 +191,8 @@ export const useMemberStatusMonitor = (
         supabase.removeChannel(subscriptionRef.current);
         subscriptionRef.current = null;
       }
+
+      activeUserIdRef.current = null;
 
       // Reset the logout message flag
       hasShownLogoutMessage.current = false;

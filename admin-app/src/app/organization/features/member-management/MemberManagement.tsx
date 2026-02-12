@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Users,
   UserCheck,
@@ -55,7 +55,7 @@ interface MemberManagementProps {
   onUpdateMemberBranch: (memberId: string, branchId: string | null) => void;
   onUpdateMemberDepartments: (
     memberId: string,
-    departmentIds: string[] | null
+    departmentIds: string[] | null,
   ) => void;
   onDeactivateMember: (memberId: string) => void;
   onPermanentDeleteMember: (memberId: string) => void;
@@ -86,7 +86,7 @@ interface MemberManagementProps {
   showWarning?: (
     title: string,
     message?: string,
-    action?: { label: string; onClick: () => void }
+    action?: { label: string; onClick: () => void },
   ) => void;
   // Invitation management props
   organizationId: string;
@@ -171,7 +171,7 @@ export const MemberManagement = ({
   const canManageInvitations = currentUserRole === "admin";
 
   // Fetch deactivated members
-  const fetchDeactivatedMembers = async () => {
+  const fetchDeactivatedMembers = useCallback(async () => {
     if (!currentUserRole) return;
 
     try {
@@ -188,7 +188,7 @@ export const MemberManagement = ({
           updated_at,
           avatar_url,
           is_active
-        `
+        `,
         )
         .eq("is_active", false)
         .order("updated_at", { ascending: false });
@@ -200,14 +200,14 @@ export const MemberManagement = ({
     } finally {
       setLoadingDeactivated(false);
     }
-  };
+  }, [currentUserRole]);
 
   // Load deactivated members when component mounts or when showDeactivatedSection changes
   useEffect(() => {
     if (showDeactivatedSection) {
       fetchDeactivatedMembers();
     }
-  }, [showDeactivatedSection, currentUserRole]);
+  }, [showDeactivatedSection, fetchDeactivatedMembers]);
 
   // Realtime subscription for deactivated members
   useEffect(() => {
@@ -236,23 +236,23 @@ export const MemberManagement = ({
             if (updatedMember.is_active) {
               // Member was reactivated, remove from deactivated list
               setDeactivatedMembers((prev) =>
-                prev.filter((member) => member.id !== updatedMember.id)
+                prev.filter((member) => member.id !== updatedMember.id),
               );
             } else {
               // Member info was updated while still deactivated
               setDeactivatedMembers((prev) =>
                 prev.map((member) =>
-                  member.id === updatedMember.id ? updatedMember : member
-                )
+                  member.id === updatedMember.id ? updatedMember : member,
+                ),
               );
             }
           } else if (payload.eventType === "DELETE") {
             // Member was permanently deleted
             setDeactivatedMembers((prev) =>
-              prev.filter((member) => member.id !== payload.old.id)
+              prev.filter((member) => member.id !== payload.old.id),
             );
           }
-        }
+        },
       )
       .subscribe();
 
@@ -287,7 +287,7 @@ export const MemberManagement = ({
             // Refresh deactivated members list
             fetchDeactivatedMembers();
           },
-        }
+        },
       );
     } else {
       // Fallback to browser confirm if toast is not available
@@ -296,7 +296,7 @@ export const MemberManagement = ({
           `Are you sure you want to permanently delete ${
             member.name || member.email
           }? ` +
-            `This action cannot be undone, but will allow them to be re-invited.`
+            `This action cannot be undone, but will allow them to be re-invited.`,
         )
       ) {
         await onPermanentDeleteMember(memberId);
@@ -307,7 +307,7 @@ export const MemberManagement = ({
   };
 
   // Invitation management functions
-  const fetchInvitationData = async () => {
+  const fetchInvitationData = useCallback(async () => {
     try {
       setLoadingInvitations(true);
 
@@ -348,7 +348,7 @@ export const MemberManagement = ({
     } finally {
       setLoadingInvitations(false);
     }
-  };
+  }, [organizationId, showError]);
 
   const refreshInvitationData = async () => {
     setRefreshingInvitations(true);
@@ -358,13 +358,13 @@ export const MemberManagement = ({
 
   const handleResendInvitation = async (
     invitationId: string,
-    email: string
+    email: string,
   ) => {
     setResendingInvitations((prev) => ({ ...prev, [invitationId]: true }));
 
     try {
       const invitation = pendingInvitations.find(
-        (inv) => inv.id === invitationId
+        (inv) => inv.id === invitationId,
       );
       if (!invitation) throw new Error("Invitation not found");
 
@@ -374,7 +374,7 @@ export const MemberManagement = ({
         organizationId,
         organizationName,
         showSuccess,
-        showError
+        showError,
       );
     } catch (error) {
       console.error("Error resending invitation:", error);
@@ -386,13 +386,13 @@ export const MemberManagement = ({
 
   const handleDeleteInvitation = async (invitationId: string) => {
     const invitation = pendingInvitations.find(
-      (inv) => inv.id === invitationId
+      (inv) => inv.id === invitationId,
     );
     if (!invitation) return;
 
     if (
       confirm(
-        `Are you sure you want to delete the invitation for ${invitation.email}?`
+        `Are you sure you want to delete the invitation for ${invitation.email}?`,
       )
     ) {
       setDeletingInvitations((prev) => ({ ...prev, [invitationId]: true }));
@@ -406,7 +406,7 @@ export const MemberManagement = ({
         if (error) throw error;
 
         setPendingInvitations((prev) =>
-          prev.filter((inv) => inv.id !== invitationId)
+          prev.filter((inv) => inv.id !== invitationId),
         );
         showSuccess("Invitation Deleted", "Invitation has been deleted");
 
@@ -426,7 +426,7 @@ export const MemberManagement = ({
     if (showInvitationsSection && canManageInvitations) {
       fetchInvitationData();
     }
-  }, [showInvitationsSection, canManageInvitations, organizationId]);
+  }, [showInvitationsSection, canManageInvitations, fetchInvitationData]);
 
   // Get member avatar URL from Supabase storage or fallback to initials
   const getAvatarDisplay = (member: Member) => {
@@ -448,8 +448,8 @@ export const MemberManagement = ({
         member.role === "admin"
           ? "from-purple-500 to-indigo-600"
           : member.role === "manager"
-          ? "from-blue-500 to-cyan-600"
-          : "from-green-500 to-teal-600",
+            ? "from-blue-500 to-cyan-600"
+            : "from-green-500 to-teal-600",
     };
   };
   // Helper functions to determine permissions
@@ -519,7 +519,7 @@ export const MemberManagement = ({
       return departments.filter(
         (dept) =>
           dept.branch_id === member.branch_id &&
-          userAssignedDepartmentIds?.includes(dept.id)
+          userAssignedDepartmentIds?.includes(dept.id),
       );
     }
     return [];
@@ -725,7 +725,7 @@ export const MemberManagement = ({
                           onChange={(e) =>
                             onUpdateMemberBranch(
                               member.id,
-                              e.target.value || null
+                              e.target.value || null,
                             )
                           }
                           className="input-field text-sm"
@@ -754,7 +754,7 @@ export const MemberManagement = ({
                           onChange={(e) =>
                             onUpdateMemberDepartments(
                               member.id,
-                              e.target.value ? [e.target.value] : null
+                              e.target.value ? [e.target.value] : null,
                             )
                           }
                           className="input-field text-sm"
@@ -774,7 +774,7 @@ export const MemberManagement = ({
                           {member.department_ids &&
                           member.department_ids.length > 0
                             ? departments.find(
-                                (d) => d.id === member.department_ids?.[0]
+                                (d) => d.id === member.department_ids?.[0],
                               )?.name || "Unknown"
                             : "No Department"}
                         </span>
@@ -809,8 +809,8 @@ export const MemberManagement = ({
                             {member.id === currentUserId
                               ? "You"
                               : member.role === "admin"
-                              ? "Protected"
-                              : "View Only"}
+                                ? "Protected"
+                                : "View Only"}
                           </span>
                         )}
                       </div>
@@ -970,8 +970,8 @@ export const MemberManagement = ({
                               invitation.role === "admin"
                                 ? "bg-red-100 text-red-800"
                                 : invitation.role === "manager"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-green-100 text-green-800"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-green-100 text-green-800"
                             }`}
                           >
                             {invitation.role}
@@ -980,7 +980,7 @@ export const MemberManagement = ({
                         <td className="py-3 px-4">
                           <span className="text-sm text-gray-500">
                             {new Date(
-                              invitation.created_at
+                              invitation.created_at,
                             ).toLocaleDateString()}
                           </span>
                         </td>
@@ -996,7 +996,7 @@ export const MemberManagement = ({
                               onClick={() =>
                                 handleResendInvitation(
                                   invitation.id,
-                                  invitation.email
+                                  invitation.email,
                                 )
                               }
                               disabled={resendingInvitations[invitation.id]}
@@ -1117,8 +1117,8 @@ export const MemberManagement = ({
                               member.role === "admin"
                                 ? "bg-red-100 text-red-800"
                                 : member.role === "manager"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-green-100 text-green-800"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-green-100 text-green-800"
                             }`}
                           >
                             {member.role}
@@ -1235,7 +1235,7 @@ export const MemberManagement = ({
                           <input
                             type="checkbox"
                             checked={inviteDepartmentIds.includes(
-                              department.id
+                              department.id,
                             )}
                             onChange={(e) => {
                               if (e.target.checked) {
@@ -1246,8 +1246,8 @@ export const MemberManagement = ({
                               } else {
                                 setInviteDepartmentIds(
                                   inviteDepartmentIds.filter(
-                                    (id) => id !== department.id
-                                  )
+                                    (id) => id !== department.id,
+                                  ),
                                 );
                               }
                             }}

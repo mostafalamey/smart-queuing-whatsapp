@@ -1,7 +1,7 @@
 // Notification Logs Cleanup Manager Component
 // Integrates with existing TicketCleanupManager for comprehensive database management
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAppToast } from "@/hooks/useAppToast";
 
@@ -47,17 +47,13 @@ export default function NotificationCleanupManager({
   });
   const { showSuccess, showError } = useAppToast();
 
-  useEffect(() => {
-    fetchNotificationStats();
-  }, [organizationId]);
-
-  const fetchNotificationStats = async () => {
+  const fetchNotificationStats = useCallback(async () => {
     try {
       setLoading(true);
 
       // Get cleanup recommendations
       const { data: recommendations, error } = await supabase.rpc(
-        "get_organization_cleanup_recommendations"
+        "get_organization_cleanup_recommendations",
       );
 
       if (error) throw error;
@@ -65,7 +61,7 @@ export default function NotificationCleanupManager({
       // Filter by organization if specified
       const filteredData = organizationId
         ? recommendations.filter(
-            (r: any) => r.organization_id === organizationId
+            (r: any) => r.organization_id === organizationId,
           )
         : recommendations;
 
@@ -82,7 +78,7 @@ export default function NotificationCleanupManager({
           estimatedSavingsKb: item.estimated_savings_kb,
           oldestLog: "",
           newestLog: "",
-        }))
+        })),
       );
     } catch (error) {
       console.error("Error fetching notification stats:", error);
@@ -90,7 +86,11 @@ export default function NotificationCleanupManager({
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, showError]);
+
+  useEffect(() => {
+    fetchNotificationStats();
+  }, [fetchNotificationStats]);
 
   const performCleanup = async (orgIds?: string[], emergency = false) => {
     try {
@@ -102,14 +102,14 @@ export default function NotificationCleanupManager({
           "emergency_cleanup_all_notifications",
           {
             confirm_deletion: !cleanupSettings.dryRun,
-          }
+          },
         );
 
         if (error) throw error;
 
         const result = data[0];
         showSuccess(
-          `Emergency cleanup: ${result.total_deleted} notifications deleted from ${result.organizations_affected} organizations`
+          `Emergency cleanup: ${result.total_deleted} notifications deleted from ${result.organizations_affected} organizations`,
         );
       } else {
         // Standard bulk cleanup
@@ -121,28 +121,28 @@ export default function NotificationCleanupManager({
             cleanup_successful: cleanupSettings.cleanupSuccessful,
             cleanup_failed_older_than_hours:
               cleanupSettings.failedRetentionHours,
-          }
+          },
         );
 
         if (error) throw error;
 
         const totalDeleted = data.reduce(
           (sum: number, item: any) => sum + item.total_would_delete,
-          0
+          0,
         );
         const action = cleanupSettings.dryRun ? "would delete" : "deleted";
 
         showSuccess(
           `${
             cleanupSettings.dryRun ? "DRY RUN: " : ""
-          }${totalDeleted} notifications ${action}`
+          }${totalDeleted} notifications ${action}`,
         );
 
         // Show detailed results
         data.forEach((result: any) => {
           if (result.total_would_delete > 0) {
             console.log(
-              `${result.organization_name}: ${result.total_would_delete} notifications ${action}`
+              `${result.organization_name}: ${result.total_would_delete} notifications ${action}`,
             );
           }
         });
@@ -192,12 +192,12 @@ export default function NotificationCleanupManager({
 
   const totalCleanableLogs = stats.reduce(
     (sum, stat) => sum + stat.cleanableSuccessful + stat.cleanableFailed,
-    0
+    0,
   );
 
   const totalEstimatedSavings = stats.reduce(
     (sum, stat) => sum + stat.estimatedSavingsKb,
-    0
+    0,
   );
 
   return (
@@ -248,7 +248,7 @@ export default function NotificationCleanupManager({
               {
                 stats.filter(
                   (s) =>
-                    s.priorityLevel === "HIGH" || s.priorityLevel === "MEDIUM"
+                    s.priorityLevel === "HIGH" || s.priorityLevel === "MEDIUM",
                 ).length
               }
             </div>
@@ -280,7 +280,7 @@ export default function NotificationCleanupManager({
               onClick={() => {
                 if (
                   confirm(
-                    "⚠️ This will delete ALL notification logs. Are you sure?"
+                    "⚠️ This will delete ALL notification logs. Are you sure?",
                   )
                 ) {
                   performCleanup(undefined, true);
@@ -414,7 +414,7 @@ export default function NotificationCleanupManager({
                   <div className="flex items-center space-x-3">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
-                        stat.priorityLevel
+                        stat.priorityLevel,
                       )}`}
                     >
                       {stat.priorityLevel}

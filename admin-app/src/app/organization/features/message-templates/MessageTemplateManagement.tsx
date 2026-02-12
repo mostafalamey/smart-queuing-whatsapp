@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAppToast } from "@/hooks/useAppToast";
 import { supabase } from "@/lib/supabase";
 import {
@@ -51,7 +51,7 @@ export function MessageTemplateManagement({
 }: MessageTemplateManagementProps) {
   const { showSuccess, showError, showInfo } = useAppToast();
   const [templates, setTemplates] = useState<MessageTemplates>(
-    defaultMessageTemplates
+    defaultMessageTemplates,
   );
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -116,7 +116,7 @@ export function MessageTemplateManagement({
               (branch, index) =>
                 `${index + 1}️⃣ ${branch.name}${
                   branch.address ? `\n   📍 ${branch.address}` : ""
-                }`
+                }`,
             )
             .join("\n")
         : "1️⃣ Downtown Branch\n   📍 123 Main St\n2️⃣ Mall Location\n   📍 456 Shopping Center";
@@ -139,7 +139,7 @@ export function MessageTemplateManagement({
                   service.calculated_duration
                     ? ` (${service.calculated_duration} min)`
                     : ""
-                }`
+                }`,
             )
             .join("\n")
         : "1️⃣ Fresh Bread Counter (5 min)\n2️⃣ Custom Cake Orders (15 min)\n3️⃣ Pastry Selection (3 min)";
@@ -161,26 +161,7 @@ export function MessageTemplateManagement({
     };
   };
 
-  useEffect(() => {
-    loadTemplates();
-    loadOrganizationData();
-  }, [organizationId]);
-
-  // Sync local QR code template with prop
-  useEffect(() => {
-    setLocalQrCodeTemplate(qrCodeTemplate);
-  }, [qrCodeTemplate]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (qrCodeTemplateTimeout) {
-        clearTimeout(qrCodeTemplateTimeout);
-      }
-    };
-  }, [qrCodeTemplateTimeout]);
-
-  const loadOrganizationData = async () => {
+  const loadOrganizationData = useCallback(async () => {
     try {
       setLoadingOrgData(true);
 
@@ -236,8 +217,8 @@ export function MessageTemplateManagement({
                     .gte(
                       "created_at",
                       new Date(
-                        Date.now() - 30 * 24 * 60 * 60 * 1000
-                      ).toISOString()
+                        Date.now() - 30 * 24 * 60 * 60 * 1000,
+                      ).toISOString(),
                     ) // Last 30 days
                     .single();
 
@@ -256,7 +237,7 @@ export function MessageTemplateManagement({
                     calculated_duration: service.estimated_time || 15,
                   };
                 }
-              })
+              }),
             );
 
             setServices(servicesWithDuration);
@@ -268,9 +249,9 @@ export function MessageTemplateManagement({
     } finally {
       setLoadingOrgData(false);
     }
-  };
+  }, [organizationId]);
 
-  const loadTemplates = async () => {
+  const loadTemplates = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -299,7 +280,26 @@ export function MessageTemplateManagement({
     } finally {
       setLoading(false);
     }
-  };
+  }, [organizationId, showError]);
+
+  useEffect(() => {
+    loadTemplates();
+    loadOrganizationData();
+  }, [loadOrganizationData, loadTemplates]);
+
+  // Sync local QR code template with prop
+  useEffect(() => {
+    setLocalQrCodeTemplate(qrCodeTemplate);
+  }, [qrCodeTemplate]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (qrCodeTemplateTimeout) {
+        clearTimeout(qrCodeTemplateTimeout);
+      }
+    };
+  }, [qrCodeTemplateTimeout]);
 
   const saveTemplates = async () => {
     try {
@@ -315,7 +315,7 @@ export function MessageTemplateManagement({
         {
           onConflict: "organization_id",
           ignoreDuplicates: false,
-        }
+        },
       );
 
       if (error) throw error;
@@ -374,7 +374,7 @@ export function MessageTemplateManagement({
   const updateTemplate = (
     templateKey: string,
     field: string,
-    value: string
+    value: string,
   ) => {
     if (!canEditMessages) return;
 
@@ -419,7 +419,7 @@ export function MessageTemplateManagement({
       // Convert emoji numbering to styled bullets
       formattedLine = formattedLine.replace(
         /^([0-9]️⃣)/g,
-        '<span class="text-blue-600 font-bold">$1</span>'
+        '<span class="text-blue-600 font-bold">$1</span>',
       );
 
       return (
@@ -506,9 +506,7 @@ export function MessageTemplateManagement({
                 <span className="text-primary-700 font-bold text-sm">3</span>
               </div>
               <div>
-                <p className="font-semibold text-gray-800">
-                  Select Service
-                </p>
+                <p className="font-semibold text-gray-800">Select Service</p>
                 <p className="text-sm text-gray-600">
                   Gets ticket confirmation immediately
                 </p>
@@ -610,7 +608,7 @@ export function MessageTemplateManagement({
                       >
                         {label}
                       </button>
-                    )
+                    ),
                   )}
                 </nav>
               </div>
@@ -675,7 +673,7 @@ export function MessageTemplateManagement({
                             updateTemplate(
                               activeTemplate,
                               "whatsapp",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           disabled={!canEditMessages}
@@ -829,9 +827,7 @@ export function MessageTemplateManagement({
                 <strong className="min-w-0 font-semibold">
                   Service Selection:
                 </strong>
-                <span className="text-gray-600">
-                  Pick specific service
-                </span>
+                <span className="text-gray-600">Pick specific service</span>
               </li>
               <li className="flex items-start space-x-2">
                 <strong className="min-w-0 font-semibold">
