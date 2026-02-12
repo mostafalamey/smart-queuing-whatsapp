@@ -24,25 +24,25 @@ interface TreeCanvasProps {
   onNodeDelete: (node: Node) => void;
   onNodeCreate: (
     type: "branch" | "department" | "service",
-    parent?: Node
+    parent?: Node,
   ) => void;
   onNodeMouseDown: (
     e: React.MouseEvent,
     nodeId: string,
-    position: Position
+    position: Position,
   ) => void;
   onMouseDown: (e: React.MouseEvent) => void;
   onWheel: (e: WheelEvent) => void;
   onTouchStart?: (e: React.TouchEvent) => void;
   onTouchMove?: (
-    e: React.TouchEvent
+    e: React.TouchEvent,
   ) => void | { nodeId: string; position: Position } | null;
   onTouchEnd?: (e: React.TouchEvent) => void;
   startNodeDrag?: (nodeId: string) => void;
   startTouchNodeDrag?: (
     nodeId: string,
     touchPosition: Position,
-    nodePosition: Position
+    nodePosition: Position,
   ) => void;
   // Role permissions
   canCreateDepartment?: boolean;
@@ -166,11 +166,19 @@ export const TreeCanvas = ({
     onMouseDown(e);
   };
 
+  const handleCanvasClick = (e: React.MouseEvent) => {
+    if (hasMouseMoved) return;
+    const target = e.target as HTMLElement | null;
+    if (target && target.closest(".tree-node")) return;
+    onNodeSelect(null);
+  };
+
   return (
     <div
       ref={canvasRef}
       className="tree-canvas"
       onMouseDown={handleMouseDownEvent}
+      onClick={handleCanvasClick}
     >
       {/* Empty State */}
       {nodes.length === 0 && (
@@ -201,37 +209,11 @@ export const TreeCanvas = ({
         className="tree-svg-container tree-svg-transformed"
         ref={(el) => {
           if (el) {
-            el.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
+            el.style.transform = `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`;
           }
         }}
+        shapeRendering="geometricPrecision"
       >
-        <defs>
-          <linearGradient
-            id="connectionGradient"
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="0%"
-          >
-            <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.8" />
-            <stop offset="50%" stopColor="#8B5CF6" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="#10B981" stopOpacity="0.8" />
-          </linearGradient>
-          <filter
-            id="connectionGlow"
-            x="-50%"
-            y="-50%"
-            width="200%"
-            height="200%"
-          >
-            <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-            <feMerge>
-              <feMergeNode in="coloredBlur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
         {connections.map((connection, index) => {
           const fromNode = nodes.find((n) => n.id === connection.from);
           const toNode = nodes.find((n) => n.id === connection.to);
@@ -257,38 +239,17 @@ export const TreeCanvas = ({
 
           return (
             <g key={`connection-${index}`}>
-              {/* Connection shadow */}
-              <path
-                d={`M ${startX} ${startY} C ${controlX1} ${controlY1} ${controlX2} ${controlY2} ${endX} ${endY}`}
-                stroke="#000000"
-                strokeWidth="4"
-                fill="none"
-                opacity="0.1"
-                transform="translate(2, 2)"
-              />
               {/* Main connection line */}
               <path
                 d={`M ${startX} ${startY} C ${controlX1} ${controlY1} ${controlX2} ${controlY2} ${endX} ${endY}`}
-                stroke="url(#connectionGradient)"
-                strokeWidth="3"
+                stroke="#60A5FA"
+                strokeWidth="2.5"
                 fill="none"
-                filter="url(#connectionGlow)"
               />
               {/* End point indicator */}
-              <circle
-                cx={endX}
-                cy={endY}
-                r="5"
-                fill="url(#connectionGradient)"
-                filter="url(#connectionGlow)"
-              />
+              <circle cx={endX} cy={endY} r="4" fill="#60A5FA" />
               {/* Start point indicator */}
-              <circle
-                cx={startX}
-                cy={startY}
-                r="3"
-                fill="url(#connectionGradient)"
-              />
+              <circle cx={startX} cy={startY} r="2.5" fill="#60A5FA" />
             </g>
           );
         })}
@@ -299,7 +260,7 @@ export const TreeCanvas = ({
         className="tree-nodes-container tree-nodes-transformed"
         ref={(el) => {
           if (el) {
-            el.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
+            el.style.transform = `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`;
           }
         }}
       >
@@ -344,7 +305,7 @@ export const TreeCanvas = ({
                             startTouchNodeDrag(
                               node.id,
                               touchStartPos,
-                              node.position
+                              node.position,
                             );
 
                             // Add haptic feedback if available
@@ -360,10 +321,10 @@ export const TreeCanvas = ({
                       if (e.touches.length === 1) {
                         const touch = e.touches[0];
                         const deltaX = Math.abs(
-                          touch.clientX - touchStartPos.x
+                          touch.clientX - touchStartPos.x,
                         );
                         const deltaY = Math.abs(
-                          touch.clientY - touchStartPos.y
+                          touch.clientY - touchStartPos.y,
                         );
 
                         // If moved more than 10 pixels during long press, cancel it
@@ -406,7 +367,7 @@ export const TreeCanvas = ({
                       }
                       el.removeEventListener(
                         "touchstart",
-                        handleNodeTouchStart
+                        handleNodeTouchStart,
                       );
                       el.removeEventListener("touchmove", handleNodeTouchMove);
                       el.removeEventListener("touchend", handleNodeTouchEnd);
@@ -467,7 +428,7 @@ export const TreeCanvas = ({
                                 onClick: () => {
                                   onNodeDelete(node);
                                 },
-                              }
+                              },
                             );
                           }}
                           className="p-1 rounded hover:bg-gray-100 transition-colors flex items-center justify-center"
@@ -512,14 +473,14 @@ export const TreeCanvas = ({
                               if (canCreate) {
                                 onNodeCreate(
                                   childType as "department" | "service",
-                                  node
+                                  node,
                                 );
                               } else {
                                 // Show toast when clicking disabled button
                                 const message = !hasRolePermission
                                   ? `You do not have permission to create ${childType}s`
                                   : getLimitMessage(
-                                      childType as "department" | "service"
+                                      childType as "department" | "service",
                                     );
                                 showWarning(
                                   `${
@@ -540,7 +501,7 @@ export const TreeCanvas = ({
                                             "/manage/organization?tab=plan-billing";
                                         },
                                       }
-                                    : undefined
+                                    : undefined,
                                 );
                               }
                             }}
@@ -549,10 +510,10 @@ export const TreeCanvas = ({
                               canCreate
                                 ? `Add ${childType}`
                                 : !hasRolePermission
-                                ? `You do not have permission to create ${childType}s`
-                                : getLimitMessage(
-                                    childType as "department" | "service"
-                                  )
+                                  ? `You do not have permission to create ${childType}s`
+                                  : getLimitMessage(
+                                      childType as "department" | "service",
+                                    )
                             }
                             className={`p-1 rounded-full transition-colors group flex items-center justify-center ${
                               canCreate
@@ -563,8 +524,8 @@ export const TreeCanvas = ({
                               canCreate
                                 ? `Add ${childType} to ${node.name}`
                                 : !hasRolePermission
-                                ? `Cannot add ${childType} - access denied`
-                                : `Cannot add ${childType} - limit reached`
+                                  ? `Cannot add ${childType} - access denied`
+                                  : `Cannot add ${childType} - limit reached`
                             }
                           >
                             <Plus

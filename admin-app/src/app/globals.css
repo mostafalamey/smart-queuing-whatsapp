@@ -7,34 +7,34 @@
 @layer base {
   :root {
     /* Color System - Healthcare Professional Palette */
-    --color-primary: #2563EB;
-    --color-primary-dark: #1E40AF;
-    --color-primary-light: #DBEAFE;
-    
+    --color-primary: #2563eb;
+    --color-primary-dark: #1e40af;
+    --color-primary-light: #dbeafe;
+
     /* Semantic Colors */
-    --color-success: #16A34A;
-    --color-success-light: #DCFCE7;
-    --color-warning: #D97706;
-    --color-warning-light: #FEF3C7;
-    --color-error: #DC2626;
-    --color-error-light: #FEE2E2;
-    --color-info: #0891B2;
-    --color-info-light: #CFFAFE;
-    
+    --color-success: #16a34a;
+    --color-success-light: #dcfce7;
+    --color-warning: #d97706;
+    --color-warning-light: #fef3c7;
+    --color-error: #dc2626;
+    --color-error-light: #fee2e2;
+    --color-info: #0891b2;
+    --color-info-light: #cffafe;
+
     /* Surfaces */
-    --color-background: #F8FAFC;
-    --color-surface: #FFFFFF;
-    
+    --color-background: #f8fafc;
+    --color-surface: #ffffff;
+
     /* Text */
-    --color-text-primary: #0F172A;
+    --color-text-primary: #0f172a;
     --color-text-secondary: #475569;
-    --color-text-muted: #64748B;
-    --color-text-inverse: #FFFFFF;
-    
+    --color-text-muted: #64748b;
+    --color-text-inverse: #ffffff;
+
     /* Borders */
-    --color-border: #E2E8F0;
-    --color-border-strong: #CBD5E1;
-    
+    --color-border: #e2e8f0;
+    --color-border-strong: #cbd5e1;
+
     /* Legacy support */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -255,44 +255,6 @@
     @apply bg-red-400;
   }
 
-  /* Tree View Styles - Professional Healthcare Design */
-  .tree-canvas {
-    @apply h-screen bg-gray-800 overflow-hidden relative;
-  }
-
-  .tree-node {
-    @apply w-48 bg-white rounded-xl border border-gray-200 transition-shadow duration-150 cursor-pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-
-  .tree-node:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  }
-
-  .tree-node-selected {
-    @apply ring-2 ring-primary-500;
-  }
-
-  .tree-toolbar {
-    @apply absolute top-4 left-4 z-10 flex flex-col gap-2;
-  }
-
-  .tree-toolbar-group {
-    @apply bg-gray-700 rounded-lg p-2 flex gap-2;
-  }
-
-  .tree-toolbar-button {
-    @apply p-2 rounded-lg bg-gray-600 hover:bg-gray-500 transition-colors duration-150 text-white;
-  }
-
-  .tree-info-panel {
-    @apply absolute top-4 right-4 z-10 bg-gray-700 rounded-lg p-4 text-white max-w-xs;
-  }
-
-  .tree-connection {
-    @apply drop-shadow-sm;
-  }
-
   .input-floating label {
     @apply absolute left-4 top-4 text-gray-500 transition-all duration-150 peer-focus:top-2 peer-focus:text-xs peer-focus:text-primary-600 peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:text-gray-600;
   }
@@ -450,18 +412,71 @@
     }
   }
 
-  /* Tree View Enhanced Styles - Professional Healthcare Design */
+  /* Tree View Styles - Professional Healthcare Design */
   .tree-canvas {
     @apply h-screen bg-gray-800 overflow-hidden relative;
+    isolation: isolate;
+    touch-action: pinch-zoom; /* Allow pinch-zoom but prevent single-finger pan */
+    -webkit-user-select: none; /* Prevent text selection during gestures */
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  .tree-svg-container {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+    transform-origin: 0 0;
+    backface-visibility: hidden;
+    will-change: transform;
+    shape-rendering: geometricPrecision;
+  }
+
+  .tree-nodes-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-origin: 0 0;
+    backface-visibility: hidden;
+    will-change: transform;
+    transform-style: preserve-3d;
+  }
+
+  .tree-node-wrapper {
+    position: absolute;
+    backface-visibility: hidden;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    touch-action: manipulation; /* Enable touch interactions including taps */
   }
 
   .tree-node {
-    @apply rounded-xl transition-shadow duration-150 cursor-move select-none overflow-hidden;
+    @apply rounded-xl transition-shadow duration-150 cursor-pointer select-none overflow-hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    min-height: 44px; /* iOS recommended minimum touch target */
+    touch-action: manipulation; /* Allow all touch interactions on nodes */
   }
 
-  .tree-node:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  .tree-node:hover:not(.tree-node-selected) {
+    outline: 3px solid rgba(37, 99, 235, 0.55);
+    outline-offset: 6px;
+    box-shadow:
+      inset 8px 16px -6px rgba(15, 23, 42, 0.2),
+      0 0 0 2px rgba(37, 99, 235, 0.35);
+  }
+
+  .tree-node-selected {
+    outline: 4px solid #2563eb;
+    outline-offset: 8px;
+    box-shadow:
+      0 12px 20px -8px rgba(15, 23, 42, 0.28),
+      0 0 0 3px rgba(37, 99, 235, 0.5);
   }
 
   /* Branch Nodes - Blue Theme - Largest */
@@ -471,7 +486,7 @@
   }
 
   .tree-node.branch:hover {
-    box-shadow: 0 6px 12px -2px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 6px 12px 8px rgba(59, 130, 246, 0.2);
   }
 
   .tree-node.branch .node-icon {
@@ -501,7 +516,7 @@
   }
 
   .tree-node.department:hover {
-    box-shadow: 0 6px 12px -2px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 6px 12px 8px rgba(16, 185, 129, 0.2);
   }
 
   .tree-node.department .node-icon {
@@ -527,7 +542,7 @@
   }
 
   .tree-node.service:hover {
-    box-shadow: 0 6px 12px -2px rgba(251, 146, 60, 0.2);
+    box-shadow: 0 6px 12px 8px rgba(251, 146, 60, 0.2);
   }
 
   .tree-node.service .node-icon {
@@ -550,26 +565,19 @@
     @apply p-3;
   }
 
-  .tree-node-selected {
-    @apply ring-2 ring-primary-500;
-  }
-
   /* Node header styling */
   .tree-node .node-header {
     @apply pb-2 mb-2;
   }
 
-  /* Branch node header */
   .tree-node.branch .node-header {
     @apply border-b border-blue-200;
   }
 
-  /* Department node header */
   .tree-node.department .node-header {
     @apply border-b border-emerald-200;
   }
 
-  /* Service node header */
   .tree-node.service .node-header {
     @apply border-b border-orange-200;
   }
@@ -581,6 +589,14 @@
 
   .tree-node.department .add-child-btn {
     @apply bg-emerald-100 hover:bg-emerald-200 text-emerald-700;
+  }
+
+  .tree-node button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 12px;
+    touch-action: manipulation; /* Full touch support for buttons */
+    cursor: pointer;
   }
 
   .tree-toolbar {
@@ -617,16 +633,6 @@
     opacity: 0.7;
   }
 
-  .tree-nodes-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-  }
-
-  .tree-node-wrapper {
-    position: absolute;
-  }
-
   .tree-container-visible {
     overflow: visible !important;
   }
@@ -643,69 +649,6 @@
     left: 0;
     right: 0;
     bottom: 0;
-  }
-
-  /* Base classes for tree elements */
-  .tree-svg-container {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    overflow: visible;
-    transform-origin: 0 0;
-  }
-
-  .tree-nodes-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transform-origin: 0 0;
-  }
-
-  .tree-node-wrapper {
-    position: absolute;
-  }
-
-  /* Touch-specific improvements - simplified for better compatibility */
-  .tree-canvas {
-    touch-action: pinch-zoom; /* Allow pinch-zoom but prevent single-finger pan */
-    -webkit-user-select: none; /* Prevent text selection during gestures */
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-
-  .tree-node {
-    /* Larger touch targets for better mobile interaction */
-    min-height: 44px; /* iOS recommended minimum touch target */
-  }
-
-  .tree-node button {
-    /* Ensure buttons have adequate touch targets */
-    min-width: 44px;
-    min-height: 44px;
-    padding: 12px;
-  }
-
-  /* Allow normal touch interactions on nodes - this is key for clicks to work */
-  .tree-node-wrapper {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    touch-action: manipulation; /* Enable touch interactions including taps */
-  }
-
-  .tree-node {
-    touch-action: manipulation; /* Allow all touch interactions on nodes */
-    cursor: pointer; /* Make it clear nodes are clickable */
-  }
-
-  /* Ensure buttons within nodes are fully touchable */
-  .tree-node button {
-    touch-action: manipulation; /* Full touch support for buttons */
-    cursor: pointer;
   }
 }
 
