@@ -1,0 +1,2 @@
+export { HistoricalTrendsSection } from "./HistoricalTrendsSection";
+

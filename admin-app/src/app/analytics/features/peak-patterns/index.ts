@@ -1,0 +1,2 @@
+export { PeakPatternsAnalysisSection } from "./PeakPatternsAnalysisSection";
+
