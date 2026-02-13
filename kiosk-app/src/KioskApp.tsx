@@ -687,20 +687,7 @@ const DepartmentsView: React.FC<DepartmentsViewProps> = ({
         </div>
       </div>
 
-      <div className="kiosk-grid">
-        <section className="kiosk-panel">
-          <div className="kiosk-panel-title">Branch overview</div>
-          <div className="kiosk-info-card">
-            <div className="kiosk-info-title">{branch.name}</div>
-            <div className="kiosk-info-subtitle">
-              Choose a department below for the service you need.
-            </div>
-          </div>
-          <div className="kiosk-helper">
-            Need assistance? Please ask the front desk.
-          </div>
-        </section>
-
+      <div className="kiosk-grid kiosk-grid-single">
         <section className="kiosk-panel">
           <div className="kiosk-panel-title">Available departments</div>
           <div className="kiosk-choice-grid">
@@ -735,11 +722,6 @@ const ServicesView: React.FC<ServicesViewProps> = ({
   onSelectService,
   onBack,
 }) => {
-  const totalWaiting = services.reduce(
-    (sum, service) => sum + service.current_queue_length,
-    0,
-  );
-
   return (
     <div className="kiosk-view">
       <div className="kiosk-stepbar">
@@ -757,24 +739,7 @@ const ServicesView: React.FC<ServicesViewProps> = ({
         </div>
       </div>
 
-      <div className="kiosk-grid">
-        <section className="kiosk-panel">
-          <div className="kiosk-panel-title">Queue insights</div>
-          <div className="kiosk-metrics">
-            <div>
-              <p className="kiosk-metric-label">Total waiting</p>
-              <p className="kiosk-metric-value">{totalWaiting}</p>
-            </div>
-            <div>
-              <p className="kiosk-metric-label">Services available</p>
-              <p className="kiosk-metric-value">{services.length}</p>
-            </div>
-          </div>
-          <div className="kiosk-helper">
-            Select a service to print a ticket and receive updates.
-          </div>
-        </section>
-
+      <div className="kiosk-grid kiosk-grid-single">
         <section className="kiosk-panel">
           <div className="kiosk-panel-title">Available services</div>
           <div className="kiosk-choice-grid">

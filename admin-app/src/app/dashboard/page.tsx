@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import ResetQueueModal from "@/components/ResetQueueModal";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { MemberWelcomeFlow } from "@/app/organization/features/member-onboarding/MemberWelcomeFlow";
+import { EMPLOYEE_REFRESH_EVENT } from "@/components/EmployeeTitleBar";
 
 // Feature components
 import { DashboardHeader } from "./features/dashboard-header";
@@ -49,6 +50,18 @@ export default function DashboardPage() {
       router.replace("/login");
     }
   }, [authLoading, user, dashboardData.mounted, router]);
+
+  // Listen for employee title bar refresh event
+  useEffect(() => {
+    const handleEmployeeRefresh = () => {
+      dashboardData.handleRefresh();
+    };
+
+    window.addEventListener(EMPLOYEE_REFRESH_EVENT, handleEmployeeRefresh);
+    return () => {
+      window.removeEventListener(EMPLOYEE_REFRESH_EVENT, handleEmployeeRefresh);
+    };
+  }, [dashboardData.handleRefresh]);
 
   // Show loading if auth is still loading or component not mounted
   if (authLoading || !dashboardData.mounted) {

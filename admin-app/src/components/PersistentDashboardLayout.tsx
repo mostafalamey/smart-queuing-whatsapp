@@ -4,6 +4,8 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import { Sidebar } from "./Sidebar";
+import { EmployeeTitleBar } from "./EmployeeTitleBar";
+import { useRolePermissions } from "@/hooks/useRolePermissions";
 import Image from "next/image";
 
 interface PersistentDashboardLayoutProps {
@@ -26,21 +28,39 @@ export function PersistentDashboardLayout({
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mobileLogoError, setMobileLogoError] = useState(false);
+  const { userRole, loading } = useRolePermissions();
 
-  // Check if current route should show sidebar
-  const shouldShowSidebar = DASHBOARD_ROUTES.some((route) =>
+  // Check if current route should show dashboard layout
+  const isDashboardRoute = DASHBOARD_ROUTES.some((route) =>
     pathname?.startsWith(route)
   );
+
+  // Employees get a simplified layout without sidebar
+  const isEmployee = userRole === "employee";
 
   // Close mobile sidebar when route changes
   useEffect(() => {
     setIsSidebarOpen(false);
   }, [pathname]);
 
-  if (!shouldShowSidebar) {
+  if (!isDashboardRoute) {
     return <>{children}</>;
   }
 
+  // Employee Layout: Title bar only, no sidebar
+  if (isEmployee && !loading) {
+    return (
+      <div className="min-h-screen bg-gray-200">
+        {/* Employee Title Bar */}
+        <EmployeeTitleBar />
+
+        {/* Page Content - Full width, no sidebar padding */}
+        <main className="transition-opacity duration-200">{children}</main>
+      </div>
+    );
+  }
+
+  // Standard Layout: Sidebar for admin/manager
   return (
     <div className="min-h-screen bg-gray-200">
       {/* Sidebar Component - Persists across all dashboard routes */}

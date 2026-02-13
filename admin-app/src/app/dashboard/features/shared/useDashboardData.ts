@@ -75,9 +75,19 @@ export const useDashboardData = () => {
       if (error) throw error;
       setOrganization(data);
     } catch (error) {
-      logger.error("Error fetching organization:", error);
+      // Fallback to organization data from userProfile if direct fetch fails (e.g., RLS restrictions)
+      if (userProfile?.organization) {
+        setOrganization({
+          id: userProfile.organization.id,
+          name: userProfile.organization.name,
+          logo_url: userProfile.organization.logo_url,
+          primary_color: userProfile.organization.primary_color || null,
+        });
+      } else {
+        logger.error("Error fetching organization:", error);
+      }
     }
-  }, [userProfile?.organization_id]);
+  }, [userProfile?.organization_id, userProfile?.organization]);
 
   const fetchDepartments = useCallback(async () => {
     if (!selectedBranch) return;

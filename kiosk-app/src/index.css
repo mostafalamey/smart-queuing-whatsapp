@@ -185,12 +185,6 @@ body {
   grid-template-columns: minmax(0, 1fr);
 }
 
-@media (min-width: 900px) {
-  .kiosk-grid {
-    grid-template-columns: 260px minmax(0, 1fr);
-  }
-}
-
 .kiosk-panel {
   background: var(--kiosk-surface);
   border: 1px solid var(--kiosk-border);
@@ -215,7 +209,19 @@ body {
 .kiosk-choice-grid {
   display: grid;
   gap: 18px;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 700px) {
+  .kiosk-choice-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1000px) {
+  .kiosk-choice-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .kiosk-choice {
@@ -463,12 +469,6 @@ body {
 
 .kiosk-qr-grid {
   grid-template-columns: minmax(0, 1fr);
-}
-
-@media (min-width: 900px) {
-  .kiosk-qr-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
 }
 
 .kiosk-steps {

@@ -1,5 +1,6 @@
 import { RefreshCw, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { useRolePermissions } from "@/hooks/useRolePermissions";
 
 interface DashboardHeaderProps {
   lastCleanupTime: Date | null;
@@ -14,6 +15,13 @@ export const DashboardHeader = ({
   selectedDepartment,
   onRefresh,
 }: DashboardHeaderProps) => {
+  const { userRole } = useRolePermissions();
+
+  // Hide header for employees - they have a simplified title bar
+  if (userRole === "employee") {
+    return null;
+  }
+
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between">
