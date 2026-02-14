@@ -53,6 +53,12 @@ export interface TemplateVariables {
   departmentsList?: string;
   departmentList?: string; // Singular version for database template
   customerName?: string;
+  // Transfer-specific fields
+  previousServiceName?: string;
+  previousDepartmentName?: string;
+  newServiceName?: string;
+  newDepartmentName?: string;
+  transferReason?: string;
 }
 
 /**
@@ -60,7 +66,7 @@ export interface TemplateVariables {
  */
 export async function getMessageTemplate(
   organizationId: string,
-  templateType: string
+  templateType: string,
 ): Promise<string | null> {
   try {
     const { data, error } = await supabase
@@ -72,7 +78,7 @@ export async function getMessageTemplate(
     if (error) {
       console.error(
         `Error loading templates for organization ${organizationId}:`,
-        error
+        error,
       );
       return null;
     }
@@ -88,7 +94,7 @@ export async function getMessageTemplate(
 
     if (!template) {
       console.warn(
-        `Template ${templateType} (${templateKey}) not found for organization ${organizationId}`
+        `Template ${templateType} (${templateKey}) not found for organization ${organizationId}`,
       );
       return null;
     }
@@ -101,7 +107,7 @@ export async function getMessageTemplate(
     }
 
     console.warn(
-      `Template ${templateType} found but no WhatsApp content available`
+      `Template ${templateType} found but no WhatsApp content available`,
     );
     return null;
   } catch (error) {
@@ -133,7 +139,7 @@ function mapTemplateTypeToKey(templateType: string): string {
  */
 export function processTemplate(
   template: string,
-  variables: TemplateVariables
+  variables: TemplateVariables,
 ): string {
   if (!template) {
     return "";
@@ -148,14 +154,14 @@ export function processTemplate(
       const doublePlaceholder = `{{${key}}}`;
       content = content.replace(
         new RegExp(doublePlaceholder.replace(/[{}]/g, "\\$&"), "g"),
-        String(value)
+        String(value),
       );
 
       // Try single curly braces {variable}
       const singlePlaceholder = `{${key}}`;
       content = content.replace(
         new RegExp(singlePlaceholder.replace(/[{}]/g, "\\$&"), "g"),
-        String(value)
+        String(value),
       );
     }
   });
@@ -173,13 +179,13 @@ export function processTemplate(
 export async function getProcessedTemplate(
   organizationId: string,
   templateType: string,
-  variables: TemplateVariables
+  variables: TemplateVariables,
 ): Promise<string | null> {
   const template = await getMessageTemplate(organizationId, templateType);
 
   if (!template) {
     console.warn(
-      `Template ${templateType} not found for organization ${organizationId}`
+      `Template ${templateType} not found for organization ${organizationId}`,
     );
     return null;
   }
@@ -192,7 +198,7 @@ export async function getProcessedTemplate(
  */
 export function getFallbackMessage(
   templateType: string,
-  variables: TemplateVariables
+  variables: TemplateVariables,
 ): string {
   const {
     customer_name = "Customer",
@@ -273,13 +279,13 @@ export function getFallbackMessage(
 export async function getMessageWithFallback(
   organizationId: string,
   templateType: string,
-  variables: TemplateVariables
+  variables: TemplateVariables,
 ): Promise<string> {
   // Try to get the template from database first
   const templateMessage = await getProcessedTemplate(
     organizationId,
     templateType,
-    variables
+    variables,
   );
 
   if (templateMessage) {

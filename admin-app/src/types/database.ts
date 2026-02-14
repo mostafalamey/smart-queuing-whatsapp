@@ -64,7 +64,58 @@ export interface Ticket {
   created_at: string;
   updated_at: string;
   department_id: string;
+  service_id?: string | null;
+  // Transfer-related fields
+  original_ticket_number?: string | null;
+  original_service_id?: string | null;
+  original_department_id?: string | null;
+  service_outcome?: ServiceOutcome | null;
+}
+
+export type ServiceOutcome =
+  | "completed"
+  | "cancelled"
+  | "transferred"
+  | "no_show";
+
+export interface TicketTransfer {
+  id: string;
+  ticket_id: string;
+  from_service_id: string;
+  from_department_id: string;
+  to_service_id: string;
+  to_department_id: string;
+  transferred_by: string;
+  transfer_reason: string | null;
+  transfer_notes: string | null;
+  service_duration_before_transfer: number | null;
+  created_at: string;
+}
+
+export interface TransferTicketParams {
+  p_ticket_id: string;
+  p_target_service_id: string;
+  p_transferred_by?: string;
+  p_transfer_reason?: string;
+}
+
+export interface TransferTicketResult {
+  success: boolean;
+  ticket_id: string;
+  transfer_id: string;
+  from_service_id: string;
+  from_department_id: string;
+  to_service_id: string;
+  to_department_id: string;
+  new_status: string;
+  new_position: number;
+  service_duration_seconds: number | null;
 }
 
 export type UserRole = "admin" | "manager" | "employee";
-export type TicketStatus = "waiting" | "called" | "served" | "cancelled";
+export type TicketStatus =
+  | "waiting"
+  | "called"
+  | "serving"
+  | "completed"
+  | "cancelled";

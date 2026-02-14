@@ -1,4 +1,4 @@
-import { Phone, Users, RotateCcw } from "lucide-react";
+import { Phone, Users, RotateCcw, ArrowRightLeft } from "lucide-react";
 import { QueueData } from "../shared/types";
 import { Button } from "@/components/ui/Button";
 
@@ -9,12 +9,14 @@ interface QueueStatusProps {
   onShowResetModal: () => void;
   onSkipTicket: () => void;
   onCompleteTicket: () => void;
+  onTransferTicket?: () => void;
   canResetQueue?: boolean;
+  canTransferTicket?: boolean;
   currentTicketHandled?: boolean;
   showInfo: (
     title: string,
     message: string,
-    action?: { label: string; onClick: () => void }
+    action?: { label: string; onClick: () => void },
   ) => void;
 }
 
@@ -25,13 +27,18 @@ export const QueueStatus = ({
   onShowResetModal,
   onSkipTicket,
   onCompleteTicket,
+  onTransferTicket,
   canResetQueue = true,
+  canTransferTicket = true,
   currentTicketHandled = false,
   showInfo,
 }: QueueStatusProps) => {
   if (!queueData) return null;
 
-  const isDisabled = !queueData.waitingCount || loading || (!!queueData.currentServing && !currentTicketHandled);
+  const isDisabled =
+    !queueData.waitingCount ||
+    loading ||
+    (!!queueData.currentServing && !currentTicketHandled);
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm h-full border border-gray-300">
@@ -42,9 +49,11 @@ export const QueueStatus = ({
             <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
               <Users className="w-5 h-5 text-gray-700" />
             </div>
-            <h3 className="font-semibold text-base text-gray-900">Queue Status</h3>
+            <h3 className="font-semibold text-base text-gray-900">
+              Queue Status
+            </h3>
           </div>
-          
+
           {/* Reset Queue - Secondary Action in Header */}
           {canResetQueue && (
             <Button
@@ -74,9 +83,7 @@ export const QueueStatus = ({
               <div className="flex items-center space-x-2">
                 <div
                   className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                    queueData.currentServing
-                      ? "bg-warning-500"
-                      : "bg-gray-400"
+                    queueData.currentServing ? "bg-warning-500" : "bg-gray-400"
                   }`}
                 >
                   <Users className="w-4 h-4 text-white" />
@@ -97,9 +104,7 @@ export const QueueStatus = ({
             <div className="mb-3">
               <p
                 className={`font-semibold text-sm mb-1 ${
-                  queueData.currentServing
-                    ? "text-gray-900"
-                    : "text-gray-700"
+                  queueData.currentServing ? "text-gray-900" : "text-gray-700"
                 }`}
               >
                 {queueData.currentServing
@@ -116,7 +121,7 @@ export const QueueStatus = ({
 
             {/* Action Buttons */}
             {queueData.currentServing && (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-3">
                 <Button
                   onClick={() => {
                     showInfo(
@@ -125,16 +130,29 @@ export const QueueStatus = ({
                       {
                         label: "Skip Customer",
                         onClick: () => onSkipTicket(),
-                      }
+                      },
                     );
                   }}
                   disabled={loading}
                   variant="outline"
-                  size="sm"
+                  size="lg"
                   className="border-warning-500 text-warning-700 hover:bg-warning-50"
                 >
                   Skip
                 </Button>
+
+                {canTransferTicket && onTransferTicket && (
+                  <Button
+                    onClick={onTransferTicket}
+                    disabled={loading}
+                    variant="outline"
+                    size="lg"
+                    className="border-info text-info hover:bg-info-100"
+                  >
+                    <ArrowRightLeft className="w-4 h-4 mr-1" />
+                    Transfer
+                  </Button>
+                )}
 
                 <Button
                   onClick={() => {
@@ -144,12 +162,12 @@ export const QueueStatus = ({
                       {
                         label: "Complete Service",
                         onClick: () => onCompleteTicket(),
-                      }
+                      },
                     );
                   }}
                   disabled={loading}
                   variant="primary"
-                  size="sm"
+                  size="lg"
                   className="bg-success hover:bg-success-600"
                 >
                   Complete
@@ -182,8 +200,8 @@ export const QueueStatus = ({
               {loading
                 ? "Calling..."
                 : !!queueData.currentServing && !currentTicketHandled
-                ? "Handle Current Ticket First"
-                : "Call Next Customer"}
+                  ? "Handle Current Ticket First"
+                  : "Call Next Customer"}
             </Button>
           </div>
         </div>

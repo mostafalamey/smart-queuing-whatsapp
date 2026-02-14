@@ -17,6 +17,7 @@ export const useDashboardData = () => {
     assignedBranchId,
     assignedDepartmentIds,
     canResetQueue,
+    canTransferTicket,
   } = useRolePermissions();
 
   const { showSuccess, showError, showWarning, showInfo } = useAppToast();
@@ -427,6 +428,7 @@ export const useDashboardData = () => {
     shouldAutoSelectBranch,
     shouldAutoSelectDepartment,
     canResetQueue,
+    canTransferTicket,
     assignedDepartmentIds,
 
     // Helper functions

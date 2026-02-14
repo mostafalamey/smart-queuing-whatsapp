@@ -689,19 +689,6 @@ const DepartmentsView: React.FC<DepartmentsViewProps> = ({
 
       <div className="kiosk-grid">
         <section className="kiosk-panel">
-          <div className="kiosk-panel-title">Branch overview</div>
-          <div className="kiosk-info-card">
-            <div className="kiosk-info-title">{branch.name}</div>
-            <div className="kiosk-info-subtitle">
-              Choose a department below for the service you need.
-            </div>
-          </div>
-          <div className="kiosk-helper">
-            Need assistance? Please ask the front desk.
-          </div>
-        </section>
-
-        <section className="kiosk-panel">
           <div className="kiosk-panel-title">Available departments</div>
           <div className="kiosk-choice-grid">
             {departments.map((department) => (
@@ -758,23 +745,6 @@ const ServicesView: React.FC<ServicesViewProps> = ({
       </div>
 
       <div className="kiosk-grid">
-        <section className="kiosk-panel">
-          <div className="kiosk-panel-title">Queue insights</div>
-          <div className="kiosk-metrics">
-            <div>
-              <p className="kiosk-metric-label">Total waiting</p>
-              <p className="kiosk-metric-value">{totalWaiting}</p>
-            </div>
-            <div>
-              <p className="kiosk-metric-label">Services available</p>
-              <p className="kiosk-metric-value">{services.length}</p>
-            </div>
-          </div>
-          <div className="kiosk-helper">
-            Select a service to print a ticket and receive updates.
-          </div>
-        </section>
-
         <section className="kiosk-panel">
           <div className="kiosk-panel-title">Available services</div>
           <div className="kiosk-choice-grid">
@@ -1001,9 +971,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({
                   isPrinterReady ? "text-emerald-600" : "text-rose-500"
                 }`}
               />
-              <span>
-                {isPrinterReady ? "Ready to print" : "Not connected"}
-              </span>
+              <span>{isPrinterReady ? "Ready to print" : "Not connected"}</span>
             </div>
             <button onClick={onCheckPrinter} className="kiosk-primary-button">
               Check printer

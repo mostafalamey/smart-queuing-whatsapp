@@ -15,9 +15,16 @@ interface WhatsAppNotificationData {
   serviceName?: string; // Add service name
   organizationName: string;
   organizationId: string;
-  type: "almost_your_turn" | "your_turn";
+  type: "almost_your_turn" | "your_turn" | "ticket_transferred";
   currentServing?: string;
   waitingCount?: number;
+  // Transfer-specific fields
+  previousServiceName?: string;
+  previousDepartmentName?: string;
+  newServiceName?: string;
+  newDepartmentName?: string;
+  queuePosition?: number;
+  estimatedWaitTime?: string;
 }
 
 class WhatsAppNotificationService {
@@ -64,6 +71,13 @@ class WhatsAppNotificationService {
           type: data.type,
           currentServing: data.currentServing,
           waitingCount: data.waitingCount,
+          // Transfer-specific fields
+          previousServiceName: data.previousServiceName,
+          previousDepartmentName: data.previousDepartmentName,
+          newServiceName: data.newServiceName,
+          newDepartmentName: data.newDepartmentName,
+          queuePosition: data.queuePosition,
+          estimatedWaitTime: data.estimatedWaitTime,
         }),
       });
 
@@ -106,7 +120,7 @@ class WhatsAppNotificationService {
     serviceName: string,
     organizationName: string,
     organizationId: string,
-    currentServing: string
+    currentServing: string,
   ): Promise<boolean> {
     return this.sendWhatsAppMessage({
       phone,
@@ -127,7 +141,7 @@ class WhatsAppNotificationService {
     departmentName: string,
     serviceName: string,
     organizationName: string,
-    organizationId: string
+    organizationId: string,
   ): Promise<boolean> {
     return this.sendWhatsAppMessage({
       phone,
@@ -137,6 +151,36 @@ class WhatsAppNotificationService {
       organizationName,
       organizationId,
       type: "your_turn",
+    });
+  }
+
+  // Helper method to send "ticket transferred" notification
+  async notifyTicketTransferred(
+    phone: string,
+    ticketNumber: string,
+    organizationName: string,
+    organizationId: string,
+    previousServiceName: string,
+    previousDepartmentName: string,
+    newServiceName: string,
+    newDepartmentName: string,
+    queuePosition: number,
+    estimatedWaitTime: string,
+  ): Promise<boolean> {
+    return this.sendWhatsAppMessage({
+      phone,
+      ticketNumber,
+      departmentName: newDepartmentName,
+      serviceName: newServiceName,
+      organizationName,
+      organizationId,
+      type: "ticket_transferred",
+      previousServiceName,
+      previousDepartmentName,
+      newServiceName,
+      newDepartmentName,
+      queuePosition,
+      estimatedWaitTime,
     });
   }
 }

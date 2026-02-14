@@ -12,9 +12,20 @@ interface WhatsAppNotificationRequest {
   serviceName?: string; // Add service name for template variables
   organizationName: string;
   organizationId: string;
-  type: "almost_your_turn" | "your_turn" | "ticket_created"; // ticket_created included for rejection handling
+  type:
+    | "almost_your_turn"
+    | "your_turn"
+    | "ticket_created"
+    | "ticket_transferred"; // ticket_created included for rejection handling
   currentServing?: string;
   waitingCount?: number;
+  // Transfer-specific fields
+  previousServiceName?: string;
+  previousDepartmentName?: string;
+  newServiceName?: string;
+  newDepartmentName?: string;
+  queuePosition?: number;
+  estimatedWaitTime?: string;
 }
 
 interface UltraMessageResponse {
@@ -39,7 +50,7 @@ export async function OPTIONS() {
 }
 
 async function formatMessage(
-  data: WhatsAppNotificationRequest
+  data: WhatsAppNotificationRequest,
 ): Promise<string> {
   const {
     ticketNumber,
@@ -69,28 +80,33 @@ async function formatMessage(
     currentlyServing: currentServing, // Database template expects this name
     waiting_count: waitingCount ? String(waitingCount) : undefined,
     waitingCount: waitingCount ? String(waitingCount) : undefined, // camelCase for database template
-    queue_position: "1", // Default position
-    queuePosition: "1", // Default position
+    queue_position: data.queuePosition ? String(data.queuePosition) : "1",
+    queuePosition: data.queuePosition ? String(data.queuePosition) : "1",
     totalInQueue: waitingCount ? String(waitingCount + 1) : "1", // Database template expects this name
-    estimatedWaitTime: "15 minutes", // Database template expects this name
+    estimatedWaitTime: data.estimatedWaitTime || "15 minutes", // Database template expects this name
+    // Transfer-specific template variables
+    previousServiceName: data.previousServiceName,
+    previousDepartmentName: data.previousDepartmentName,
+    newServiceName: data.newServiceName,
+    newDepartmentName: data.newDepartmentName,
   };
 
   // Try to get template from database first
   try {
     console.log(
-      `🗂️ Loading template '${type}' from database for organization: ${organizationId}`
+      `🗂️ Loading template '${type}' from database for organization: ${organizationId}`,
     );
     const templateMessage = await getMessageWithFallback(
       organizationId,
       type,
-      templateVariables
+      templateVariables,
     );
     console.log("✅ Using database template for notification");
     return templateMessage;
   } catch (error) {
     console.error(
       "Error loading template from database, using fallback:",
-      error
+      error,
     );
     // Fall through to hardcoded fallback
   }
@@ -118,9 +134,24 @@ Thank you for choosing ${organizationName}! 🙏`;
 
     case "ticket_created":
       console.warn(
-        "⚠️ ticket_created template requested - this type has been deprecated"
+        "⚠️ ticket_created template requested - this type has been deprecated",
       );
       return ""; // Return empty string to prevent message sending
+
+    case "ticket_transferred":
+      return `🔄 Ticket Transferred
+
+Your ticket *${ticketNumber}* has been transferred:
+
+↩️ From: ${data.previousServiceName || "Previous Service"} (${data.previousDepartmentName || "Previous Department"})
+↪️ To: ${data.newServiceName || "New Service"} (${data.newDepartmentName || "New Department"})
+
+👥 Position in Queue: ${data.queuePosition || "N/A"}
+⏱️ Estimated Wait: ${data.estimatedWaitTime || "N/A"}
+
+You'll receive updates about your new queue position.
+
+Thank you for choosing ${organizationName}! 🙏`;
 
     default:
       return `Update for ticket ${ticketNumber} at ${organizationName}`;
@@ -158,14 +189,14 @@ export async function POST(request: NextRequest) {
           error:
             "Missing required fields: phone, ticketNumber, departmentName, organizationName, organizationId, type",
         },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders },
       );
     }
 
     // Block ticket_created notifications as they have been removed from the system
     if (type === "ticket_created") {
       console.log(
-        "🚫 Blocking ticket_created notification - this type has been removed from the system"
+        "🚫 Blocking ticket_created notification - this type has been removed from the system",
       );
       return NextResponse.json(
         {
@@ -174,7 +205,7 @@ export async function POST(request: NextRequest) {
           error:
             "Use ticket confirmation messages through the conversation engine instead",
         },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders },
       );
     }
 
@@ -201,15 +232,14 @@ export async function POST(request: NextRequest) {
           message: "WhatsApp notifications are disabled",
           debug: "Set WHATSAPP_ENABLED=true in environment variables",
         },
-        { status: 200, headers: corsHeaders }
+        { status: 200, headers: corsHeaders },
       );
     }
 
     // Get UltraMessage configuration from database
     const ultraMessageManager = UltraMessageInstanceManager.getInstance();
-    const ultraMessageConfig = await ultraMessageManager.getOrganizationConfig(
-      organizationId
-    );
+    const ultraMessageConfig =
+      await ultraMessageManager.getOrganizationConfig(organizationId);
 
     console.log("🔧 WhatsApp Configuration:", {
       instanceId: ultraMessageConfig?.instanceId || "MISSING",
@@ -222,14 +252,14 @@ export async function POST(request: NextRequest) {
     if (!ultraMessageConfig?.instanceId || !ultraMessageConfig?.token) {
       console.error(
         "UltraMessage configuration missing for organization:",
-        organizationId
+        organizationId,
       );
       return NextResponse.json(
         {
           success: false,
           error: "WhatsApp API configuration incomplete for this organization",
         },
-        { status: 500, headers: corsHeaders }
+        { status: 500, headers: corsHeaders },
       );
     }
 
@@ -240,7 +270,7 @@ export async function POST(request: NextRequest) {
     // Check if message is empty (indicates deprecated notification type)
     if (!message || message.trim() === "") {
       console.log(
-        "🚫 Empty message - likely deprecated notification type, skipping send"
+        "🚫 Empty message - likely deprecated notification type, skipping send",
       );
       return NextResponse.json(
         {
@@ -249,7 +279,7 @@ export async function POST(request: NextRequest) {
           type,
           ticketNumber,
         },
-        { status: 200, headers: corsHeaders }
+        { status: 200, headers: corsHeaders },
       );
     }
 
@@ -274,7 +304,7 @@ export async function POST(request: NextRequest) {
             ticketNumber,
           },
         },
-        { headers: corsHeaders }
+        { headers: corsHeaders },
       );
     }
 
@@ -316,7 +346,7 @@ export async function POST(request: NextRequest) {
           error: "Invalid response from WhatsApp service",
           details: responseText,
         },
-        { status: 500, headers: corsHeaders }
+        { status: 500, headers: corsHeaders },
       );
     }
 
@@ -333,7 +363,7 @@ export async function POST(request: NextRequest) {
           error: "Failed to send WhatsApp message",
           details: responseData,
         },
-        { status: response.status, headers: corsHeaders }
+        { status: response.status, headers: corsHeaders },
       );
     }
 
@@ -355,7 +385,7 @@ export async function POST(request: NextRequest) {
           type,
           ticketNumber,
         },
-        { headers: corsHeaders }
+        { headers: corsHeaders },
       );
     } else {
       console.error("UltraMessage reported message not sent:", responseData);
@@ -374,7 +404,7 @@ export async function POST(request: NextRequest) {
           details: responseData.message || "Unknown error",
           ultraMessageResponse: responseData,
         },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders },
       );
     }
   } catch (error) {
@@ -385,7 +415,7 @@ export async function POST(request: NextRequest) {
         error: "Internal server error",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: corsHeaders },
     );
   }
 }
@@ -402,14 +432,13 @@ export async function GET(request: Request) {
     if (!organizationId) {
       return NextResponse.json(
         { error: "Organization ID is required" },
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: corsHeaders },
       );
     }
 
     const ultraMessageManager = UltraMessageInstanceManager.getInstance();
-    const ultraMessageConfig = await ultraMessageManager.getOrganizationConfig(
-      organizationId
-    );
+    const ultraMessageConfig =
+      await ultraMessageManager.getOrganizationConfig(organizationId);
     const whatsappEnabled = process.env.WHATSAPP_ENABLED === "true";
     const isDebugMode = process.env.WHATSAPP_DEBUG === "true";
 
@@ -425,12 +454,12 @@ export async function GET(request: Request) {
           ? `${ultraMessageConfig.baseUrl}/${ultraMessageConfig.instanceId}`
           : null,
       },
-      { headers: corsHeaders }
+      { headers: corsHeaders },
     );
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to get service status" },
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: corsHeaders },
     );
   }
 }

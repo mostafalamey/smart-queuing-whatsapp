@@ -14,6 +14,7 @@ export interface RolePermissions {
   canSelectBranch: boolean;
   canSelectDepartment: boolean;
   canResetQueue: boolean;
+  canTransferTicket: boolean;
   canViewAllBranches: boolean;
   canViewAllDepartments: boolean;
 
@@ -69,6 +70,7 @@ export const useRolePermissions = (): RolePermissions & {
         canSelectBranch: false,
         canSelectDepartment: false,
         canResetQueue: false,
+        canTransferTicket: false,
         canViewAllBranches: false,
         canViewAllDepartments: false,
         canEditOrganization: false,
@@ -114,6 +116,7 @@ export const useRolePermissions = (): RolePermissions & {
           canSelectBranch: true,
           canSelectDepartment: true,
           canResetQueue: true,
+          canTransferTicket: true,
           canViewAllBranches: true,
           canViewAllDepartments: true,
           canEditOrganization: true,
@@ -151,6 +154,7 @@ export const useRolePermissions = (): RolePermissions & {
           canSelectBranch: false, // Cannot select branch - auto-assigned
           canSelectDepartment: true,
           canResetQueue: true,
+          canTransferTicket: true,
           canViewAllBranches: false, // Only sees assigned branch
           canViewAllDepartments: true, // Can see departments in their branch
           canEditOrganization: false, // Cannot edit org details
@@ -188,6 +192,7 @@ export const useRolePermissions = (): RolePermissions & {
           canSelectBranch: false, // Cannot select branch - auto-assigned
           canSelectDepartment: false, // Cannot select department - auto-assigned
           canResetQueue: false, // Cannot reset queue
+          canTransferTicket: true, // Can transfer tickets during service
           canViewAllBranches: false, // Only sees assigned branch
           canViewAllDepartments: false, // Only sees assigned departments
           canEditOrganization: false,
@@ -225,6 +230,7 @@ export const useRolePermissions = (): RolePermissions & {
           canSelectBranch: false,
           canSelectDepartment: false,
           canResetQueue: false,
+          canTransferTicket: false,
           canViewAllBranches: false,
           canViewAllDepartments: false,
           canEditOrganization: false,

@@ -15,6 +15,12 @@ export interface MessageTemplateData {
   branchList?: string;
   departmentList?: string;
   serviceList?: string;
+  // Transfer-related fields
+  previousServiceName?: string;
+  previousDepartmentName?: string;
+  newServiceName?: string;
+  newDepartmentName?: string;
+  transferReason?: string;
 }
 
 export interface MessageTemplates {
@@ -40,6 +46,13 @@ export interface MessageTemplates {
     };
   };
   yourTurn: {
+    whatsapp: string;
+    push: {
+      title: string;
+      body: string;
+    };
+  };
+  ticketTransferred: {
     whatsapp: string;
     push: {
       title: string;
@@ -148,36 +161,71 @@ Thank you for waiting! 🙏`,
       body: "Ticket {{ticketNumber}} - Please proceed to {{departmentName}} counter now!",
     },
   },
+  ticketTransferred: {
+    whatsapp: `🔄 *Ticket Transferred*
+
+📋 *Ticket: {{ticketNumber}}*
+🏢 {{organizationName}}
+
+↩️ *From:* {{previousServiceName}} ({{previousDepartmentName}})
+↪️ *To:* {{newServiceName}} ({{newDepartmentName}})
+
+👥 *Position in Queue:* {{queuePosition}}
+⏱️ *Estimated Wait:* {{estimatedWaitTime}}
+
+Your ticket has been transferred to a different service. You'll receive updates about your new queue position.`,
+    push: {
+      title: "🔄 Ticket Transferred - {{organizationName}}",
+      body: "Ticket {{ticketNumber}} transferred to {{newServiceName}}. Position: {{queuePosition}}",
+    },
+  },
 };
 
 // Enhanced template replacement function
 export function processMessageTemplate(
   template: string,
-  data: MessageTemplateData
+  data: MessageTemplateData,
 ): string {
-  return template
-    .replace(
-      /\{\{organizationName\}\}/g,
-      data.organizationName || "Our Organization"
-    )
-    .replace(/\{\{ticketNumber\}\}/g, data.ticketNumber || "N/A")
-    .replace(/\{\{serviceName\}\}/g, data.serviceName || "Service")
-    .replace(/\{\{departmentName\}\}/g, data.departmentName || "Department")
-    .replace(/\{\{branchName\}\}/g, data.branchName || "Main Branch")
-    .replace(/\{\{customerName\}\}/g, data.customerName || "Customer")
-    .replace(/\{\{estimatedWaitTime\}\}/g, data.estimatedWaitTime || "N/A")
-    .replace(/\{\{queuePosition\}\}/g, (data.queuePosition || 0).toString())
-    .replace(/\{\{totalInQueue\}\}/g, (data.totalInQueue || 0).toString())
-    .replace(/\{\{currentlyServing\}\}/g, data.currentlyServing || "N/A")
-    .replace(/\{\{branchList\}\}/g, data.branchList || "")
-    .replace(/\{\{departmentList\}\}/g, data.departmentList || "")
-    .replace(/\{\{serviceList\}\}/g, data.serviceList || "");
+  return (
+    template
+      .replace(
+        /\{\{organizationName\}\}/g,
+        data.organizationName || "Our Organization",
+      )
+      .replace(/\{\{ticketNumber\}\}/g, data.ticketNumber || "N/A")
+      .replace(/\{\{serviceName\}\}/g, data.serviceName || "Service")
+      .replace(/\{\{departmentName\}\}/g, data.departmentName || "Department")
+      .replace(/\{\{branchName\}\}/g, data.branchName || "Main Branch")
+      .replace(/\{\{customerName\}\}/g, data.customerName || "Customer")
+      .replace(/\{\{estimatedWaitTime\}\}/g, data.estimatedWaitTime || "N/A")
+      .replace(/\{\{queuePosition\}\}/g, (data.queuePosition || 0).toString())
+      .replace(/\{\{totalInQueue\}\}/g, (data.totalInQueue || 0).toString())
+      .replace(/\{\{currentlyServing\}\}/g, data.currentlyServing || "N/A")
+      .replace(/\{\{branchList\}\}/g, data.branchList || "")
+      .replace(/\{\{departmentList\}\}/g, data.departmentList || "")
+      .replace(/\{\{serviceList\}\}/g, data.serviceList || "")
+      // Transfer-related placeholders
+      .replace(
+        /\{\{previousServiceName\}\}/g,
+        data.previousServiceName || "Previous Service",
+      )
+      .replace(
+        /\{\{previousDepartmentName\}\}/g,
+        data.previousDepartmentName || "Previous Department",
+      )
+      .replace(/\{\{newServiceName\}\}/g, data.newServiceName || "New Service")
+      .replace(
+        /\{\{newDepartmentName\}\}/g,
+        data.newDepartmentName || "New Department",
+      )
+      .replace(/\{\{transferReason\}\}/g, data.transferReason || "")
+  );
 }
 
 // Helper function to get queue statistics
 export async function getQueueStatistics(
   serviceId: string,
-  supabase: any
+  supabase: any,
 ): Promise<{
   queuePosition: number;
   totalInQueue: number;
@@ -211,10 +259,10 @@ export async function getQueueStatistics(
       estimatedMinutes <= 0
         ? "Now"
         : estimatedMinutes < 60
-        ? `${estimatedMinutes} min`
-        : `${Math.round(estimatedMinutes / 60)} hr ${
-            estimatedMinutes % 60
-          } min`;
+          ? `${estimatedMinutes} min`
+          : `${Math.round(estimatedMinutes / 60)} hr ${
+              estimatedMinutes % 60
+            } min`;
 
     return {
       queuePosition: queuePosition + 1, // +1 because this is the customer's position
