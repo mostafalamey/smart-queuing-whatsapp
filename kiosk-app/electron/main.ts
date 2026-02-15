@@ -43,8 +43,7 @@ const createWindow = (): void => {
 
     mainWindow.loadFile(indexPath);
 
-    // TEMPORARY: Open DevTools for debugging printer issues
-    mainWindow.webContents.openDevTools();
+    // DevTools can be opened with Ctrl+Shift+D or F12 when needed
 
     // Security: Disable right-click context menu in production
     mainWindow.webContents.on("context-menu", (e) => {
