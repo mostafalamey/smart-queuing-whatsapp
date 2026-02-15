@@ -4,7 +4,6 @@ import {
   Printer,
   Users,
   Clock,
-  QrCode,
   Settings,
   Wifi,
   WifiOff,
@@ -14,6 +13,8 @@ import {
   MessageSquare,
 } from "lucide-react";
 import QRCode from "qrcode";
+import usePrinter from "./hooks/usePrinter";
+import type { TicketData } from "./types/electron";
 
 // Supabase client
 const supabase = createClient(
@@ -59,7 +60,19 @@ interface Ticket {
   position: number;
 }
 
-const KioskApp: React.FC = () => {
+interface KioskAppProps {
+  onReconfigure?: () => void;
+}
+
+const KioskApp: React.FC<KioskAppProps> = ({ onReconfigure }) => {
+  // Printer hook for Electron integration
+  const {
+    printerStatus,
+    printTicket: electronPrintTicket,
+    isElectron,
+    error: _printerError, // Available for error display if needed
+  } = usePrinter();
+
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -77,12 +90,16 @@ const KioskApp: React.FC = () => {
   const [customerPhone, setCustomerPhone] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [lastTicket, setLastTicket] = useState<Ticket | null>(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   // Get organization ID from URL params or environment variable
   const urlParams = new URLSearchParams(window.location.search);
   const orgId = urlParams.get("org") || import.meta.env.VITE_ORGANIZATION_ID;
   const branchIdParam = urlParams.get("branch");
   const departmentIdParam = urlParams.get("department");
+
+  // In Electron mode with department set, the kiosk is "locked" to that department
+  const isLocked = !!departmentIdParam;
 
   useEffect(() => {
     if (!orgId) {
@@ -131,6 +148,13 @@ const KioskApp: React.FC = () => {
 
     return () => clearInterval(interval);
   }, [selectedDepartment]);
+
+  // Update printer ready state from Electron hook
+  useEffect(() => {
+    if (isElectron && printerStatus) {
+      setIsPrinterReady(printerStatus.connected);
+    }
+  }, [isElectron, printerStatus]);
 
   const loadOrganizationData = async () => {
     try {
@@ -260,9 +284,13 @@ const KioskApp: React.FC = () => {
 
   const checkPrinterStatus = async () => {
     try {
-      // Check if printer is available
-      // This would typically involve checking printer connection
-      // For now, we'll assume printer is ready if we're in kiosk mode
+      // In Electron mode, printer status comes from the hook
+      if (isElectron) {
+        // Status is automatically updated by usePrinter hook
+        return;
+      }
+
+      // In browser mode, assume printer is ready (for development)
       setIsPrinterReady(true);
     } catch (error) {
       console.error("Printer check failed:", error);
@@ -292,7 +320,7 @@ const KioskApp: React.FC = () => {
   const printTicket = async (service: Service, phone: string) => {
     try {
       // Create ticket in database using atomic RPC
-      const { data: ticket, error } = await supabase
+      const { data: ticketData, error } = await supabase
         .rpc("create_ticket_for_service", {
           p_service_id: service.id,
           p_customer_phone: phone,
@@ -301,6 +329,14 @@ const KioskApp: React.FC = () => {
         .single();
 
       if (error) throw error;
+
+      // Type the RPC response
+      const ticket = ticketData as {
+        id: string;
+        ticket_number: string;
+        created_at: string;
+        customer_phone?: string;
+      };
 
       // Get queue position
       const { count } = await supabase
@@ -311,18 +347,21 @@ const KioskApp: React.FC = () => {
         .lt("created_at", ticket.created_at);
 
       const position = (count || 0) + 1;
-      const ticketData = {
-        ...ticket,
-        position,
+      const fullTicket: Ticket = {
+        id: ticket.id,
+        ticket_number: ticket.ticket_number,
+        created_at: ticket.created_at,
+        customer_phone: ticket.customer_phone,
         service_name: service.name,
+        position,
       };
 
       // Print physical ticket
       if (isPrinterReady) {
-        await printPhysicalTicket(ticketData);
+        await printPhysicalTicket(fullTicket);
       }
 
-      setLastTicket(ticketData);
+      setLastTicket(fullTicket);
 
       // Refresh services to update queue lengths
       if (selectedDepartment) {
@@ -389,10 +428,38 @@ const KioskApp: React.FC = () => {
   };
 
   const printPhysicalTicket = async (ticket: Ticket) => {
-    // This would integrate with actual thermal printer
-    // For now, we'll log the ticket details
     console.log("Printing ticket:", ticket);
 
+    // Use Electron printer if available
+    if (isElectron && window.electronAPI) {
+      const ticketData: TicketData = {
+        ticket_number: ticket.ticket_number,
+        service_name: ticket.service_name,
+        position: ticket.position,
+        estimated_wait: calculateWaitTime(ticket.position),
+        created_at: ticket.created_at,
+        organization_name: organization?.name || "Queue System",
+        branch_name: selectedBranch?.name,
+        department_name: selectedDepartment?.name,
+        qr_code_url: organization?.whatsapp_business_number
+          ? `https://wa.me/${organization.whatsapp_business_number.replace(/^\+/, "")}?text=${encodeURIComponent(`My ticket: ${ticket.ticket_number}`)}`
+          : undefined,
+        customer_phone: ticket.customer_phone,
+      };
+
+      const result = await electronPrintTicket(ticketData);
+
+      if (!result.success) {
+        console.error("Print failed:", result.error);
+        // Show error but don't block - ticket was already created
+        alert(
+          `Print error: ${result.error}\n\nYour ticket number is: ${ticket.ticket_number}`,
+        );
+      }
+      return;
+    }
+
+    // Fallback for browser mode (development)
     const ticketContent = `
 =================================
         ${organization?.name}
@@ -412,7 +479,7 @@ Thank you for using our service!
 =================================
     `;
 
-    // In a real implementation, you would send this to the thermal printer
+    // In browser mode, show alert
     alert(`Ticket printed:\n${ticketContent}`);
   };
 
@@ -482,7 +549,7 @@ Thank you for using our service!
             <span>{isPrinterReady ? "Printer Ready" : "Printer Offline"}</span>
           </div>
           <button
-            onClick={() => setCurrentView("settings")}
+            onClick={() => setShowSettingsModal(true)}
             className="kiosk-icon-button"
             aria-label="Open settings"
           >
@@ -516,6 +583,7 @@ Thank you for using our service!
             services={services}
             onSelectService={handleServiceSelect}
             onBack={handleBack}
+            isLocked={isLocked}
           />
         )}
 
@@ -526,16 +594,19 @@ Thank you for using our service!
             generateQR={generateWhatsAppQR}
           />
         )}
-
-        {currentView === "settings" && (
-          <SettingsView
-            organization={organization}
-            isPrinterReady={isPrinterReady}
-            onBack={() => setCurrentView("branches")}
-            onCheckPrinter={checkPrinterStatus}
-          />
-        )}
       </main>
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <SettingsModal
+          organization={organization}
+          isPrinterReady={isPrinterReady}
+          onClose={() => setShowSettingsModal(false)}
+          onCheckPrinter={checkPrinterStatus}
+          onReconfigure={onReconfigure}
+          isElectron={isElectron}
+        />
+      )}
 
       {selectedService && (
         <PrintTicketModal
@@ -714,6 +785,7 @@ interface ServicesViewProps {
   services: Service[];
   onSelectService: (service: Service) => void;
   onBack: () => void;
+  isLocked?: boolean;
 }
 
 const ServicesView: React.FC<ServicesViewProps> = ({
@@ -721,20 +793,18 @@ const ServicesView: React.FC<ServicesViewProps> = ({
   services,
   onSelectService,
   onBack,
+  isLocked = false,
 }) => {
-  const totalWaiting = services.reduce(
-    (sum, service) => sum + service.current_queue_length,
-    0,
-  );
-
   return (
-    <div className="kiosk-view">
-      <div className="kiosk-stepbar">
-        <button onClick={onBack} className="kiosk-back-button">
-          Back
-        </button>
-        <div>
-          <p className="kiosk-step-label">Step 3 of 3</p>
+    <div className="kiosk-view kiosk-view-locked">
+      <div className="kiosk-stepbar kiosk-stepbar-centered">
+        {!isLocked && (
+          <button onClick={onBack} className="kiosk-back-button">
+            Back
+          </button>
+        )}
+        <div className={isLocked ? "text-center flex-1" : ""}>
+          {!isLocked && <p className="kiosk-step-label">Step 3 of 3</p>}
           <h2 className="kiosk-title">{department.name}</h2>
           <p className="kiosk-subtitle">Choose the service you need.</p>
         </div>
@@ -744,25 +814,25 @@ const ServicesView: React.FC<ServicesViewProps> = ({
         </div>
       </div>
 
-      <div className="kiosk-grid">
-        <section className="kiosk-panel">
+      <div className="kiosk-services-container">
+        <section className="kiosk-panel kiosk-panel-full">
           <div className="kiosk-panel-title">Available services</div>
-          <div className="kiosk-choice-grid">
+          <div className="kiosk-services-list">
             {services.map((service) => (
               <button
                 key={service.id}
-                className="kiosk-choice"
+                className="kiosk-service-card"
                 onClick={() => onSelectService(service)}
               >
-                <div>
-                  <div className="kiosk-choice-title">{service.name}</div>
+                <div className="kiosk-service-info">
+                  <div className="kiosk-service-name">{service.name}</div>
                   {service.description && (
-                    <div className="kiosk-choice-meta">
+                    <div className="kiosk-service-desc">
                       {service.description}
                     </div>
                   )}
                 </div>
-                <div className="kiosk-choice-stats">
+                <div className="kiosk-service-stats">
                   <span className="kiosk-chip">
                     <Users className="w-4 h-4" />
                     {service.current_queue_length} waiting
@@ -914,88 +984,126 @@ const QRView: React.FC<QRViewProps> = ({
   );
 };
 
-// Settings View Component
-interface SettingsViewProps {
+// Settings Modal Component
+interface SettingsModalProps {
   organization: Organization;
   isPrinterReady: boolean;
-  onBack: () => void;
+  onClose: () => void;
   onCheckPrinter: () => void;
+  onReconfigure?: () => void;
+  isElectron?: boolean;
 }
 
-const SettingsView: React.FC<SettingsViewProps> = ({
+const SettingsModal: React.FC<SettingsModalProps> = ({
   organization,
   isPrinterReady,
-  onBack,
+  onClose,
   onCheckPrinter,
+  onReconfigure,
+  isElectron,
 }) => {
   return (
-    <div className="kiosk-view">
-      <div className="kiosk-stepbar">
-        <button onClick={onBack} className="kiosk-back-button">
-          Back
-        </button>
-        <div>
-          <p className="kiosk-step-label">Administration</p>
-          <h2 className="kiosk-title">Kiosk settings</h2>
-          <p className="kiosk-subtitle">Device diagnostics and details.</p>
+    <div className="kiosk-modal-backdrop" onClick={onClose}>
+      <div
+        className="kiosk-settings-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="kiosk-settings-header">
+          <h3 className="kiosk-settings-title">Kiosk Settings</h3>
+          <button onClick={onClose} className="kiosk-close-button">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
         </div>
-      </div>
 
-      <div className="kiosk-grid">
-        <section className="kiosk-panel">
-          <div className="kiosk-panel-title">Organization</div>
-          <div className="kiosk-info-list">
-            <div>
-              <span className="kiosk-info-label">Name</span>
-              <span className="kiosk-info-value">{organization.name}</span>
-            </div>
-            <div>
-              <span className="kiosk-info-label">ID</span>
-              <span className="kiosk-info-value">{organization.id}</span>
-            </div>
-            <div>
-              <span className="kiosk-info-label">WhatsApp</span>
-              <span className="kiosk-info-value">
-                {organization.whatsapp_business_number}
-              </span>
+        <div className="kiosk-settings-body">
+          <div className="kiosk-settings-section">
+            <div className="kiosk-panel-title">Organization</div>
+            <div className="kiosk-info-list">
+              <div>
+                <span className="kiosk-info-label">Name</span>
+                <span className="kiosk-info-value">{organization.name}</span>
+              </div>
+              <div>
+                <span className="kiosk-info-label">WhatsApp</span>
+                <span className="kiosk-info-value">
+                  {organization.whatsapp_business_number}
+                </span>
+              </div>
             </div>
           </div>
-        </section>
 
-        <section className="kiosk-panel">
-          <div className="kiosk-panel-title">Printer status</div>
-          <div className="kiosk-status-row">
-            <div className="kiosk-status-pill">
-              <Printer
-                className={`w-5 h-5 ${
-                  isPrinterReady ? "text-emerald-600" : "text-rose-500"
-                }`}
-              />
-              <span>{isPrinterReady ? "Ready to print" : "Not connected"}</span>
+          <div className="kiosk-settings-section">
+            <div className="kiosk-panel-title">Printer status</div>
+            <div className="kiosk-status-row">
+              <div className="kiosk-status-pill">
+                <Printer
+                  className={`w-5 h-5 ${
+                    isPrinterReady ? "text-emerald-600" : "text-rose-500"
+                  }`}
+                />
+                <span>
+                  {isPrinterReady ? "Ready to print" : "Not connected"}
+                </span>
+              </div>
+              <button onClick={onCheckPrinter} className="kiosk-primary-button">
+                Check printer
+              </button>
             </div>
-            <button onClick={onCheckPrinter} className="kiosk-primary-button">
-              Check printer
-            </button>
           </div>
 
-          <div className="kiosk-panel-title">System info</div>
-          <div className="kiosk-info-list">
-            <div>
-              <span className="kiosk-info-label">Version</span>
-              <span className="kiosk-info-value">2.0.0</span>
-            </div>
-            <div>
-              <span className="kiosk-info-label">Mode</span>
-              <span className="kiosk-info-value">Kiosk</span>
-            </div>
-            <div>
-              <span className="kiosk-info-label">Last updated</span>
-              <span className="kiosk-info-value">
-                {new Date().toLocaleString()}
-              </span>
+          <div className="kiosk-settings-section">
+            <div className="kiosk-panel-title">System info</div>
+            <div className="kiosk-info-list">
+              <div>
+                <span className="kiosk-info-label">Version</span>
+                <span className="kiosk-info-value">2.0.0</span>
+              </div>
+              <div>
+                <span className="kiosk-info-label">Mode</span>
+                <span className="kiosk-info-value">Kiosk</span>
+              </div>
+              <div>
+                <span className="kiosk-info-label">Last updated</span>
+                <span className="kiosk-info-value">
+                  {new Date().toLocaleString()}
+                </span>
+              </div>
             </div>
           </div>
-        </section>
+
+          {/* Reconfigure Kiosk Button - Only shown in Electron mode */}
+          {isElectron && onReconfigure && (
+            <div className="kiosk-settings-section">
+              <div className="kiosk-panel-title">Administration</div>
+              <button
+                onClick={() => {
+                  onClose();
+                  onReconfigure();
+                }}
+                className="kiosk-reconfigure-button"
+              >
+                <Settings className="w-5 h-5" />
+                Reconfigure Kiosk
+              </button>
+              <p className="kiosk-reconfigure-hint">
+                Change department, PIN, or factory reset. Requires admin PIN.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

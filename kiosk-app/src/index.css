@@ -43,7 +43,8 @@ body {
 
 .kiosk-shell {
   min-height: 100vh;
-  background-image: radial-gradient(
+  background-image:
+    radial-gradient(
       circle at top left,
       rgba(15, 118, 110, 0.08),
       transparent 55%
@@ -120,7 +121,9 @@ body {
   border-radius: 12px;
   border: 1px solid var(--kiosk-border);
   background: var(--kiosk-surface);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .kiosk-icon-button:hover {
@@ -228,7 +231,9 @@ body {
   border-radius: 16px;
   border: 1px solid var(--kiosk-border);
   background: #fbfcfd;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
   min-height: 104px;
 }
 
@@ -577,4 +582,191 @@ body {
     font-size: 12px;
     line-height: 1.2;
   }
+}
+
+/* ============================================
+   LOCKED KIOSK MODE - Services View
+   ============================================ */
+
+.kiosk-view-locked {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.kiosk-stepbar-centered {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+}
+
+.kiosk-services-container {
+  flex: 1;
+  padding: 0 32px 32px;
+  overflow-y: auto;
+}
+
+.kiosk-panel-full {
+  background: var(--kiosk-surface);
+  border: 1px solid var(--kiosk-border);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--kiosk-shadow);
+  height: 100%;
+}
+
+.kiosk-services-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.kiosk-service-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  text-align: left;
+  padding: 24px 28px;
+  border-radius: 16px;
+  border: 1px solid var(--kiosk-border);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafa 100%);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+  cursor: pointer;
+}
+
+.kiosk-service-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(15, 118, 110, 0.12);
+  border-color: rgba(15, 118, 110, 0.3);
+}
+
+.kiosk-service-card:active {
+  transform: translateY(0);
+}
+
+.kiosk-service-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.kiosk-service-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--kiosk-ink);
+  margin-bottom: 4px;
+}
+
+.kiosk-service-desc {
+  font-size: 0.9rem;
+  color: var(--kiosk-ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kiosk-service-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   SETTINGS MODAL
+   ============================================ */
+
+.kiosk-settings-modal {
+  background: var(--kiosk-surface);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+.kiosk-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--kiosk-border);
+}
+
+.kiosk-settings-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--kiosk-ink);
+  margin: 0;
+}
+
+.kiosk-close-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--kiosk-border);
+  background: #f8fafc;
+  color: var(--kiosk-ink-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.kiosk-close-button:hover {
+  background: #f1f5f9;
+  color: var(--kiosk-ink);
+}
+
+.kiosk-settings-body {
+  padding: 24px 28px;
+}
+
+.kiosk-settings-section {
+  margin-bottom: 28px;
+}
+
+.kiosk-settings-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Reconfigure Button */
+.kiosk-reconfigure-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--kiosk-border);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  color: var(--kiosk-ink);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.kiosk-reconfigure-button:hover {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-color: #cbd5e1;
+}
+
+.kiosk-reconfigure-button:active {
+  transform: scale(0.98);
+}
+
+.kiosk-reconfigure-hint {
+  font-size: 0.8rem;
+  color: var(--kiosk-ink-muted);
+  text-align: center;
+  margin-top: 10px;
 }

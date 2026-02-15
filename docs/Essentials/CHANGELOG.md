@@ -1,5 +1,64 @@
 # Smart Queue System - Changelog
 
+## Version 4.0.0 - Electron Kiosk App with Thermal Printer Support (February 2026)
+
+### 🖨️ **Electron Desktop Kiosk Application**
+
+#### Complete Electron Rewrite
+
+- **Electron v28 Integration** - Complete rewrite of kiosk app as native Windows desktop application
+- **Kiosk Mode** - True fullscreen kiosk mode with locked interface for public deployment
+- **Windows Installer** - NSIS-based installer (`Smart Queue Kiosk-2.0.0-Setup.exe`) for easy deployment
+- **Custom App Icon** - Multi-resolution Windows icon using organization logo
+
+#### USB Thermal Printer Support
+
+- **node-thermal-printer Integration** - Native ESC/POS thermal printer support
+- **Auto-Print Mode** - Automatic ticket printing when customers take a number
+- **Multi-Printer Support** - Detect and select from multiple connected USB/serial printers
+- **Print Queue Management** - Reliable print job handling with error recovery
+- **Custom Ticket Layout** - Professional ticket format with queue number, date/time, and department info
+
+#### Setup Wizard & Configuration
+
+- **First-Run Setup Wizard** - Guided configuration for department and printer selection
+- **Organization/Branch/Department Selection** - Connect kiosk to any configured department
+- **Printer Discovery** - Automatic detection of available thermal printers
+- **Test Print Functionality** - Verify printer setup before going live
+- **PIN Protection** - 4-6 digit admin PIN for reconfiguration access
+
+#### Security & Administration
+
+- **PIN-Protected Reconfiguration** - Secure admin access with lockout after failed attempts
+- **Reconfigure Modal** - Change department, PIN, or factory reset from settings
+- **Settings Modal** - Quick access to configuration options from main interface
+- **Escape Key Exit** - Admin escape hatch to exit kiosk mode
+- **Context Menu Disabled** - Prevent right-click access in production
+
+#### UI/UX Improvements
+
+- **Services List Layout** - Vertical scrollable list for many services
+- **Settings Modal** - Non-navigating settings access with reconfigure option
+- **6-Digit PIN Support** - Extended PIN length with verify button (no auto-submit)
+- **Locked Mode UI** - Clean interface without back button when in kiosk mode
+
+### 🔧 **Technical Implementation**
+
+- **IPC Communication** - Secure main-to-renderer process communication for printer/config APIs
+- **Persistent Configuration** - JSON storage in `%APPDATA%/smart-queue-kiosk/`
+- **bcryptjs PIN Hashing** - Secure PIN storage with cryptographic hashing
+- **TypeScript Throughout** - Full type safety in Electron main process
+- **Vite Build Integration** - Fast development and optimized production builds
+
+### 📦 **Build & Deployment**
+
+- **electron-builder** - Professional Windows installer generation
+- **rcedit Integration** - Custom executable icon embedding
+- **electron-icon-builder** - Multi-resolution icon generation (16x16 to 1024x1024)
+- **Portable & Installer** - Both unpacked folder and setup executable available
+
+---
+
 ## Version 3.2.2 - UI/UX Enhancement & Mobile Responsiveness (September 4, 2025)
 
 ### 🎨 **Brand Consistency & Visual Enhancement**

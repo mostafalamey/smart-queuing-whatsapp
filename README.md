@@ -2,7 +2,7 @@
 
 A comprehensive queue management system that provides seamless customer interaction through WhatsApp, eliminating the need for separate customer applications. Features a powerful admin dashboard, kiosk interface, and complete WhatsApp-first customer experience.
 
-> **🎉 Latest Update (September 2025):** Successfully upgraded to **Multi-Tenant Architecture** with database-driven UltraMessage configuration. Each organization now manages their own WhatsApp Business API instance through the admin dashboard. [View Migration Details](./docs/Updates/MULTI_TENANT_ULTRAMESSAGE_MIGRATION_SEPTEMBER_2025.md)
+> **🎉 Latest Update (February 2026):** Released **Electron Kiosk App v4.0** with native USB thermal printer support, setup wizard, and PIN-protected reconfiguration. [View Changelog](./docs/Essentials/CHANGELOG.md)
 
 ## 🚀 System Overview
 
@@ -19,10 +19,14 @@ The Smart Queuing WhatsApp System enables customers to join and manage their que
 
 ### **Kiosk Application** (`/kiosk-app`)
 
-- Touch-screen interface for walk-in customers
+- **Electron Desktop App** - Native Windows application for kiosk deployment
+- **USB Thermal Printer Support** - Direct printing to ESC/POS thermal printers
+- **Auto-Print Mode** - Automatic ticket printing when customers take a number
+- **Setup Wizard** - Guided first-run configuration for department and printer
+- **PIN Protection** - Secure admin access for reconfiguration
+- Touch-screen optimized interface for walk-in customers
 - QR code generation for WhatsApp integration
-- Real-time queue display and management
-- Ticket printing functionality
+- Real-time queue display and ticket management
 
 ### **Customer App** (`/customer-app`)
 
@@ -73,19 +77,22 @@ smart-queuing-whatsapp/
 │   ├── src/app/           # App router pages
 │   ├── src/components/    # Reusable React components
 │   └── src/lib/           # Utilities and configurations
-├── kiosk-app/             # Kiosk interface (Vite + React)
-│   ├── src/components/    # Kiosk-specific components
-│   └── src/services/      # API integration
+├── kiosk-app/             # Electron Kiosk Application
+│   ├── electron/          # Electron main process
+│   │   ├── main.ts        # Main process entry
+│   │   ├── preload.ts     # Preload script (IPC bridge)
+│   │   └── services/      # Printer & config services
+│   ├── src/               # React renderer (Vite)
+│   │   ├── components/    # Kiosk UI components
+│   │   └── KioskApp.tsx   # Main kiosk interface
+│   ├── build-resources/   # App icons (ICO/PNG)
+│   └── release/           # Built installers
 ├── customer-app/          # Customer web interface (Next.js)
 │   ├── src/app/          # Customer-facing pages
 │   └── src/components/   # Customer UI components
-├── backend/               # API server (Node.js + Express)
-│   ├── src/controllers/   # Route handlers
-│   ├── src/services/      # Business logic
-│   └── src/models/        # Data models
 ├── supabase/              # Database migrations and functions
 │   ├── migrations/        # SQL migration files
-│   └── src/functions/     # Edge functions
+│   └── functions/         # Edge functions
 ├── shared/                # Shared utilities and types
 └── docs/                  # Documentation and guides
 ```
