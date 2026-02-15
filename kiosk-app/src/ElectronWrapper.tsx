@@ -116,9 +116,12 @@ const ElectronWrapper: React.FC = () => {
   }
 
   // Not configured - show setup wizard
+  // Force LTR for setup wizard (English only)
   if (!isConfigured) {
     return (
-      <SetupWizard onComplete={handleSetupComplete} saveConfig={saveConfig} />
+      <div dir="ltr" style={{ direction: 'ltr', textAlign: 'left' }}>
+        <SetupWizard onComplete={handleSetupComplete} saveConfig={saveConfig} />
+      </div>
     );
   }
 

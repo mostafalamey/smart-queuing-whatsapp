@@ -185,6 +185,7 @@ export const useTreeData = () => {
               services
                 ?.filter((s) => s.department_id === dept.id)
                 .map((s) => s.id) || [],
+            name_ar: dept.name_ar,
           };
 
           allNodes.push(deptNode);
@@ -228,6 +229,8 @@ export const useTreeData = () => {
             children: [],
             estimated_time: service.estimated_time,
             is_active: service.is_active,
+            name_ar: service.name_ar,
+            description_ar: service.description_ar,
           };
 
           allNodes.push(serviceNode);

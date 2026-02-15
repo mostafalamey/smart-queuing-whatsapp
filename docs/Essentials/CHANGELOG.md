@@ -1,5 +1,56 @@
 # Smart Queue System - Changelog
 
+## Version 4.2.0 - Arabic Localization (February 15, 2026)
+
+### 🌐 **Kiosk App Multilingual Support**
+
+#### Language Toggle
+- **English/Arabic Switch** - Toggle button in kiosk top bar
+- **RTL Layout Support** - Automatic right-to-left layout when Arabic is selected
+- **Persistent Preference** - Language choice saved to localStorage
+- **Instant Switching** - No page reload required
+
+#### Localized Content
+- **Department Names** - Display Arabic names when available (`name_ar` field)
+- **Service Names** - Display Arabic names when available (`name_ar` field)
+- **Service Descriptions** - Display Arabic descriptions when available (`description_ar` field)
+- **Fallback Support** - Falls back to English if Arabic translation missing
+- **50+ UI Translations** - All kiosk text translated (buttons, labels, headings)
+
+#### Admin App Updates
+- **Arabic Name Inputs** - New RTL input fields for Arabic names in department/service forms
+- **Arabic Description Input** - Optional Arabic description field for services
+- **Visual RTL Direction** - Input fields show proper RTL text direction
+
+#### Database Migration
+- **departments.name_ar** - New column for Arabic department names
+- **services.name_ar** - New column for Arabic service names
+- **services.description_ar** - New column for Arabic service descriptions
+
+### 🛠️ **Technical Implementation**
+
+#### New Files
+- `kiosk-app/src/i18n/translations.ts` - English/Arabic translation strings
+- `kiosk-app/src/i18n/LanguageContext.tsx` - React context and hooks
+- `kiosk-app/src/components/LanguageToggle.tsx` - Language toggle component
+- `supabase/migrations/20260215120000_add_arabic_names.sql` - Database migration
+- `docs/KIOSK_LOCALIZATION.md` - Localization documentation
+
+#### Modified Files
+- `kiosk-app/src/main.tsx` - Wrapped app with LanguageProvider
+- `kiosk-app/src/KioskApp.tsx` - All views use i18n hooks
+- `kiosk-app/src/index.css` - RTL-specific styles
+- `admin-app/src/app/manage/features/node-modal/NodeModal.tsx` - Arabic input fields
+- `admin-app/src/app/manage/features/shared/types.ts` - Added Arabic fields to types
+- `admin-app/src/lib/database.types.ts` - Added Arabic columns
+
+#### Design Decisions
+- Settings modal kept in English (admin-facing)
+- Setup wizard kept in English (admin-facing)
+- Custom i18n implementation (not i18next) for simplicity
+
+---
+
 ## Version 4.1.0 - Native Windows Printing & UX Enhancements (February 15, 2026)
 
 ### 🖨️ **Native Windows Printing Implementation**

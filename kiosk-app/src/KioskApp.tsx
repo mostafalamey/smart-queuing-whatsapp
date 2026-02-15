@@ -16,6 +16,8 @@ import toast, { Toaster } from "react-hot-toast";
 import usePrinter from "./hooks/usePrinter";
 import type { TicketData } from "./types/electron";
 import { supabase } from "./lib/supabase";
+import { useLanguage, useLocalizedName, useLocalizedDescription } from "./i18n";
+import { LanguageToggle } from "./components/LanguageToggle";
 
 interface Organization {
   id: string;
@@ -34,13 +36,16 @@ interface Branch {
 interface Department {
   id: string;
   name: string;
+  name_ar?: string | null;
   branch_id: string;
 }
 
 interface Service {
   id: string;
   name: string;
+  name_ar?: string | null;
   description?: string;
+  description_ar?: string | null;
   department_id: string;
   current_queue_length: number;
   estimated_wait_time: string;
@@ -564,6 +569,7 @@ Thank you for using our service!
         </div>
 
         <div className="kiosk-status">
+          <LanguageToggle />
           <div className="kiosk-pill">
             {isConnected ? (
               <Wifi className="w-4 h-4 text-emerald-600" />
@@ -671,31 +677,33 @@ const BranchesView: React.FC<BranchesViewProps> = ({
   onShowQR,
   lastTicket,
 }) => {
+  const { t } = useLanguage();
+
   return (
     <div className="kiosk-view">
       <div className="kiosk-stepbar">
         <div>
-          <p className="kiosk-step-label">Step 1 of 3</p>
-          <h2 className="kiosk-title">Choose a branch</h2>
-          <p className="kiosk-subtitle">Tap a branch to continue.</p>
+          <p className="kiosk-step-label">{t.stepOf.replace('{current}', '1').replace('{total}', '3')}</p>
+          <h2 className="kiosk-title">{t.chooseBranch}</h2>
+          <p className="kiosk-subtitle">{t.tapToContinue}</p>
         </div>
         <div className="kiosk-step-hint">
           <Users className="w-4 h-4 text-teal-700" />
-          <span>Touch-friendly selection</span>
+          <span>{t.touchFriendly}</span>
         </div>
       </div>
 
       <div className="kiosk-grid">
         <section className="kiosk-panel kiosk-panel-accent">
-          <div className="kiosk-panel-title">Quick actions</div>
+          <div className="kiosk-panel-title">{t.quickActions}</div>
           <button
             onClick={onShowQR}
             className="kiosk-choice kiosk-choice-accent"
           >
             <div>
-              <div className="kiosk-choice-title">Join by WhatsApp</div>
+              <div className="kiosk-choice-title">{t.joinByWhatsApp}</div>
               <div className="kiosk-choice-meta">
-                Scan the QR code to receive updates on your phone.
+                {t.scanQRDescription}
               </div>
             </div>
             <MessageSquare className="w-6 h-6 text-teal-700" />
@@ -703,28 +711,28 @@ const BranchesView: React.FC<BranchesViewProps> = ({
 
           {lastTicket && (
             <div className="kiosk-ticket-card">
-              <div className="kiosk-panel-title">Last ticket</div>
+              <div className="kiosk-panel-title">{t.lastTicket}</div>
               <div className="kiosk-ticket-grid">
                 <div>
-                  <span className="kiosk-ticket-label">Ticket</span>
+                  <span className="kiosk-ticket-label">{t.ticket}</span>
                   <div className="kiosk-ticket-value">
                     {lastTicket.ticket_number}
                   </div>
                 </div>
                 <div>
-                  <span className="kiosk-ticket-label">Service</span>
+                  <span className="kiosk-ticket-label">{t.service}</span>
                   <div className="kiosk-ticket-value">
                     {lastTicket.service_name}
                   </div>
                 </div>
                 <div>
-                  <span className="kiosk-ticket-label">Position</span>
+                  <span className="kiosk-ticket-label">{t.position}</span>
                   <div className="kiosk-ticket-value">
                     {lastTicket.position}
                   </div>
                 </div>
                 <div>
-                  <span className="kiosk-ticket-label">Time</span>
+                  <span className="kiosk-ticket-label">{t.time}</span>
                   <div className="kiosk-ticket-value">
                     {new Date(lastTicket.created_at).toLocaleTimeString()}
                   </div>
@@ -735,7 +743,7 @@ const BranchesView: React.FC<BranchesViewProps> = ({
         </section>
 
         <section className="kiosk-panel">
-          <div className="kiosk-panel-title">Available branches</div>
+          <div className="kiosk-panel-title">{t.availableBranches}</div>
           <div className="kiosk-choice-grid">
             {branches.map((branch) => (
               <button
@@ -749,7 +757,7 @@ const BranchesView: React.FC<BranchesViewProps> = ({
                     <div className="kiosk-choice-meta">{branch.address}</div>
                   )}
                 </div>
-                <span className="kiosk-choice-action">Select</span>
+                <span className="kiosk-choice-action">{t.select}</span>
               </button>
             ))}
           </div>
@@ -773,26 +781,29 @@ const DepartmentsView: React.FC<DepartmentsViewProps> = ({
   onSelectDepartment,
   onBack,
 }) => {
+  const { t } = useLanguage();
+  const getLocalizedName = useLocalizedName();
+
   return (
     <div className="kiosk-view">
       <div className="kiosk-stepbar">
         <button onClick={onBack} className="kiosk-back-button">
-          Back
+          {t.back}
         </button>
         <div>
-          <p className="kiosk-step-label">Step 2 of 3</p>
+          <p className="kiosk-step-label">{t.stepOf.replace('{current}', '2').replace('{total}', '3')}</p>
           <h2 className="kiosk-title">{branch.name}</h2>
-          <p className="kiosk-subtitle">Select a department to continue.</p>
+          <p className="kiosk-subtitle">{t.selectDepartment}</p>
         </div>
         <div className="kiosk-step-hint">
           <Users className="w-4 h-4 text-teal-700" />
-          <span>{departments.length} departments</span>
+          <span>{departments.length} {t.availableDepartments.toLowerCase().split(' ').pop()}</span>
         </div>
       </div>
 
       <div className="kiosk-grid">
         <section className="kiosk-panel">
-          <div className="kiosk-panel-title">Available departments</div>
+          <div className="kiosk-panel-title">{t.availableDepartments}</div>
           <div className="kiosk-choice-grid">
             {departments.map((department) => (
               <button
@@ -800,8 +811,8 @@ const DepartmentsView: React.FC<DepartmentsViewProps> = ({
                 className="kiosk-choice"
                 onClick={() => onSelectDepartment(department)}
               >
-                <div className="kiosk-choice-title">{department.name}</div>
-                <span className="kiosk-choice-action">Select</span>
+                <div className="kiosk-choice-title">{getLocalizedName(department)}</div>
+                <span className="kiosk-choice-action">{t.select}</span>
               </button>
             ))}
           </div>
@@ -827,28 +838,32 @@ const ServicesView: React.FC<ServicesViewProps> = ({
   onBack,
   isLocked = false,
 }) => {
+  const { t } = useLanguage();
+  const getLocalizedName = useLocalizedName();
+  const getLocalizedDescription = useLocalizedDescription();
+
   return (
     <div className="kiosk-view kiosk-view-locked">
       <div className="kiosk-stepbar kiosk-stepbar-centered">
         {!isLocked && (
           <button onClick={onBack} className="kiosk-back-button">
-            Back
+            {t.back}
           </button>
         )}
         <div className={isLocked ? "text-center flex-1" : ""}>
-          {!isLocked && <p className="kiosk-step-label">Step 3 of 3</p>}
-          <h2 className="kiosk-title">{department.name}</h2>
-          <p className="kiosk-subtitle">Choose the service you need.</p>
+          {!isLocked && <p className="kiosk-step-label">{t.stepOf.replace('{current}', '3').replace('{total}', '3')}</p>}
+          <h2 className="kiosk-title">{getLocalizedName(department)}</h2>
+          <p className="kiosk-subtitle">{t.chooseService}</p>
         </div>
         <div className="kiosk-step-hint">
           <Clock className="w-4 h-4 text-teal-700" />
-          <span>Live queue status</span>
+          <span>{t.liveQueueStatus}</span>
         </div>
       </div>
 
       <div className="kiosk-services-container">
         <section className="kiosk-panel kiosk-panel-full">
-          <div className="kiosk-panel-title">Available services</div>
+          <div className="kiosk-panel-title">{t.availableServices}</div>
           <div className="kiosk-services-list">
             {services.map((service) => (
               <button
@@ -857,17 +872,17 @@ const ServicesView: React.FC<ServicesViewProps> = ({
                 onClick={() => onSelectService(service)}
               >
                 <div className="kiosk-service-info">
-                  <div className="kiosk-service-name">{service.name}</div>
-                  {service.description && (
+                  <div className="kiosk-service-name">{getLocalizedName(service)}</div>
+                  {(service.description || service.description_ar) && (
                     <div className="kiosk-service-desc">
-                      {service.description}
+                      {getLocalizedDescription(service)}
                     </div>
                   )}
                 </div>
                 <div className="kiosk-service-stats">
                   <span className="kiosk-chip">
                     <Users className="w-4 h-4" />
-                    {service.current_queue_length} waiting
+                    {service.current_queue_length} {t.waiting}
                   </span>
                   <span className="kiosk-chip kiosk-chip-ghost">
                     <Clock className="w-4 h-4" />
@@ -901,6 +916,8 @@ const PrintTicketModal: React.FC<PrintTicketModalProps> = ({
   onCancel,
   onConfirm,
 }) => {
+  const { t } = useLanguage();
+  const getLocalizedName = useLocalizedName();
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-focus the phone input when modal opens
@@ -930,12 +947,12 @@ const PrintTicketModal: React.FC<PrintTicketModalProps> = ({
     <div className="kiosk-modal-backdrop">
       <div className="kiosk-modal kiosk-modal-dialpad">
         <div className="kiosk-modal-header">
-          <h3 className="kiosk-modal-title">Confirm your ticket</h3>
-          <p className="kiosk-modal-subtitle">Service: {service.name}</p>
+          <h3 className="kiosk-modal-title">{t.confirmYourTicket}</h3>
+          <p className="kiosk-modal-subtitle">{t.service}: {getLocalizedName(service)}</p>
         </div>
 
         <div className="kiosk-modal-body">
-          <label className="kiosk-label">Mobile number</label>
+          <label className="kiosk-label">{t.mobileNumber}</label>
           <input
             ref={inputRef}
             type="tel"
@@ -948,7 +965,7 @@ const PrintTicketModal: React.FC<PrintTicketModalProps> = ({
           {phoneError ? (
             <p className="kiosk-error">{phoneError}</p>
           ) : (
-            <p className="kiosk-hint">Enter your mobile number for updates</p>
+            <p className="kiosk-hint">{t.mobileNumberHint}</p>
           )}
 
           {/* On-screen Dial Pad */}
@@ -974,18 +991,18 @@ const PrintTicketModal: React.FC<PrintTicketModalProps> = ({
               <button className="kiosk-dialpad-btn kiosk-dialpad-special" onClick={handleBackspace}>⌫</button>
             </div>
             <div className="kiosk-dialpad-row kiosk-dialpad-row-single">
-              <button className="kiosk-dialpad-btn kiosk-dialpad-clear" onClick={handleClear}>Clear</button>
+              <button className="kiosk-dialpad-btn kiosk-dialpad-clear" onClick={handleClear}>{t.clear}</button>
             </div>
           </div>
         </div>
 
         <div className="kiosk-modal-actions">
           <button onClick={onCancel} className="kiosk-secondary-button">
-            Cancel
+            {t.cancel}
           </button>
           <button onClick={onConfirm} className="kiosk-primary-button">
             <Ticket className="w-5 h-5" />
-            Print ticket
+            {t.printTicket}
           </button>
         </div>
       </div>
@@ -1005,6 +1022,7 @@ const QRView: React.FC<QRViewProps> = ({
   onBack,
   generateQR,
 }) => {
+  const { t } = useLanguage();
   const [qrCode, setQrCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -1019,25 +1037,25 @@ const QRView: React.FC<QRViewProps> = ({
     <div className="kiosk-view">
       <div className="kiosk-stepbar">
         <button onClick={onBack} className="kiosk-back-button">
-          Back
+          {t.back}
         </button>
         <div>
-          <p className="kiosk-step-label">Optional path</p>
-          <h2 className="kiosk-title">Join via WhatsApp</h2>
+          <p className="kiosk-step-label">{t.optionalPath}</p>
+          <h2 className="kiosk-title">{t.joinViaWhatsApp}</h2>
           <p className="kiosk-subtitle">
-            Scan the code to receive updates on your phone.
+            {t.scanQRCode}
           </p>
         </div>
       </div>
 
       <div className="kiosk-grid kiosk-qr-grid">
         <section className="kiosk-panel">
-          <div className="kiosk-panel-title">How it works</div>
+          <div className="kiosk-panel-title">{t.howItWorks}</div>
           <ol className="kiosk-steps">
-            <li>Scan the QR code with your phone camera.</li>
-            <li>Send the WhatsApp message to start.</li>
-            <li>Choose your service and receive a ticket.</li>
-            <li>Get real-time updates from the clinic.</li>
+            <li>{t.scanQRCodeStep}</li>
+            <li>{t.sendMessageStep}</li>
+            <li>{t.chooseServiceStep}</li>
+            <li>{t.getUpdatesStep}</li>
           </ol>
           <div className="kiosk-info-card">
             <Phone className="w-4 h-4 text-teal-700" />
@@ -1046,7 +1064,7 @@ const QRView: React.FC<QRViewProps> = ({
         </section>
 
         <section className="kiosk-panel kiosk-qr-panel">
-          <div className="kiosk-panel-title">Scan to join</div>
+          <div className="kiosk-panel-title">{t.scanToJoin}</div>
           <div className="kiosk-qr-frame">
             {loading ? (
               <div className="kiosk-qr-loading">
@@ -1060,7 +1078,7 @@ const QRView: React.FC<QRViewProps> = ({
               />
             ) : (
               <div className="kiosk-qr-error">
-                <p>Unable to generate QR code.</p>
+                <p>{t.unableToGenerateQR}</p>
               </div>
             )}
           </div>
@@ -1089,7 +1107,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   isElectron,
 }) => {
   return (
-    <div className="kiosk-modal-backdrop" onClick={onClose}>
+    <div className="kiosk-modal-backdrop" dir="ltr" onClick={onClose}>
       <div
         className="kiosk-settings-modal"
         onClick={(e) => e.stopPropagation()}

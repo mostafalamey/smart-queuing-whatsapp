@@ -859,3 +859,108 @@ body {
   text-align: center;
   margin-top: 10px;
 }
+
+/* Language Toggle */
+.kiosk-language-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--kiosk-border);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--kiosk-ink);
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.kiosk-language-toggle:hover {
+  background: #f1f5f9;
+  border-color: var(--kiosk-accent);
+}
+
+.kiosk-language-toggle:active {
+  transform: scale(0.98);
+}
+
+.kiosk-language-label {
+  font-family: "Sora", "Segoe UI", sans-serif;
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  font-family: "Sora", "Segoe UI", "Tahoma", "Arial", sans-serif;
+}
+
+[dir="rtl"] .kiosk-topbar {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .kiosk-brand {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .kiosk-status {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .kiosk-stepbar {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .kiosk-back-button {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .kiosk-step-hint {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .kiosk-choice {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+[dir="rtl"] .kiosk-service-card {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+[dir="rtl"] .kiosk-service-info {
+  text-align: right;
+}
+
+[dir="rtl"] .kiosk-service-stats {
+  align-items: flex-end;
+}
+
+[dir="rtl"] .kiosk-chip {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .kiosk-ticket-card {
+  text-align: right;
+}
+
+[dir="rtl"] .kiosk-modal-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .kiosk-modal-actions {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .kiosk-phone-input-wrapper {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .kiosk-reconfigure-button {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .kiosk-language-toggle {
+  flex-direction: row-reverse;
+}
+

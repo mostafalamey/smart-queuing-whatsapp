@@ -35,6 +35,7 @@ export const useNodeOperations = () => {
           table = 'departments'
           insertData = {
             ...insertData,
+            name_ar: formData.name_ar || null,
             description: formData.description,
             branch_id: parentNode?.id
           }
@@ -44,7 +45,9 @@ export const useNodeOperations = () => {
             table = 'services'
             insertData = {
               ...insertData,
+              name_ar: formData.name_ar || null,
               description: formData.description,
+              description_ar: formData.description_ar || null,
               department_id: parentNode?.id,
               estimated_time: formData.estimated_time,
               is_active: formData.is_active ?? true
@@ -96,6 +99,7 @@ export const useNodeOperations = () => {
           table = 'departments'
           updateData = {
             ...updateData,
+            name_ar: formData.name_ar || null,
             description: formData.description
           }
           break
@@ -104,7 +108,9 @@ export const useNodeOperations = () => {
             table = 'services'
             updateData = {
               ...updateData,
+              name_ar: formData.name_ar || null,
               description: formData.description,
+              description_ar: formData.description_ar || null,
               estimated_time: formData.estimated_time,
               is_active: formData.is_active ?? true
             }

@@ -141,6 +141,7 @@ export interface Database {
           id: string;
           branch_id: string;
           name: string;
+          name_ar: string | null;
           prefix: string;
           is_active: boolean;
           created_at: string;
@@ -150,6 +151,7 @@ export interface Database {
           id?: string;
           branch_id: string;
           name: string;
+          name_ar?: string | null;
           prefix: string;
           is_active?: boolean;
           created_at?: string;
@@ -159,6 +161,7 @@ export interface Database {
           id?: string;
           branch_id?: string;
           name?: string;
+          name_ar?: string | null;
           prefix?: string;
           is_active?: boolean;
           created_at?: string;
@@ -240,7 +243,9 @@ export interface Database {
           id: string;
           department_id: string;
           name: string;
+          name_ar: string | null;
           description: string | null;
+          description_ar: string | null;
           service_code: string;
           estimated_duration: number;
           max_daily_capacity: number | null;
@@ -255,7 +260,9 @@ export interface Database {
           id?: string;
           department_id: string;
           name: string;
+          name_ar?: string | null;
           description?: string | null;
+          description_ar?: string | null;
           service_code: string;
           estimated_duration?: number;
           max_daily_capacity?: number | null;
@@ -270,7 +277,9 @@ export interface Database {
           id?: string;
           department_id?: string;
           name?: string;
+          name_ar?: string | null;
           description?: string | null;
+          description_ar?: string | null;
           service_code?: string;
           estimated_duration?: number;
           max_daily_capacity?: number | null;

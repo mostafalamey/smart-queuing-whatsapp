@@ -22,7 +22,9 @@ export const NodeModal = ({
 }: NodeModalProps) => {
   const [formData, setFormData] = useState<NodeFormData>({
     name: '',
+    name_ar: '',
     description: '',
+    description_ar: '',
     address: '',
     phone: '',
     email: '',
@@ -41,7 +43,9 @@ export const NodeModal = ({
         const nodeData = node as any
         setFormData({
           name: node.name || '',
+          name_ar: nodeData.name_ar || '',
           description: node.description || '',
+          description_ar: nodeData.description_ar || '',
           address: nodeData.address || '',
           phone: nodeData.phone || '',
           email: nodeData.email || '',
@@ -52,7 +56,9 @@ export const NodeModal = ({
         // Creating new node
         setFormData({
           name: '',
+          name_ar: '',
           description: '',
+          description_ar: '',
           address: '',
           phone: '',
           email: '',
@@ -132,6 +138,23 @@ export const NodeModal = ({
 
           {currentType !== 'branch' && (
             <div>
+              <label htmlFor="name_ar" className="block text-sm font-medium text-gray-700 mb-1">
+                Arabic Name (الاسم بالعربية)
+              </label>
+              <input
+                id="name_ar"
+                type="text"
+                dir="rtl"
+                value={formData.name_ar || ''}
+                onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="أدخل الاسم بالعربية"
+              />
+            </div>
+          )}
+
+          {currentType !== 'branch' && (
+            <div>
               <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
                 Description
               </label>
@@ -142,6 +165,23 @@ export const NodeModal = ({
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={3}
                 placeholder="Enter description"
+              />
+            </div>
+          )}
+
+          {currentType === 'service' && (
+            <div>
+              <label htmlFor="description_ar" className="block text-sm font-medium text-gray-700 mb-1">
+                Arabic Description (الوصف بالعربية)
+              </label>
+              <textarea
+                id="description_ar"
+                dir="rtl"
+                value={formData.description_ar || ''}
+                onChange={(e) => setFormData({ ...formData, description_ar: e.target.value })}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={3}
+                placeholder="أدخل الوصف بالعربية"
               />
             </div>
           )}

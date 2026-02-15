@@ -23,6 +23,7 @@ export interface DepartmentNode extends BaseNode {
   type: 'department';
   branch_id: string;
   parentId: string;
+  name_ar?: string;
 }
 
 export interface ServiceNode extends BaseNode {
@@ -31,6 +32,8 @@ export interface ServiceNode extends BaseNode {
   parentId: string;
   estimated_time?: number;
   is_active: boolean;
+  name_ar?: string;
+  description_ar?: string;
 }
 
 export type Node = BranchNode | DepartmentNode | ServiceNode;
@@ -42,7 +45,9 @@ export interface Connection {
 
 export interface NodeFormData {
   name: string;
+  name_ar?: string;
   description: string;
+  description_ar?: string;
   address?: string;
   phone?: string;
   email?: string;
