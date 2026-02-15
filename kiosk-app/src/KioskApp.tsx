@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { createClient } from "@supabase/supabase-js";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Printer,
   Users,
@@ -13,14 +12,10 @@ import {
   MessageSquare,
 } from "lucide-react";
 import QRCode from "qrcode";
+import toast, { Toaster } from "react-hot-toast";
 import usePrinter from "./hooks/usePrinter";
 import type { TicketData } from "./types/electron";
-
-// Supabase client
-const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY,
-);
+import { supabase } from "./lib/supabase";
 
 interface Organization {
   id: string;
@@ -70,6 +65,7 @@ const KioskApp: React.FC<KioskAppProps> = ({ onReconfigure }) => {
     printerStatus,
     printTicket: electronPrintTicket,
     isElectron,
+    checkStatus,
     error: _printerError, // Available for error display if needed
   } = usePrinter();
 
@@ -284,17 +280,52 @@ const KioskApp: React.FC<KioskAppProps> = ({ onReconfigure }) => {
 
   const checkPrinterStatus = async () => {
     try {
-      // In Electron mode, printer status comes from the hook
+      // In Electron mode, check printer status via IPC
       if (isElectron) {
-        // Status is automatically updated by usePrinter hook
+        // Get list of system printers for debugging
+        try {
+          const printerList = await window.electronAPI!.printer.list();
+          console.log('Available system printers:', printerList);
+        } catch (err) {
+          console.warn('Could not get printer list:', err);
+        }
+        
+        // Check thermal printer status
+        await checkStatus();
+        
+        // Wait a moment for state to update
+        setTimeout(() => {
+          if (printerStatus?.connected) {
+            toast.success(`Printer connected: ${printerStatus.status}`, {
+              duration: 3000,
+              position: 'bottom-center',
+            });
+          } else {
+            toast.error(
+              printerStatus?.status || 'Printer not connected. Please check USB connection.',
+              {
+                duration: 4000,
+                position: 'bottom-center',
+              }
+            );
+          }
+        }, 200);
         return;
       }
 
       // In browser mode, assume printer is ready (for development)
       setIsPrinterReady(true);
+      toast.success('Running in browser mode (no physical printer)', {
+        duration: 3000,
+        position: 'bottom-center',
+      });
     } catch (error) {
       console.error("Printer check failed:", error);
       setIsPrinterReady(false);
+      toast.error('Failed to check printer status', {
+        duration: 3000,
+        position: 'bottom-center',
+      });
     }
   };
 
@@ -516,6 +547,7 @@ Thank you for using our service!
 
   return (
     <div className="kiosk-shell">
+      <Toaster />
       <header className="kiosk-topbar">
         <div className="kiosk-brand">
           {organization.logo_url && (
@@ -869,9 +901,34 @@ const PrintTicketModal: React.FC<PrintTicketModalProps> = ({
   onCancel,
   onConfirm,
 }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus the phone input when modal opens
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  // Handle dial pad button press
+  const handleDialPadPress = (digit: string) => {
+    onChangePhone(customerPhone + digit);
+    inputRef.current?.focus();
+  };
+
+  // Handle backspace
+  const handleBackspace = () => {
+    onChangePhone(customerPhone.slice(0, -1));
+    inputRef.current?.focus();
+  };
+
+  // Handle clear
+  const handleClear = () => {
+    onChangePhone("");
+    inputRef.current?.focus();
+  };
+
   return (
     <div className="kiosk-modal-backdrop">
-      <div className="kiosk-modal">
+      <div className="kiosk-modal kiosk-modal-dialpad">
         <div className="kiosk-modal-header">
           <h3 className="kiosk-modal-title">Confirm your ticket</h3>
           <p className="kiosk-modal-subtitle">Service: {service.name}</p>
@@ -880,17 +937,46 @@ const PrintTicketModal: React.FC<PrintTicketModalProps> = ({
         <div className="kiosk-modal-body">
           <label className="kiosk-label">Mobile number</label>
           <input
+            ref={inputRef}
             type="tel"
             value={customerPhone}
             onChange={(e) => onChangePhone(e.target.value)}
             placeholder="+1234567890"
-            className={`kiosk-input ${phoneError ? "kiosk-input-error" : ""}`}
+            className={`kiosk-input kiosk-input-phone ${phoneError ? "kiosk-input-error" : ""}`}
+            autoFocus
           />
           {phoneError ? (
             <p className="kiosk-error">{phoneError}</p>
           ) : (
-            <p className="kiosk-hint">Used to send ticket updates.</p>
+            <p className="kiosk-hint">Enter your mobile number for updates</p>
           )}
+
+          {/* On-screen Dial Pad */}
+          <div className="kiosk-dialpad">
+            <div className="kiosk-dialpad-row">
+              <button className="kiosk-dialpad-btn" onClick={() => handleDialPadPress("1")}>1</button>
+              <button className="kiosk-dialpad-btn" onClick={() => handleDialPadPress("2")}>2</button>
+              <button className="kiosk-dialpad-btn" onClick={() => handleDialPadPress("3")}>3</button>
+            </div>
+            <div className="kiosk-dialpad-row">
+              <button className="kiosk-dialpad-btn" onClick={() => handleDialPadPress("4")}>4</button>
+              <button className="kiosk-dialpad-btn" onClick={() => handleDialPadPress("5")}>5</button>
+              <button className="kiosk-dialpad-btn" onClick={() => handleDialPadPress("6")}>6</button>
+            </div>
+            <div className="kiosk-dialpad-row">
+              <button className="kiosk-dialpad-btn" onClick={() => handleDialPadPress("7")}>7</button>
+              <button className="kiosk-dialpad-btn" onClick={() => handleDialPadPress("8")}>8</button>
+              <button className="kiosk-dialpad-btn" onClick={() => handleDialPadPress("9")}>9</button>
+            </div>
+            <div className="kiosk-dialpad-row">
+              <button className="kiosk-dialpad-btn kiosk-dialpad-special" onClick={() => handleDialPadPress("+")}>+</button>
+              <button className="kiosk-dialpad-btn" onClick={() => handleDialPadPress("0")}>0</button>
+              <button className="kiosk-dialpad-btn kiosk-dialpad-special" onClick={handleBackspace}>⌫</button>
+            </div>
+            <div className="kiosk-dialpad-row kiosk-dialpad-row-single">
+              <button className="kiosk-dialpad-btn kiosk-dialpad-clear" onClick={handleClear}>Clear</button>
+            </div>
+          </div>
         </div>
 
         <div className="kiosk-modal-actions">

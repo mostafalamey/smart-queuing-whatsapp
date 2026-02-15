@@ -1,5 +1,74 @@
 # Smart Queue System - Changelog
 
+## Version 4.1.0 - Native Windows Printing & UX Enhancements (February 15, 2026)
+
+### 🖨️ **Native Windows Printing Implementation**
+
+#### Complete Printer Service Rewrite
+- **Removed node-thermal-printer** - Replaced with Electron's native `webContents.print()` API
+- **Zero Dependency Conflicts** - Eliminated problematic `printer` npm package dependencies
+- **Universal Compatibility** - Works with any Windows printer driver
+- **HTML-Based Tickets** - Professional ticket rendering with full HTML/CSS support
+- **QR Code Integration** - Embedded QR codes for WhatsApp updates on tickets
+
+#### Improved Printer Detection
+- **Smart Auto-Detection** - Scans Windows printer list for thermal printer keywords
+- **Keywords Recognition** - Detects POS, thermal, receipt, GP-L, Epson, Star, Bixolon printers
+- **Auto-Selection** - Automatically selects first detected thermal printer
+- **Debug Logging** - Real-time printer detection logs forwarded to browser console
+- **DevTools in Production** - F12/Ctrl+Shift+D support for easier troubleshooting
+
+### 📱 **Kiosk UX Improvements**
+
+#### On-Screen Dial Pad
+- **Auto-Focus Phone Input** - Automatically focuses phone field when ticket modal opens
+- **Touch-Friendly Layout** - Phone-style 3x4 dial pad with large 72x56px buttons
+- **Complete Controls**:
+  - Number buttons (0-9)
+  - Plus (+) for international codes
+  - Backspace (⌫) for single character deletion
+  - Clear button to reset entire input
+- **Visual Feedback** - Hover and active states for better touch interaction
+- **Dual Input Support** - Works with both on-screen dial pad and physical keyboard
+
+#### Enhanced User Feedback
+- **Toast Notifications** - Success/error messages for printer status checks
+- **Real-Time Status** - Live printer connection status in UI
+- **Descriptive Errors** - Clear error messages when printer not found
+
+### 🔧 **Technical Changes**
+
+#### New Files
+- `kiosk-app/electron/services/nativePrinterService.ts` - Native Windows printing service
+- Enhanced modal with dial pad UI component
+
+#### Modified Files
+- `kiosk-app/electron/main.ts` - Switched to native printer service
+- `kiosk-app/src/KioskApp.tsx` - Added dial pad, auto-focus, and toast notifications
+- `kiosk-app/src/index.css` - Dial pad styling and touch-friendly design
+- `kiosk-app/src/hooks/usePrinter.ts` - Debug log forwarding
+
+#### Removed Dependencies
+- ❌ `node-thermal-printer` v4.4.0 (replaced with native printing)
+- ❌ `printer` npm package (dependency conflicts resolved)
+
+#### Retained Dependencies
+- ✅ `react-hot-toast` v2.6.0 - Toast notifications
+- ✅ `qrcode` v1.5.3 - QR code generation
+- ✅ `usb` v2.17.0 - USB device detection (for future features)
+- ✅ Native Electron APIs - No additional printer packages needed
+
+### 🎯 **Benefits**
+
+- **Reliability**: Native Windows printing eliminates \"No driver set!\" errors
+- **Compatibility**: Works with any thermal printer that has Windows drivers
+- **Ease of Setup**: No complex printer configuration or driver installation
+- **Better UX**: Auto-focus and dial pad improve customer experience
+- **Easier Debugging**: DevTools enabled in production for on-site troubleshooting
+- **Rich Formatting**: HTML/CSS ticket templates allow for better branding
+
+---
+
 ## Version 4.0.0 - Electron Kiosk App with Thermal Printer Support (February 2026)
 
 ### 🖨️ **Electron Desktop Kiosk Application**

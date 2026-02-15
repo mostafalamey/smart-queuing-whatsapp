@@ -30,6 +30,7 @@ export interface PrinterStatus {
   connected: boolean;
   status: string;
   paperLow?: boolean;
+  debugLog?: string[]; // Debug info from main process
 }
 
 export interface TicketData {
@@ -70,6 +71,11 @@ export interface ElectronAPI {
       ticketData: TicketData,
     ) => Promise<{ success: boolean; error?: string }>;
     test: () => Promise<{ success: boolean; error?: string }>;
+    list: () => Promise<Array<{
+      name: string;
+      displayName: string;
+      description: string;
+    }>>;
   };
 
   app: {

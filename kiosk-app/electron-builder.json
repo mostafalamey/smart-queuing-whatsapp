@@ -3,6 +3,7 @@
   "appId": "com.smartqueue.kiosk",
   "productName": "Smart Queue Kiosk",
   "copyright": "Copyright © 2026 ACS Smart Queue System",
+  "afterPack": "./afterPack.js",
   "directories": {
     "output": "release",
     "buildResources": "build-resources"
@@ -35,7 +36,8 @@
     "allowToChangeInstallationDirectory": true,
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "Smart Queue Kiosk"
+    "shortcutName": "Smart Queue Kiosk",
+    "runAfterFinish": false
   },
   "mac": {
     "target": [

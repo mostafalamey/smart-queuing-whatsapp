@@ -1,8 +1,8 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Sora:wght@300;400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Sora:wght@300;400;500;600;700&display=swap");
 
 :root {
   --kiosk-ink: #0b1726;
@@ -458,6 +458,95 @@ body {
 .kiosk-primary-button {
   background: var(--kiosk-accent);
   color: #ffffff;
+}
+
+/* Dial Pad Modal - wider for dial pad */
+.kiosk-modal-dialpad {
+  width: min(440px, 100%);
+}
+
+/* Phone input styling */
+.kiosk-input-phone {
+  font-size: 1.5rem;
+  text-align: center;
+  letter-spacing: 2px;
+  font-weight: 600;
+  padding: 16px;
+}
+
+/* Dial Pad */
+.kiosk-dialpad {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+  user-select: none;
+}
+
+.kiosk-dialpad-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.kiosk-dialpad-row-single {
+  margin-top: 4px;
+}
+
+.kiosk-dialpad-btn {
+  width: 72px;
+  height: 56px;
+  font-size: 1.75rem;
+  font-weight: 600;
+  border: 2px solid var(--kiosk-border);
+  border-radius: 12px;
+  background: var(--kiosk-surface);
+  color: var(--kiosk-ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.kiosk-dialpad-btn:hover {
+  background: var(--kiosk-accent-soft);
+  border-color: var(--kiosk-accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.kiosk-dialpad-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.kiosk-dialpad-special {
+  background: #f9fafb;
+  font-size: 1.5rem;
+  color: var(--kiosk-ink-muted);
+}
+
+.kiosk-dialpad-special:hover {
+  background: var(--kiosk-accent-soft);
+  color: var(--kiosk-accent);
+}
+
+.kiosk-dialpad-clear {
+  width: 234px;
+  height: 48px;
+  font-size: 1rem;
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.08);
+}
+
+.kiosk-dialpad-clear:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.12)
 }
 
 .kiosk-secondary-button {

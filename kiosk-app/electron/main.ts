@@ -2,7 +2,8 @@ import { app, BrowserWindow, ipcMain, shell, globalShortcut } from "electron";
 import * as path from "path";
 import * as fs from "fs";
 import * as configService from "./services/configService";
-import * as printerService from "./services/printerService";
+// Use native Windows printing instead of node-thermal-printer for better compatibility
+import * as printerService from "./services/nativePrinterService";
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -22,6 +23,7 @@ const createWindow = (): void => {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false, // Required for preload script
+      webSecurity: false, // Allow HTTPS requests from file:// protocol (kiosk app)
     },
   });
 
@@ -36,8 +38,13 @@ const createWindow = (): void => {
     const indexPath = path.join(__dirname, "..", "dist", "index.html");
     console.log("Loading index from:", indexPath);
     console.log("File exists:", fs.existsSync(indexPath));
+    console.log("__dirname:", __dirname);
+    console.log("app.getAppPath():", app.getAppPath());
 
     mainWindow.loadFile(indexPath);
+
+    // TEMPORARY: Open DevTools for debugging printer issues
+    mainWindow.webContents.openDevTools();
 
     // Security: Disable right-click context menu in production
     mainWindow.webContents.on("context-menu", (e) => {
@@ -56,6 +63,17 @@ const createWindow = (): void => {
   // Register Ctrl+Q to quit the app
   globalShortcut.register("CommandOrControl+Q", () => {
     app.quit();
+  });
+
+  // Register Ctrl+Shift+D to toggle DevTools (for debugging)
+  globalShortcut.register("CommandOrControl+Shift+D", () => {
+    if (mainWindow) {
+      if (mainWindow.webContents.isDevToolsOpened()) {
+        mainWindow.webContents.closeDevTools();
+      } else {
+        mainWindow.webContents.openDevTools();
+      }
+    }
   });
 
   // Security: Prevent navigation to external URLs
@@ -81,30 +99,25 @@ const createWindow = (): void => {
   // Security: Block dangerous keyboard shortcuts in production
   if (!isDev) {
     mainWindow.webContents.on("before-input-event", (event, input) => {
-      // Block F12, Ctrl+Shift+I (DevTools), Ctrl+R (refresh), Alt+F4 (close)
-      const blockedKeys = ["F12", "F5"];
-      const blockedCombos = [
-        { ctrl: true, shift: true, key: "I" },
-        { ctrl: true, shift: true, key: "J" },
-        { ctrl: true, key: "R" },
-        { alt: true, key: "F4" },
-      ];
+      // TEMPORARY: Allow F12 and DevTools shortcuts for debugging
+      // Block Ctrl+R (refresh), Alt+F4 (close), but allow F12 and DevTools
+      const blockedKeys = ["F5"]; // Removed F12 temporarily
 
       if (blockedKeys.includes(input.key)) {
         event.preventDefault();
         return;
       }
 
-      for (const combo of blockedCombos) {
-        if (
-          (combo.ctrl === undefined || combo.ctrl === input.control) &&
-          (combo.shift === undefined || combo.shift === input.shift) &&
-          (combo.alt === undefined || combo.alt === input.alt) &&
-          input.key.toUpperCase() === combo.key
-        ) {
-          event.preventDefault();
-          return;
-        }
+      // Block Ctrl+R
+      if (input.control && !input.shift && !input.alt && input.key.toUpperCase() === "R") {
+        event.preventDefault();
+        return;
+      }
+
+      // Block Alt+F4
+      if (input.alt && !input.control && !input.shift && input.key === "F4") {
+        event.preventDefault();
+        return;
       }
     });
   }
@@ -185,6 +198,21 @@ ipcMain.handle("pin:update", async (_event, oldPin: string, newPin: string) => {
 // ============================================================================
 
 ipcMain.handle("printer:status", async () => {
+  // First, update the printer service with current system printers
+  try {
+    const mainWindow = BrowserWindow.getAllWindows()[0];
+    if (mainWindow) {
+      const printers = await mainWindow.webContents.getPrintersAsync();
+      const printerList = printers.map(p => ({
+        name: p.name,
+        displayName: p.displayName || p.name,
+      }));
+      printerService.setSystemPrinters(printerList);
+    }
+  } catch (error) {
+    console.error('Failed to get system printers:', error);
+  }
+  
   return await printerService.getPrinterStatus();
 });
 
@@ -197,6 +225,25 @@ ipcMain.handle(
 
 ipcMain.handle("printer:test", async () => {
   return await printerService.printTestPage();
+});
+
+// Get list of system printers (for debugging)
+ipcMain.handle("printer:list", async () => {
+  try {
+    const mainWindow = BrowserWindow.getAllWindows()[0];
+    if (!mainWindow) return [];
+    
+    const printers = await mainWindow.webContents.getPrintersAsync();
+    console.log('System printers:', printers.map(p => p.name));
+    return printers.map(p => ({
+      name: p.name,
+      displayName: p.displayName || p.name,
+      description: p.description || '',
+    }));
+  } catch (error) {
+    console.error('Failed to get printer list:', error);
+    return [];
+  }
 });
 
 // ============================================================================

@@ -28,10 +28,12 @@ export interface PrinterStatus {
   status: string;
   paperLow?: boolean;
   printerType?: string;
+  debugLog?: string[]; // Debug info to show in renderer console
 }
 
 // Printer instance
 let printerInstance: ThermalPrinter | null = null;
+let lastDetectedInterface: string | null = null;
 
 // Printer configuration
 interface PrinterConfig {
@@ -42,12 +44,188 @@ interface PrinterConfig {
   width: number;
 }
 
+// USB Vendor IDs for common thermal printer manufacturers
+const THERMAL_PRINTER_VENDORS = [
+  '0x04b8', // Epson
+  '0x04e8', // Samsung/Bixolon
+  '0x0483', // STMicroelectronics (used by many Chinese printers)
+  '0x0416', // Star Micronics
+  '0x1504', // Citizen
+  '0x154f', // Wincor Nixdorf
+  '0x0456', // Flytech
+  '0x0fe6', // ICS Advent
+];
+
+// Keywords that identify thermal printers in Windows printer names
+const THERMAL_PRINTER_KEYWORDS = [
+  'pos',
+  'thermal',
+  'receipt',
+  'ticket',
+  'epson',
+  'star',
+  'bixolon',
+  'citizen',
+  'esc/pos',
+  'escpos',
+  '80mm',
+  '58mm',
+  'gp-l',
+];
+
+// System printers list (populated by main process)
+let systemPrinters: Array<{ name: string; displayName: string }> = [];
+
+/**
+ * Set the list of system printers (called from main process)
+ */
+export const setSystemPrinters = (printers: Array<{ name: string; displayName: string }>) => {
+  systemPrinters = printers;
+  console.log('System printers registered:', systemPrinters.map(p => p.name));
+};
+
 const DEFAULT_CONFIG: PrinterConfig = {
   type: PrinterTypes.EPSON,
-  interface: "printer:auto", // Auto-detect USB printer
+  interface: "printer:auto", // Try auto-detect first
   characterSet: CharacterSet.WPC1252,
   removeSpecialCharacters: false,
   width: 48, // 80mm paper width in characters
+};
+
+/**
+ * Detect thermal printers from Windows system printer list
+ */
+const detectWindowsPrinters = (): string[] => {
+  log('=== Detecting Windows Thermal Printers ===');
+  log(`Checking ${systemPrinters.length} system printers...`);
+  
+  const thermalPrinters: string[] = [];
+  
+  for (const printer of systemPrinters) {
+    const printerNameLower = printer.name.toLowerCase();
+    const displayNameLower = printer.displayName.toLowerCase();
+    
+    // Check if printer name contains thermal printer keywords
+    const isThermalPrinter = THERMAL_PRINTER_KEYWORDS.some(keyword => 
+      printerNameLower.includes(keyword) || displayNameLower.includes(keyword)
+    );
+    
+    if (isThermalPrinter) {
+      log(`  ✓ Found thermal printer: "${printer.name}"`);
+      thermalPrinters.push(`printer:${printer.name}`);
+    } else {
+      log(`  - Skipping: "${printer.name}" (not a thermal printer)`);
+    }
+  }
+  
+  if (thermalPrinters.length === 0) {
+    log('⚠ No thermal printers found in Windows printer list');
+  } else {
+    log(`✓ Found ${thermalPrinters.length} thermal printer(s)`);
+  }
+  
+  return thermalPrinters;
+};
+
+/**
+ * Detect available USB thermal printers
+ * Returns the first found thermal printer interface or null
+ */
+const detectUSBPrinter = async (): Promise<string | null> => {
+  try {
+    console.log('=== Starting USB Printer Detection ===');
+    // Try to use node-usb to detect thermal printers
+    const usb = await import('usb');
+    const devices = usb.getDeviceList();
+    
+    console.log(`Scanning ${devices.length} USB devices for thermal printers...`);
+    
+    for (const device of devices) {
+      const vid = `0x${device.deviceDescriptor.idVendor.toString(16).padStart(4, '0')}`;
+      const pid = `0x${device.deviceDescriptor.idProduct.toString(16).padStart(4, '0')}`;
+      
+      console.log(`  Found USB device: VID=${vid} PID=${pid}`);
+      
+      // Check if it's a known thermal printer vendor
+      if (THERMAL_PRINTER_VENDORS.includes(vid.toLowerCase())) {
+        const usbInterface = `usb://${vid}:${pid}`;
+        console.log(`  ✓ Detected thermal printer: ${usbInterface}`);
+        return usbInterface;
+      }
+    }
+    
+    console.log('No thermal printer found via USB detection');
+    console.log('Known thermal printer vendors:', THERMAL_PRINTER_VENDORS);
+    return null;
+  } catch (error) {
+    console.error('USB detection failed:', error);
+    console.error('Error details:', error instanceof Error ? error.stack : error);
+    return null;
+  }
+};
+
+// Debug log collector for returning to renderer
+let debugLogs: string[] = [];
+const log = (message: string) => {
+  console.log(message);
+  debugLogs.push(message);
+};
+const clearDebugLogs = () => { debugLogs = []; };
+const getDebugLogs = () => [...debugLogs];
+
+/**
+ * Try multiple printer interface methods
+ */
+const tryPrinterInterfaces = async (config: PrinterConfig): Promise<ThermalPrinter | null> => {
+  log('=== Attempting Printer Connection ===');
+  
+  // Detect Windows thermal printers
+  const windowsPrinters = detectWindowsPrinters();
+  
+  // Build list of interfaces to try, prioritizing Windows printers
+  const interfacesToTry = [
+    lastDetectedInterface, // Try last known working interface first
+    ...windowsPrinters,    // Try Windows thermal printers (highest priority)
+    'printer:auto',        // Try auto-detection
+    await detectUSBPrinter(), // Try USB detection
+    '//./usb',             // Windows USB printer
+    '/dev/usb/lp0',        // Linux USB printer (first port)
+    '/dev/usb/lp1',        // Linux USB printer (second port)
+  ].filter(Boolean) as string[];
+  
+  log(`Interfaces to try: ${JSON.stringify(interfacesToTry)}`);
+  log(`Platform: ${process.platform}`);
+  
+  for (const printerInterface of interfacesToTry) {
+    try {
+      log(`[${interfacesToTry.indexOf(printerInterface) + 1}/${interfacesToTry.length}] Attempting: ${printerInterface}`);
+      
+      const printer = new ThermalPrinter({
+        type: config.type,
+        interface: printerInterface,
+        characterSet: config.characterSet,
+        removeSpecialCharacters: config.removeSpecialCharacters,
+        width: config.width,
+      });
+      
+      log('  Printer instance created, checking connection...');
+      const isConnected = await printer.isPrinterConnected();
+      log(`  Connection check result: ${isConnected}`);
+      
+      if (isConnected) {
+        log(`  ✓✓✓ SUCCESS! Connected via: ${printerInterface}`);
+        lastDetectedInterface = printerInterface;
+        return printer;
+      } else {
+        log(`  ✗ Not connected via: ${printerInterface}`);
+      }
+    } catch (error) {
+      log(`  ✗ Error with ${printerInterface}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+  
+  log('=== All printer interfaces failed ===');
+  return null;
 };
 
 /**
@@ -59,13 +237,14 @@ export const initializePrinter = async (
   try {
     const printerConfig = { ...DEFAULT_CONFIG, ...config };
 
-    printerInstance = new ThermalPrinter({
-      type: printerConfig.type,
-      interface: printerConfig.interface,
-      characterSet: printerConfig.characterSet,
-      removeSpecialCharacters: printerConfig.removeSpecialCharacters,
-      width: printerConfig.width,
-    });
+    console.log('Initializing printer connection...');
+    
+    printerInstance = await tryPrinterInterfaces(printerConfig);
+
+    if (!printerInstance) {
+      console.error('Failed to connect to any printer interface');
+      return false;
+    }
 
     const isConnected = await printerInstance.isPrinterConnected();
     console.log("Printer initialized, connected:", isConnected);
@@ -73,6 +252,7 @@ export const initializePrinter = async (
     return isConnected;
   } catch (error) {
     console.error("Failed to initialize printer:", error);
+    printerInstance = null;
     return false;
   }
 };
@@ -81,38 +261,71 @@ export const initializePrinter = async (
  * Check printer status
  */
 export const getPrinterStatus = async (): Promise<PrinterStatus> => {
+  clearDebugLogs(); // Reset debug logs
+  
+  log('╔═══════════════════════════════════════════════════════╗');
+  log('║         PRINTER STATUS CHECK                          ║');
+  log('╚═══════════════════════════════════════════════════════╝');
+  log(`Timestamp: ${new Date().toISOString()}`);
+  log(`Current printer instance exists: ${!!printerInstance}`);
+  log(`Last detected interface: ${lastDetectedInterface || 'none'}`);
+  log(`System printers registered: ${systemPrinters.length}`);
+  
   if (!printerInstance) {
+    log('No printer instance found, attempting to initialize...');
     // Try to initialize if not already
     const initialized = await initializePrinter();
     if (!initialized) {
+      log('❌ Initialization FAILED');
       return {
         connected: false,
-        status: "Printer not found. Please check USB connection.",
+        status: "Printer not found. Please check USB connection and ensure the printer is powered on.",
+        debugLog: getDebugLogs(),
       };
     }
+    log('✓ Initialization successful');
   }
 
   try {
+    log('Checking if printer is connected...');
     const isConnected = await printerInstance!.isPrinterConnected();
+    log(`isPrinterConnected() returned: ${isConnected}`);
 
     if (!isConnected) {
+      log('❌ Printer reports as disconnected');
+      // Reset instance to force redetection on next check
+      printerInstance = null;
       return {
         connected: false,
-        status: "Printer disconnected",
+        status: "Printer disconnected. Please check the USB cable.",
+        debugLog: getDebugLogs(),
       };
     }
 
+    log('✓✓✓ Printer is CONNECTED!');
+    const statusMessage = lastDetectedInterface 
+      ? `Ready (${lastDetectedInterface})` 
+      : "Ready";
+    log(`Status message: ${statusMessage}`);
+    
     return {
       connected: true,
-      status: "Ready",
+      status: statusMessage,
       printerType: "ESC/POS Thermal",
+      debugLog: getDebugLogs(),
     };
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
+    log(`❌ Error during printer status check: ${errorMessage}`);
+    
+    // Reset instance on error
+    printerInstance = null;
+    
     return {
       connected: false,
       status: `Error: ${errorMessage}`,
+      debugLog: getDebugLogs(),
     };
   }
 };

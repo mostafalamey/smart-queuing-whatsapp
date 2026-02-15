@@ -36,6 +36,14 @@ const usePrinter = (): UsePrinterResult => {
 
     try {
       const status = await window.electronAPI!.printer.status();
+      
+      // Log debug info from main process to browser console
+      if (status.debugLog && status.debugLog.length > 0) {
+        console.log('\n========== PRINTER DEBUG LOG ==========');
+        status.debugLog.forEach(line => console.log(line));
+        console.log('========================================\n');
+      }
+      
       setPrinterStatus(status);
     } catch (err) {
       console.error("Failed to check printer status:", err);

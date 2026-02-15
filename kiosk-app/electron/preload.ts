@@ -34,6 +34,11 @@ export interface ElectronAPI {
       ticketData: TicketData,
     ) => Promise<{ success: boolean; error?: string }>;
     test: () => Promise<{ success: boolean; error?: string }>;
+    list: () => Promise<Array<{
+      name: string;
+      displayName: string;
+      description: string;
+    }>>;
   };
 
   // App info
@@ -107,6 +112,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     print: (ticketData: TicketData) =>
       ipcRenderer.invoke("printer:print", ticketData),
     test: () => ipcRenderer.invoke("printer:test"),
+    list: () => ipcRenderer.invoke("printer:list"),
   },
 
   // App info
