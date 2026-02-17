@@ -110,6 +110,10 @@ const KioskApp: React.FC<KioskAppProps> = ({ onReconfigure }) => {
     }
 
     const initialize = async () => {
+      // Clear any stale auth sessions to prevent JWT expiration issues
+      // Kiosk should always use anonymous access (anon key) which doesn't expire
+      await supabase.auth.signOut();
+      
       await loadOrganizationData();
       checkPrinterStatus();
 

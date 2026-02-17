@@ -4,6 +4,7 @@ import AdminLogin from "./AdminLogin";
 import BranchSelector from "./BranchSelector";
 import DepartmentSelector from "./DepartmentSelector";
 import PinSetup from "./PinSetup";
+import { supabase } from "../../lib/supabase";
 import type { KioskConfigInput } from "../../types/electron";
 
 type WizardStep =
@@ -95,6 +96,10 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({
       const result = await saveConfig(config, pin);
 
       if (result.success) {
+        // Sign out to clear the session - kiosk should use anonymous access only
+        // This prevents JWT expiration issues since anon key doesn't expire
+        await supabase.auth.signOut();
+        
         setStep("complete");
         // Wait a moment to show success, then complete
         setTimeout(() => {
