@@ -98,9 +98,13 @@ const KioskApp: React.FC<KioskAppProps> = ({ onReconfigure }) => {
   const orgId = urlParams.get("org") || import.meta.env.VITE_ORGANIZATION_ID;
   const branchIdParam = urlParams.get("branch");
   const departmentIdParam = urlParams.get("department");
+  const kioskTypeParam = urlParams.get("kiosk_type") as 'main' | 'department' | null;
 
-  // In Electron mode with department set, the kiosk is "locked" to that department
-  const isLocked = !!departmentIdParam;
+  // Determine kiosk mode:
+  // - "main" kiosk: Shows departments first, allows navigating to services with back button
+  // - "department" kiosk: Locked to a specific department, shows only services
+  const isMainKiosk = kioskTypeParam === 'main';
+  const isLocked = kioskTypeParam === 'department' && !!departmentIdParam;
 
   useEffect(() => {
     if (!orgId) {
@@ -117,6 +121,29 @@ const KioskApp: React.FC<KioskAppProps> = ({ onReconfigure }) => {
       await loadOrganizationData();
       checkPrinterStatus();
 
+      // Department kiosk: locked to specific department
+      if (departmentIdParam && kioskTypeParam === 'department') {
+        const department = await loadDepartmentById(departmentIdParam);
+        if (department) {
+          setSelectedDepartment(department);
+          await loadServices(department.id);
+          setCurrentView("services");
+          return;
+        }
+      }
+
+      // Main kiosk: starts at departments view for the branch
+      if (branchIdParam && kioskTypeParam === 'main') {
+        const branch = await loadBranchById(branchIdParam);
+        if (branch) {
+          setSelectedBranch(branch);
+          await loadDepartments(branch.id);
+          setCurrentView("departments");
+          return;
+        }
+      }
+
+      // Legacy support: department param without kiosk_type
       if (departmentIdParam) {
         const department = await loadDepartmentById(departmentIdParam);
         if (department) {
@@ -127,6 +154,7 @@ const KioskApp: React.FC<KioskAppProps> = ({ onReconfigure }) => {
         }
       }
 
+      // Legacy support: branch param without kiosk_type
       if (branchIdParam) {
         const branch = await loadBranchById(branchIdParam);
         if (branch) {
@@ -460,7 +488,8 @@ const KioskApp: React.FC<KioskAppProps> = ({ onReconfigure }) => {
       return;
     }
 
-    if (currentView === "departments") {
+    // In main kiosk mode, departments is the home view - don't go back to branches
+    if (currentView === "departments" && !isMainKiosk) {
       setSelectedBranch(null);
       setDepartments([]);
       setCurrentView("branches");
@@ -616,6 +645,7 @@ Thank you for using our service!
             departments={departments}
             onSelectDepartment={handleDepartmentSelect}
             onBack={handleBack}
+            isMainKiosk={isMainKiosk}
           />
         )}
 
@@ -626,6 +656,7 @@ Thank you for using our service!
             onSelectService={handleServiceSelect}
             onBack={handleBack}
             isLocked={isLocked}
+            isMainKiosk={isMainKiosk}
           />
         )}
 
@@ -777,6 +808,7 @@ interface DepartmentsViewProps {
   departments: Department[];
   onSelectDepartment: (department: Department) => void;
   onBack: () => void;
+  isMainKiosk?: boolean;
 }
 
 const DepartmentsView: React.FC<DepartmentsViewProps> = ({
@@ -784,18 +816,27 @@ const DepartmentsView: React.FC<DepartmentsViewProps> = ({
   departments,
   onSelectDepartment,
   onBack,
+  isMainKiosk = false,
 }) => {
   const { t } = useLanguage();
   const getLocalizedName = useLocalizedName();
 
+  // In main kiosk mode: Step 1 of 2 (Dept -> Services)
+  // In normal flow: Step 2 of 3 (Branch -> Dept -> Services)
+  const stepLabel = isMainKiosk 
+    ? t.stepOf.replace('{current}', '1').replace('{total}', '2')
+    : t.stepOf.replace('{current}', '2').replace('{total}', '3');
+
   return (
     <div className="kiosk-view">
-      <div className="kiosk-stepbar">
-        <button onClick={onBack} className="kiosk-back-button">
-          {t.back}
-        </button>
-        <div>
-          <p className="kiosk-step-label">{t.stepOf.replace('{current}', '2').replace('{total}', '3')}</p>
+      <div className={`kiosk-stepbar ${isMainKiosk ? 'kiosk-stepbar-centered' : ''}`}>
+        {!isMainKiosk && (
+          <button onClick={onBack} className="kiosk-back-button">
+            {t.back}
+          </button>
+        )}
+        <div className={isMainKiosk ? "text-center flex-1" : ""}>
+          <p className="kiosk-step-label">{stepLabel}</p>
           <h2 className="kiosk-title">{branch.name}</h2>
           <p className="kiosk-subtitle">{t.selectDepartment}</p>
         </div>
@@ -833,6 +874,7 @@ interface ServicesViewProps {
   onSelectService: (service: Service) => void;
   onBack: () => void;
   isLocked?: boolean;
+  isMainKiosk?: boolean;
 }
 
 const ServicesView: React.FC<ServicesViewProps> = ({
@@ -841,10 +883,17 @@ const ServicesView: React.FC<ServicesViewProps> = ({
   onSelectService,
   onBack,
   isLocked = false,
+  isMainKiosk = false,
 }) => {
   const { t } = useLanguage();
   const getLocalizedName = useLocalizedName();
   const getLocalizedDescription = useLocalizedDescription();
+
+  // In main kiosk mode: Step 2 of 2 (Dept -> Services)
+  // In normal flow: Step 3 of 3 (Branch -> Dept -> Services)
+  const stepLabel = isMainKiosk 
+    ? t.stepOf.replace('{current}', '2').replace('{total}', '2')
+    : t.stepOf.replace('{current}', '3').replace('{total}', '3');
 
   return (
     <div className="kiosk-view kiosk-view-locked">
@@ -855,7 +904,7 @@ const ServicesView: React.FC<ServicesViewProps> = ({
           </button>
         )}
         <div className={isLocked ? "text-center flex-1" : ""}>
-          {!isLocked && <p className="kiosk-step-label">{t.stepOf.replace('{current}', '3').replace('{total}', '3')}</p>}
+          {!isLocked && <p className="kiosk-step-label">{stepLabel}</p>}
           <h2 className="kiosk-title">{getLocalizedName(department)}</h2>
           <p className="kiosk-subtitle">{t.chooseService}</p>
         </div>

@@ -101,10 +101,10 @@ export const DepartmentSelector: React.FC<DepartmentSelectorProps> = ({
           <div className="mt-4 h-1 bg-slate-200 rounded-full">
             <div
               className="h-1 bg-blue-600 rounded-full"
-              style={{ width: "60%" }}
+              style={{ width: "80%" }}
             />
           </div>
-          <p className="text-sm text-slate-500 mt-2">Step 3 of 4</p>
+          <p className="text-sm text-slate-500 mt-2">Step 4 of 5</p>
         </div>
 
         {/* Error */}

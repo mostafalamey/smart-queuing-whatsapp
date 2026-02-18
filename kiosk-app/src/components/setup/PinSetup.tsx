@@ -6,11 +6,13 @@ import {
   CheckCircle,
   Loader2,
 } from "lucide-react";
+import type { KioskType } from "../../types/electron";
 
 interface PinSetupProps {
   organizationName: string;
   branchName: string;
-  departmentName: string;
+  departmentName?: string;
+  kioskType: KioskType;
   onComplete: (pin: string) => void;
   onBack: () => void;
   saving?: boolean;
@@ -24,6 +26,7 @@ export const PinSetup: React.FC<PinSetupProps> = ({
   organizationName,
   branchName,
   departmentName,
+  kioskType,
   onComplete,
   onBack,
   saving = false,
@@ -193,7 +196,9 @@ export const PinSetup: React.FC<PinSetupProps> = ({
               <h1 className="text-2xl font-bold text-slate-900">
                 {step === "enter" ? "Set Admin PIN" : "Confirm PIN"}
               </h1>
-              <p className="text-slate-600">{departmentName}</p>
+              <p className="text-slate-600">
+                {kioskType === 'main' ? 'Main Kiosk' : departmentName}
+              </p>
             </div>
           </div>
 
@@ -203,16 +208,21 @@ export const PinSetup: React.FC<PinSetupProps> = ({
               style={{ width: step === "enter" ? "80%" : "100%" }}
             />
           </div>
-          <p className="text-sm text-slate-500 mt-2">Step 4 of 4</p>
+          <p className="text-sm text-slate-500 mt-2">
+            Step {kioskType === 'main' ? '4 of 4' : '5 of 5'}
+          </p>
         </div>
 
         {/* Configuration Summary */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <p className="text-sm font-medium text-blue-800">
-            This kiosk will be configured for:
+            This kiosk will be configured as:
           </p>
           <p className="text-blue-900 mt-1">
-            {organizationName} • {branchName} • {departmentName}
+            {kioskType === 'main' 
+              ? `${organizationName} • ${branchName} • Main Kiosk (All Departments)`
+              : `${organizationName} • ${branchName} • ${departmentName}`
+            }
           </p>
         </div>
 

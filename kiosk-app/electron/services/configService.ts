@@ -10,13 +10,16 @@ import * as bcrypt from "bcryptjs";
  * - Admin PIN for reconfiguration
  */
 
+export type KioskType = 'main' | 'department';
+
 export interface KioskConfig {
   organization_id: string;
   organization_name: string;
   branch_id: string;
   branch_name: string;
-  department_id: string;
-  department_name: string;
+  department_id?: string;
+  department_name?: string;
+  kiosk_type: KioskType;
   admin_pin_hash: string;
   configured_at: string;
   configured_by: string;
@@ -54,12 +57,18 @@ export const isConfigured = (): boolean => {
   try {
     const config = loadConfig();
     // Validate required fields
-    return !!(
-      config &&
-      config.organization_id &&
-      config.department_id &&
-      config.admin_pin_hash
-    );
+    // For main kiosk: organization, branch, kiosk_type, and pin are required
+    // For department kiosk: also requires department_id
+    if (!config || !config.organization_id || !config.admin_pin_hash || !config.kiosk_type) {
+      return false;
+    }
+    
+    // Department kiosk requires department_id
+    if (config.kiosk_type === 'department' && !config.department_id) {
+      return false;
+    }
+    
+    return true;
   } catch {
     return false;
   }
@@ -111,11 +120,17 @@ export const saveConfig = async (
       organization_name: config.organization_name,
       branch_id: config.branch_id,
       branch_name: config.branch_name,
-      department_id: config.department_id,
-      department_name: config.department_name,
+      kiosk_type: config.kiosk_type,
       admin_pin_hash: pinHash,
       configured_at: config.configured_at || new Date().toISOString(),
       configured_by: config.configured_by,
+      // Only include department fields for department kiosk
+      ...(config.kiosk_type === 'department' && config.department_id
+        ? {
+            department_id: config.department_id,
+            department_name: config.department_name,
+          }
+        : {}),
     };
 
     const configPath = getConfigFilePath();

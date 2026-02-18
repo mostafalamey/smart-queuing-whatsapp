@@ -3,13 +3,15 @@ import { CheckCircle, AlertCircle } from "lucide-react";
 import AdminLogin from "./AdminLogin";
 import BranchSelector from "./BranchSelector";
 import DepartmentSelector from "./DepartmentSelector";
+import KioskTypeSelector from "./KioskTypeSelector";
 import PinSetup from "./PinSetup";
 import { supabase } from "../../lib/supabase";
-import type { KioskConfigInput } from "../../types/electron";
+import type { KioskConfigInput, KioskType } from "../../types/electron";
 
 type WizardStep =
   | "login"
   | "branch"
+  | "kiosk-type"
   | "department"
   | "pin"
   | "complete"
@@ -44,7 +46,7 @@ interface SetupWizardProps {
 
 /**
  * Setup Wizard - orchestrates the first-run kiosk configuration flow
- * Steps: Login → Select Branch → Select Department → Set PIN → Complete
+ * Steps: Login → Select Branch → Select Kiosk Type → (Select Department if department kiosk) → Set PIN → Complete
  */
 export const SetupWizard: React.FC<SetupWizardProps> = ({
   onComplete,
@@ -53,6 +55,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({
   const [step, setStep] = useState<WizardStep>("login");
   const [user, setUser] = useState<UserInfo | null>(null);
   const [branch, setBranch] = useState<Branch | null>(null);
+  const [kioskType, setKioskType] = useState<KioskType | null>(null);
   const [department, setDepartment] = useState<Department | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,7 +67,19 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({
 
   const handleBranchSelect = (selectedBranch: Branch) => {
     setBranch(selectedBranch);
-    setStep("department");
+    setStep("kiosk-type");
+  };
+
+  const handleKioskTypeSelect = (type: KioskType) => {
+    setKioskType(type);
+    if (type === "main") {
+      // Main kiosk skips department selection
+      setDepartment(null);
+      setStep("pin");
+    } else {
+      // Department kiosk needs department selection
+      setStep("department");
+    }
   };
 
   const handleDepartmentSelect = (selectedDepartment: Department) => {
@@ -73,8 +88,15 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({
   };
 
   const handlePinComplete = async (pin: string) => {
-    if (!user || !branch || !department) {
+    if (!user || !branch || !kioskType) {
       setError("Missing configuration data");
+      setStep("error");
+      return;
+    }
+
+    // Department is required for department kiosk
+    if (kioskType === "department" && !department) {
+      setError("Missing department selection");
       setStep("error");
       return;
     }
@@ -88,8 +110,13 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({
         organization_name: user.organizationName,
         branch_id: branch.id,
         branch_name: branch.name,
-        department_id: department.id,
-        department_name: department.name,
+        kiosk_type: kioskType,
+        ...(kioskType === "department" && department
+          ? {
+              department_id: department.id,
+              department_name: department.name,
+            }
+          : {}),
         configured_by: user.email,
       };
 
@@ -127,6 +154,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({
   const handleStartOver = () => {
     setUser(null);
     setBranch(null);
+    setKioskType(null);
     setDepartment(null);
     setError(null);
     setStep("login");
@@ -147,6 +175,16 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({
         />
       );
 
+    case "kiosk-type":
+      return (
+        <KioskTypeSelector
+          organizationName={user!.organizationName}
+          branchName={branch!.name}
+          onSelect={handleKioskTypeSelect}
+          onBack={() => setStep("branch")}
+        />
+      );
+
     case "department":
       return (
         <DepartmentSelector
@@ -154,7 +192,7 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({
           branchName={branch!.name}
           organizationName={user!.organizationName}
           onSelect={handleDepartmentSelect}
-          onBack={() => setStep("branch")}
+          onBack={() => setStep("kiosk-type")}
         />
       );
 
@@ -163,9 +201,10 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({
         <PinSetup
           organizationName={user!.organizationName}
           branchName={branch!.name}
-          departmentName={department!.name}
+          departmentName={department?.name}
+          kioskType={kioskType!}
           onComplete={handlePinComplete}
-          onBack={() => setStep("department")}
+          onBack={() => setStep(kioskType === "main" ? "kiosk-type" : "department")}
           saving={saving}
         />
       );
@@ -188,7 +227,11 @@ export const SetupWizard: React.FC<SetupWizardProps> = ({
                 {user?.organizationName}
               </p>
               <p className="text-slate-600">{branch?.name}</p>
-              <p className="text-blue-600">{department?.name}</p>
+              <p className="text-blue-600">
+                {kioskType === "main" 
+                  ? "Main Kiosk (All Departments)" 
+                  : department?.name}
+              </p>
             </div>
             <p className="text-sm text-slate-500">Starting kiosk mode...</p>
           </div>

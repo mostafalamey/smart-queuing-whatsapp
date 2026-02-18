@@ -158,7 +158,9 @@ const ElectronWrapper: React.FC = () => {
             ? {
                 organizationName: config.organization_name,
                 branchName: config.branch_name,
-                departmentName: config.department_name,
+                departmentName: config.kiosk_type === 'main' 
+                  ? 'Main Kiosk (All Departments)' 
+                  : config.department_name || '',
               }
             : null
         }
@@ -187,7 +189,15 @@ const KioskAppWithConfig: React.FC<KioskAppWithConfigProps> = ({
     const url = new URL(window.location.href);
     url.searchParams.set("org", config.organization_id);
     url.searchParams.set("branch", config.branch_id);
-    url.searchParams.set("department", config.department_id);
+    url.searchParams.set("kiosk_type", config.kiosk_type);
+    
+    // Only set department for department kiosks
+    if (config.kiosk_type === 'department' && config.department_id) {
+      url.searchParams.set("department", config.department_id);
+    } else {
+      url.searchParams.delete("department");
+    }
+    
     window.history.replaceState({}, "", url.toString());
   }, [config]);
 

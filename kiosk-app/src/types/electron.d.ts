@@ -2,13 +2,16 @@
  * TypeScript definitions for Electron API exposed via preload script
  */
 
+export type KioskType = 'main' | 'department';
+
 export interface KioskConfig {
   organization_id: string;
   organization_name: string;
   branch_id: string;
   branch_name: string;
-  department_id: string;
-  department_name: string;
+  department_id?: string;
+  department_name?: string;
+  kiosk_type: KioskType;
   admin_pin_hash: string;
   configured_at: string;
   configured_by: string;
@@ -20,8 +23,9 @@ export interface KioskConfigInput {
   organization_name: string;
   branch_id: string;
   branch_name: string;
-  department_id: string;
-  department_name: string;
+  department_id?: string;
+  department_name?: string;
+  kiosk_type: KioskType;
   configured_at?: string;
   configured_by: string;
 }

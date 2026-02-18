@@ -106,7 +106,7 @@ export const BranchSelector: React.FC<BranchSelectorProps> = ({
               style={{ width: "40%" }}
             />
           </div>
-          <p className="text-sm text-slate-500 mt-2">Step 2 of 4</p>
+          <p className="text-sm text-slate-500 mt-2">Step 2 of 5</p>
         </div>
 
         {/* Error */}
